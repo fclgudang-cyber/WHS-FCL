@@ -576,38 +576,96 @@ function onViewBuktiError() {
   }
 }
 
-// Export CSV untuk periode aktif (termasuk saldo berjalan)
-function exportCsv() {
+// Export Petty Cash ke file Excel (.xls) — layout mengikuti format laporan gudang.
+function exportExcel() {
   if (!activePeriod.value) { message.warning('Pilih periode dulu'); return; }
   const period = activePeriod.value;
-  const header = ['No', 'Tanggal', 'Tipe', 'Kategori', 'Keterangan', 'Nominal', 'Saldo', 'Status', 'Bukti', 'Input By'];
-  const rows = txRows.value.map((r) => [
-    r._no,
-    (r.tanggal ?? '').slice(0, 10),
-    r._tipe,
-    r.kategori ?? '',
-    r.keterangan ?? '',
-    String(r._nomSigned),
-    String(r._saldo),
-    r._lunas ? 'LUNAS' : 'BELUM BAYAR',
-    r.buktiUrl ?? '',
-    r.createdBy ?? '',
-  ]);
-  const total = [
-    '', '', '', '', 'TOTAL',
-    String(txRows.value.filter((r) => r._tipe === 'Keluar').reduce((s, r) => s + toNum(r.nominal), 0) * -1),
-    String(sisaSaldo.value), '', '', '',
-  ];
-  const lines = [header, ...rows, ['', '', '', '', '', '', '', '', '', ''], total]
-    .map((cols) => cols.map((c) => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))
-    .join('\n');
-  const blob = new Blob(['﻿' + lines], { type: 'text/csv;charset=utf-8;' });
+  if (!txRows.value.length) { message.warning('Belum ada transaksi di periode ini'); return; }
+
+  const katKode = new Map<string, string>();
+  kategoris.value.forEach((k) => {
+    const nama = String(k.nama ?? '').trim();
+    if (nama) katKode.set(nama, String(k.kode ?? ''));
+  });
+  const absUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `${window.location.origin}${u}`);
+
+  const dMulai = dayjs(period.tanggalMulai);
+  const dSelesai = dayjs(period.tanggalSelesai);
+  const periodeLabel = dMulai.isValid() && dSelesai.isValid()
+    ? `${dMulai.format('D MMMM')}-${dSelesai.format('D MMMM YYYY')}`
+    : String(period.nama || '-');
+  const judul = `LAPORAN PETTY CASH - Periode ${periodeLabel}`;
+  const subjudul = `Periode: ${fmtTanggalPendek(period.tanggalMulai)} s/d ${fmtTanggalPendek(period.tanggalSelesai)} | Saldo Awal: ${formatRp(toNum(period.saldoAwal))}`;
+
+  const header = ['No', 'Tanggal', 'Tipe', 'Kategori', 'Keterangan', 'Nominal', 'Saldo Berjalan', 'Status Bayar', 'Link Bukti', 'Input By'];
+  const dataRows = txRows.value.map((r) => {
+    const namaKat = String(r.kategori ?? '').trim();
+    const kode = katKode.get(namaKat) ?? '';
+    const kat = kode ? `${kode} ${namaKat}` : (namaKat || '-');
+    const tipe = r._tipe === 'Masuk' ? 'IN' : 'OUT';
+    const link = r.buktiUrl ? String(r.buktiUrl) : '';
+    const linkHtml = link
+      ? `<a href="${esc(absUrl(link))}" target="_blank">${esc(link)}</a>`
+      : '<span style="color:#b91c1c">tanpa bukti</span>';
+    return [
+      String(r._no),
+      dayjs(r.tanggal).isValid() ? dayjs(r.tanggal).format('MM/DD/YYYY') : '',
+      tipe,
+      esc(kat),
+      esc(r.keterangan ?? ''),
+      String(r._nomSigned),
+      String(r._saldo),
+      r._lunas ? 'Lunas' : 'Belum',
+      linkHtml,
+      esc(r.createdBy ?? ''),
+    ];
+  });
+
+  const headHtml = header.map((h) => `<th class="head">${esc(h)}</th>`).join('');
+  const bodyHtml = dataRows
+    .map((cols, i) => `<tr>${cols.map((c, ci) => {
+      if (ci === 5 || ci === 6) return `<td class="num">${c}</td>`;
+      if (ci === 8) return `<td class="link">${c}</td>`;
+      if (ci === 0) return `<td class="center">${c}</td>`;
+      return `<td>${c}</td>`;
+    }).join('')}</tr>`).join('');
+
+  const html = `<!doctype html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"/>
+<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Petty Cash</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+<style>
+  table { border-collapse: collapse; width: 100%; font-family: Calibri, Arial, sans-serif; font-size: 11px; }
+  th, td { border: 1px solid #bfbfbf; padding: 3px 6px; vertical-align: top; }
+  .judul { font-size: 13px; font-weight: bold; }
+  .subjudul { font-size: 11px; }
+  .head { font-weight: bold; background: #f2f2f2; text-align: left; }
+  .num { mso-number-format: "0"; text-align: right; }
+  .link { mso-number-format: "\\@"; word-break: break-all; }
+  .center { text-align: center; }
+</style></head><body>
+<table>
+  <colgroup>
+    <col width="38"/><col width="83"/><col width="48"/><col width="195"/>
+    <col width="250"/><col width="90"/><col width="105"/><col width="95"/>
+    <col width="430"/><col width="175"/>
+  </colgroup>
+  <tr><td colspan="10" class="judul">${esc(judul)}</td></tr>
+  <tr><td colspan="10" class="subjudul">${esc(subjudul)}</td></tr>
+  <tr><td colspan="10">&nbsp;</td></tr>
+  <tr>${headHtml}</tr>
+  ${bodyHtml}
+</table>
+</body></html>`;
+
+  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `pettycash-${period.nama.replace(/\s+/g, '_')}.csv`;
+  a.download = `laporan-petty-cash-${period.nama.replace(/\s+/g, '_')}.xls`;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  notification.success({ message: 'Export Petty Cash', description: 'File Excel (.xls) berhasil diunduh' });
 }
 
 // Jendela cetak generik
@@ -981,7 +1039,7 @@ onMounted(loadAll);
               {{ onlyBelum ? 'Menampilkan: Belum Bayar' : 'Belum Bayar' }}
             </button>
             <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-sm" @click="router.push('/fcl/keuangan/pettyCashKategori')"><LucideList :size="13" /> Kategori</button>
-            <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-sm" @click="exportCsv"><LucideDownload :size="13" /> Export</button>
+            <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-sm" @click="exportExcel"><LucideDownload :size="13" /> Export</button>
             <button class="fcl-pc-btn fcl-pc-btn-info fcl-pc-btn-sm" @click="openInvoice"><LucideFilePenLine :size="13" /> Invoice</button>
             <button class="fcl-pc-btn fcl-pc-btn-teal fcl-pc-btn-sm" @click="printDokumen"><LucideNotebookPen :size="13" /> Dokumen</button>
             <button class="fcl-pc-btn fcl-pc-btn-orange fcl-pc-btn-sm" @click="printFoto"><LucidePrinter :size="13" /> Foto</button>
