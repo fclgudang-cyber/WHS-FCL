@@ -36,6 +36,9 @@ function saveDomain() {
   message.success('Domain webhook disimpan');
 }
 const devices = ref<Device[]>([]);
+interface Signal { online: boolean; latencyMs: number; port: number }
+const signals = ref<Record<string, Signal>>({});
+const checking = ref(false);
 const loading = ref(false);
 const page = ref(1);
 const pageSize = ref(20);
@@ -46,10 +49,42 @@ const form = ref({ nama: '', merk: 'Solution X900', ipaddress: '', serialnumber:
 
 const paged = computed(() => devices.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value));
 
+function barLevel(s?: Signal): number {
+  if (!s) return 0;
+  if (!s.online) return 0;
+  if (s.latencyMs <= 50) return 4;
+  if (s.latencyMs <= 150) return 3;
+  if (s.latencyMs <= 400) return 2;
+  return 1;
+}
+
+async function checkSignals() {
+  const ips = devices.value.filter((d) => String(d.aktif).toLowerCase() === 'ya' && d.ipaddress).map((d) => String(d.ipaddress));
+  if (!ips.length) { message.info('Belum ada mesin aktif dengan IP address'); return; }
+  checking.value = true;
+  try {
+    const res = await fetch('/api/fingerprint-check', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ips }),
+    });
+    const body = await res.json();
+    const map: Record<string, Signal> = {};
+    (body?.items ?? []).forEach((it: any) => { map[String(it.ip)] = { online: !!it.online, latencyMs: Number(it.latencyMs || 0), port: Number(it.port || 0) }; });
+    signals.value = map;
+    const online = Object.values(map).filter((v) => v.online).length;
+    notification.success({ message: 'Cek Sinyal', description: `${online}/${ips.length} mesin terhubung` });
+  } catch (err: any) {
+    notification.error({ message: 'Cek Sinyal', description: err?.message || 'Gagal mengecek koneksi' });
+  } finally {
+    checking.value = false;
+  }
+}
+
 async function load(silent = false) {
   if (!silent) loading.value = true;
   try {
     devices.value = await fclQuery<Device>('fcl_api_devices', { select: '*', order: 'createdAt.desc', limit: 1000 });
+    if (!silent && devices.value.length) await checkSignals();
   } catch (err: any) {
     console.error('[fcl/api-management]', err);
     notification.error({ message: 'API Management', description: err?.message || 'Gagal memuat data' });
@@ -76,6 +111,7 @@ async function save() {
     notification.success({ message: 'Mesin', description: editing.value ? 'Diperbarui' : 'Ditambahkan' });
     modalOpen.value = false;
     await load(true);
+    await checkSignals();
   } catch (err: any) {
     notification.error({ message: 'Mesin', description: err?.message || 'Gagal menyimpan' });
   } finally {
@@ -110,15 +146,22 @@ onMounted(() => load());
       <div class="api-card">
         <div class="api-head">
           <div class="api-title">Daftar Mesin Fingerprint</div>
+          <button class="api-btn api-btn-ghost" :loading="checking" @click="checkSignals">Cek Sinyal</button>
           <button class="api-btn api-btn-primary" @click="openModal()"><LucidePlus :size="12" /> Tambah Mesin</button>
         </div>
         <div class="api-table-wrap">
           <table class="api-table">
-            <thead><tr><th>NAMA MESIN</th><th>MERK</th><th>IP ADDRESS</th><th>SERIAL NUMBER</th><th>AKTIF</th><th>KETERANGAN</th><th>AKSI</th></tr></thead>
+            <thead><tr><th>NAMA MESIN</th><th>MERK</th><th>IP ADDRESS</th><th>SERIAL NUMBER</th><th>SINYAL</th><th>AKTIF</th><th>KETERANGAN</th><th>AKSI</th></tr></thead>
             <tbody>
               <tr v-for="d in paged" :key="d.id">
                 <td class="api-name">{{ d.nama }}</td><td>{{ d.merk || '-' }}</td><td><code>{{ d.ipaddress || '-' }}</code></td>
                 <td><code>{{ d.serialnumber || '-' }}</code></td>
+                <td>
+                  <span class="api-signal" :title="signals[d.ipaddress] ? (signals[d.ipaddress].online ? `Terhubung · ${signals[d.ipaddress].latencyMs} ms (port ${signals[d.ipaddress].port})` : 'Tidak terhubung') : 'Belum dicek'">
+                    <i v-for="n in 4" :key="n" :class="{ 'on': n <= barLevel(signals[d.ipaddress]), 'off': n > barLevel(signals[d.ipaddress]) }" :style="{ height: 4 + n * 3 + 'px' }"></i>
+                  </span>
+                  <span class="api-signal-text" :class="signals[d.ipaddress]?.online ? 'api-ok' : 'api-off'">{{ signals[d.ipaddress] ? (signals[d.ipaddress].online ? signals[d.ipaddress].latencyMs + ' ms' : 'Offline') : '-' }}</span>
+                </td>
                 <td><span class="api-status" :class="String(d.aktif).toLowerCase() === 'ya' ? 'api-ok' : 'api-off'">{{ d.aktif }}</span></td>
                 <td>{{ d.keterangan || '-' }}</td>
                 <td>
@@ -128,7 +171,7 @@ onMounted(() => load());
                   </div>
                 </td>
               </tr>
-              <tr v-if="!paged.length"><td colspan="7" class="api-empty">Belum ada mesin terdaftar.</td></tr>
+              <tr v-if="!paged.length"><td colspan="8" class="api-empty">Belum ada mesin terdaftar.</td></tr>
             </tbody>
           </table>
         </div>
@@ -183,4 +226,10 @@ onMounted(() => load());
 .api-domain-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .api-domain-row label { font-size: 10px; font-weight: 800; color: hsl(var(--muted-foreground)); white-space: nowrap; }
 .api-domain-row .api-input { max-width: 360px; }
+
+.api-signal { display: inline-flex; align-items: flex-end; gap: 2px; vertical-align: middle; }
+.api-signal i { display: inline-block; width: 4px; border-radius: 2px; background: hsl(var(--border)); }
+.api-signal i.on { background: hsl(var(--success)); }
+.api-signal i.off { opacity: 0.35; }
+.api-signal-text { font-size: 10px; font-weight: 800; margin-left: 6px; white-space: nowrap; }
 </style>

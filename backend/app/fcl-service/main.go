@@ -29,6 +29,8 @@ func router(w http.ResponseWriter, r *http.Request) {
 		handleHealth(w, r)
 	case p == "/api/fingerprint-webhook", p == "/fp":
 		handleFingerprintWebhook(w, r)
+	case p == "/api/fingerprint-check":
+		handleFingerprintSignal(w, r)
 	case p == "/api/auth/login" && r.Method == "POST":
 		handleLogin(w, r)
 	case p == "/api/auth/change-password" && r.Method == "POST":
