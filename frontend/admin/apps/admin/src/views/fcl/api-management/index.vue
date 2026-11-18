@@ -166,14 +166,7 @@ onMounted(() => load());
             <div class="api-muted">Format array langsung dan <code>{"records":[...]}</code> juga didukung.</div>
           </div>
           <div class="api-box">
-            <b>Cara setting di mesin X900</b>
-            <ol class="api-steps">
-              <li>Buka browser, ketik IP mesin X900, login sebagai admin.</li>
-              <li>Masuk menu <b>Communication</b> / <b>HTTP Push</b> / <b>ADMS</b>.</li>
-              <li>Isi URL server dengan <code>{{ shortUrl }}</code>, method <b>POST</b>.</li>
-              <li>Pilih format JSON, aktifkan push, lalu simpan.</li>
-              <li>Klik <b>Test Kirim Data</b> di bawah untuk memastikan data masuk.</li>
-            </ol>
+            <b>Test Webhook</b>
             <div class="api-test-row">
               <button class="api-btn api-btn-accent" :loading="testing" @click="testWebhook">Test Kirim Data</button>
               <button class="api-btn api-btn-ghost" @click="load()"><LucideRefreshCw :size="12" /> Refresh</button>
@@ -249,9 +242,7 @@ onMounted(() => load());
 .api-box { background: hsl(var(--muted)); border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 10px; font-size: 11px; color: hsl(var(--foreground)); }
 .api-code { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 10px; font-size: 10px; overflow: auto; max-height: 220px; color: hsl(var(--foreground)); }
 .api-muted { font-size: 10px; color: hsl(var(--muted-foreground)); margin-top: 6px; }
-.api-steps { margin: 8px 0 8px 18px; line-height: 1.7; }
-.api-steps code { color: hsl(var(--primary)); }
-.api-test-row { display: flex; gap: 6px; }
+.api-test-row { display: flex; gap: 6px; margin-top: 8px; }
 .api-result { margin-top: 8px; font-family: monospace; font-size: 10px; background: hsl(var(--background)); border-radius: 5px; padding: 8px; word-break: break-all; }
 .api-btn { display: inline-flex; align-items: center; gap: 5px; border: 1px solid hsl(var(--border)); background: hsl(var(--muted)); color: hsl(var(--foreground)); font-size: 11px; font-weight: 700; padding: 6px 11px; border-radius: 6px; cursor: pointer; height: 30px; }
 .api-btn:hover { filter: brightness(0.96); }
