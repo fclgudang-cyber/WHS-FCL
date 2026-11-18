@@ -689,8 +689,27 @@ function printFoto() {
   const palette = ['#1e3a5f', '#0f6b4f', '#9a3412', '#6d28d9', '#0e7490', '#b91c1c'];
   const absUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `${window.location.origin}${u}`);
 
-  const sections = [...grouped.entries()].map(([kat, items], gi) => {
+  // Urutan grup diambil dari master kategori (urutan/kode A, B, C, D, F, ...).
+  const katIndex = new Map<string, { kode: string; urutan: number }>();
+  kategoris.value.forEach((k) => {
+    const nama = String(k.nama ?? '').trim();
+    if (nama) {
+      katIndex.set(nama, { kode: String(k.kode ?? ''), urutan: Number(k.urutan ?? 0) });
+    }
+  });
+  const orderedGroups = [...grouped.entries()].sort((a, b) => {
+    const ka = katIndex.get(a[0]);
+    const kb = katIndex.get(b[0]);
+    if (!ka && !kb) return a[0].localeCompare(b[0], 'id');
+    if (!ka) return 1;
+    if (!kb) return -1;
+    return (ka.urutan - kb.urutan) || ka.kode.localeCompare(kb.kode);
+  });
+
+  const sections = orderedGroups.map(([kat, items], gi) => {
     const color = palette[gi % palette.length];
+    const meta = katIndex.get(kat);
+    const label = meta?.kode ? `${meta.kode} ${kat}` : kat;
     const fotoCount = items.filter((t) => !!t.buktiUrl).length;
     const cards = items.map((t, i) => {
       const by = t.createdBy ? `<div class="card-by">• ${esc(t.createdBy)}</div>` : '';
@@ -706,7 +725,7 @@ function printFoto() {
         + '</div>';
     }).join('');
     return '<section class="cat" style="--cat:' + color + '">'
-      + '<div class="cat-head"><span class="cat-name">' + esc(kat) + '</span>'
+      + '<div class="cat-head"><span class="cat-name">' + esc(label) + '</span>'
       + '<span class="pill">' + fotoCount + ' foto / ' + items.length + ' trx</span></div>'
       + '<div class="cat-body">' + cards + '</div></section>';
   }).join('');
