@@ -64,6 +64,17 @@ const permission: RouteRecordRaw[] = [
         },
         component: () => import('#/views/app/permission/api/index.vue'),
       },
+      {
+        path: 'fingerprint-webhook',
+        name: 'FingerprintWebhookManagement',
+        meta: {
+          order: 5,
+          icon: 'lucide:scan-barcode',
+          title: 'Webhook Fingerprint X900',
+          authority: ['sys:platform_admin', 'sys:tenant_manager'],
+        },
+        component: () => import('#/views/fcl/api-management/index.vue'),
+      },
     ],
   },
 ];

@@ -218,25 +218,6 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/fcl/api',
-    name: 'FCLApiManagement',
-    component: lazyLayout,
-    meta: {
-      order: 1600,
-      icon: 'lucide:route',
-      title: 'API Management',
-      ignoreAccess: true,
-    },
-    children: [
-      {
-        path: '/fcl/api/fingerprint',
-        name: 'FCLApiFingerprint',
-        component: () => import('#/views/fcl/api-management/index.vue'),
-        meta: { icon: 'lucide:scan-barcode', title: 'Webhook Fingerprint X900', ignoreAccess: true },
-      },
-    ],
-  },
-  {
     path: '/fcl/dokumentasi',
     name: 'FCLDokumentasi',
     component: lazyLayout,
