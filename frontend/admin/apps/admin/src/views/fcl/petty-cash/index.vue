@@ -490,9 +490,53 @@ async function saveBukti() {
   await loadAll(true);
 }
 
+// Pratinjau foto bukti langsung di halaman (tanpa membuka tab/link baru).
+// Untuk tautan Google Drive, URL "view" diubah ke URL gambar langsung agar <img> bisa merender.
+const viewBuktiOpen = ref(false);
+const viewBuktiSrc = ref('');
+const viewBuktiCandidates = ref<string[]>([]);
+const viewBuktiOriginal = ref('');
+const viewBuktiLabel = ref('');
+const viewBuktiIsPdf = ref(false);
+const viewBuktiFailed = ref(false);
+
+function driveFileId(url: string): string {
+  try {
+    const u = new URL(url);
+    if (!/drive\.google\.com$/.test(u.hostname)) return '';
+    const m = u.pathname.match(/\/file\/d\/([^/]+)/);
+    return m ? m[1] : u.searchParams.get('id') ?? '';
+  } catch {
+    return '';
+  }
+}
+
 function viewBukti(t: TxRow) {
-  if (!t.buktiUrl) return;
-  window.open(t.buktiUrl, '_blank', 'noopener');
+  const url = String(t.buktiUrl ?? '').trim();
+  if (!url) {
+    message.warning('Transaksi ini belum memiliki foto bukti');
+    return;
+  }
+  const id = driveFileId(url);
+  const candidates = id
+    ? [`https://lh3.googleusercontent.com/d/${id}`, `https://drive.google.com/uc?export=view&id=${id}`, url]
+    : [url];
+  viewBuktiCandidates.value = candidates;
+  viewBuktiSrc.value = candidates[0];
+  viewBuktiOriginal.value = url;
+  viewBuktiLabel.value = String(t.keterangan || t.tanggal || '').slice(0, 48);
+  viewBuktiIsPdf.value = /\.pdf(\?|$)/i.test(url);
+  viewBuktiFailed.value = false;
+  viewBuktiOpen.value = true;
+}
+
+function onViewBuktiError() {
+  const i = viewBuktiCandidates.value.indexOf(viewBuktiSrc.value);
+  if (i >= 0 && i < viewBuktiCandidates.value.length - 1) {
+    viewBuktiSrc.value = viewBuktiCandidates.value[i + 1];
+  } else {
+    viewBuktiFailed.value = true;
+  }
 }
 
 // Export CSV untuk periode aktif (termasuk saldo berjalan)
@@ -1002,6 +1046,38 @@ onMounted(loadAll);
       </template>
     </a-modal>
 
+    <!-- ══════════ Modal: Pratinjau Foto Bukti (inline) ══════════ -->
+    <a-modal
+      v-model:open="viewBuktiOpen"
+      :title="viewBuktiLabel ? `Foto Bukti — ${viewBuktiLabel}` : 'Foto Bukti'"
+      :footer="null"
+      width="760px"
+      centered
+    >
+      <div class="fcl-pc-viewbukti">
+        <template v-if="!viewBuktiFailed">
+          <img
+            v-if="!viewBuktiIsPdf"
+            :src="viewBuktiSrc"
+            alt="Foto bukti transaksi"
+            class="fcl-pc-viewbukti-img"
+            @error="onViewBuktiError"
+          />
+          <iframe
+            v-else
+            :src="viewBuktiSrc"
+            class="fcl-pc-viewbukti-frame"
+            title="Dokumen bukti transaksi"
+          ></iframe>
+        </template>
+        <div v-else class="fcl-pc-viewbukti-error">
+          <LucideInbox :size="28" />
+          <p>Foto tidak dapat ditampilkan langsung. Tautan asli tetap bisa dibuka jika diperlukan.</p>
+          <a :href="viewBuktiOriginal" target="_blank" rel="noopener">Buka tautan asli ↗</a>
+        </div>
+      </div>
+    </a-modal>
+
     <!-- ══════════ Modal: Invoice ══════════ -->
     <a-modal
       v-model:open="invoiceModalOpen"
@@ -1268,6 +1344,11 @@ onMounted(loadAll);
 .fcl-pc-bukti-upload { display: inline-flex; align-items: center; gap: 5px; border: 1px dashed hsl(var(--border)); background: transparent; color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 700; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
 .fcl-pc-bukti-upload:hover { color: hsl(var(--foreground)); border-color: hsl(var(--primary)); }
 .fcl-pc-bukti-hint { color: hsl(var(--muted-foreground)); font-size: 12px; margin-bottom: 10px; }
+.fcl-pc-viewbukti { display: flex; align-items: center; justify-content: center; min-height: 220px; background: hsl(var(--muted)); border: 1px solid hsl(var(--border)); border-radius: 8px; overflow: hidden; }
+.fcl-pc-viewbukti-img { display: block; max-width: 100%; max-height: 65vh; width: auto; height: auto; object-fit: contain; }
+.fcl-pc-viewbukti-frame { display: block; width: 100%; height: 65vh; border: 0; }
+.fcl-pc-viewbukti-error { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 32px 20px; text-align: center; color: hsl(var(--muted-foreground)); font-size: 13px; }
+.fcl-pc-viewbukti-error a { color: hsl(var(--primary)); font-weight: 700; }
 .fcl-pc-by { color: hsl(var(--muted-foreground)); max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
 .fcl-pc-aksi { display: flex; gap: 4px; align-items: center; justify-content: center; }
 .fcl-pc-empty-cell { text-align: center; color: hsl(var(--muted-foreground)); padding: 22px 8px; }
