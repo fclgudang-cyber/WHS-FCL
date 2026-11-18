@@ -1,0 +1,1197 @@
+{
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "codeLogin": "Verification Code Login",
+    "qrcodeLogin": "QR Code Login",
+    "forgetPassword": "Forgot Password"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "inventoryOverview": "Inventory Overview",
+    "warehouseCount": "Warehouses",
+    "skuCount": "SKUs in Stock",
+    "totalQuantity": "Total Quantity",
+    "movementCount": "Movements",
+    "lowStockTitle": "Low Stock",
+    "lowStockEmpty": "No low-stock items",
+    "movementTrendTitle": "Movement Trend (Last 30 Days)",
+    "expiringLotsTitle": "Expiring Lots (within 30 days)",
+    "expiringLotsCount": "{count} lots to handle"
+  },
+  "user": {
+    "moduleName": "User",
+    "form": {
+      "username": "Username",
+      "nickname": "Nickname",
+      "realname": "Real Name",
+      "email": "Email",
+      "mobile": "Mobile",
+      "tenant": "Tenant",
+      "role": "Role",
+      "orgUnit": "Organization",
+      "position": "Position",
+      "oldPassword": "Old Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "status": "Status"
+    },
+    "table": {
+      "seq": "No.",
+      "username": "Username",
+      "nickname": "Nickname",
+      "realname": "Name",
+      "password": "Password",
+      "avatar": "Avatar",
+      "email": "Email",
+      "mobile": "Mobile",
+      "telephone": "Landline",
+      "gender": "Gender",
+      "address": "Address",
+      "region": "Region",
+      "description": "Description",
+      "lastLoginAt": "Last Login Time",
+      "lastLoginIp": "Last Login IP",
+      "roleId": "Role",
+      "tenantId": "Tenant",
+      "orgUnitId": "Organization",
+      "positionId": "Position",
+      "workId": "Employee ID",
+      "status": "Status"
+    },
+    "button": {
+      "create": "Create Account",
+      "editPassword": "Change Password",
+      "banAccount": "Disable Account",
+      "updateUserInfo": "Update Profile",
+      "updatePassword": "Change Password",
+      "uploadAvatar": "Upload Avatar",
+      "deleteAvatar": "Delete Avatar",
+      "resetMfa": "Reset MFA"
+    },
+    "profile": {
+      "tab": {
+        "basicSettings": "Basic Settings",
+        "securitySettings": "Security Settings",
+        "editPassword": "Change Password",
+        "accountBind": "Account Bindings",
+        "notification": "Notifications"
+      }
+    },
+    "detail": {
+      "title": "Profile of User {userId}",
+      "tab": {
+        "basicInfo": "Basic Info",
+        "permission": "Permissions",
+        "apiAuditLog": "API Logs",
+        "internalMessage": "Inbox"
+      },
+      "desc": {
+        "username": "Username",
+        "realname": "Real Name",
+        "nickname": "Nickname",
+        "gender": "Gender",
+        "mobile": "Mobile",
+        "email": "Email",
+        "region": "Region",
+        "address": "Address",
+        "roleNames": "Roles",
+        "tenantName": "Tenant",
+        "orgUnitName": "Organization",
+        "positionName": "Position",
+        "lastLoginAt": "Last Login Time",
+        "lastLoginIp": "Last Login IP"
+      }
+    }
+  },
+  "role": {
+    "moduleName": "Role",
+    "name": "Role Name",
+    "code": "Role Code",
+    "description": "Role Description",
+    "isProtected": "Built-in Role",
+    "apis": "Assign APIs",
+    "permissions": "Assign Permissions",
+    "tenantName": "Tenant",
+    "button": {
+      "create": "Create Role"
+    },
+    "dataScope": "Data Scope",
+    "orgUnits": "Authorized Org Units",
+    "fieldPerm": {
+      "title": "Field Permissions",
+      "userTitle": "Field Permissions (User)",
+      "roleTitle": "Field Permissions (Role)",
+      "hint": "Checked fields are hidden for users with this role: removed from list/detail views and stripped from create/update payloads (takes effect after re-login).",
+      "field": {
+        "email": "Email",
+        "mobile": "Mobile",
+        "telephone": "Telephone",
+        "address": "Address",
+        "region": "Region",
+        "lastLoginAt": "Last Login At",
+        "lastLoginIp": "Last Login IP",
+        "permissions": "Permission set"
+      }
+    }
+  },
+  "permission": {
+    "moduleName": "Permission",
+    "name": "Permission Name",
+    "code": "Permission Code",
+    "path": "Tree Path",
+    "groupId": "Group",
+    "groupName": "Group Name",
+    "menuIds": "Associated Menus",
+    "apiIds": "Associated APIs",
+    "menuIdsPlaceholder": "Select associated menus",
+    "apiIdsPlaceholder": "Select associated APIs",
+    "treeExpandAll": "Expand",
+    "treeCollapseAll": "Collapse",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect",
+    "description": "Permission Description",
+    "button": {
+      "create": "Create Permission",
+      "syncPermissions": "Sync Permissions"
+    }
+  },
+  "permissionGroup": {
+    "moduleName": "Permission Group",
+    "name": "Group Name",
+    "module": "Business Module",
+    "parentId": "Parent Group",
+    "button": {
+      "create": "Create Group"
+    },
+    "moduleOther": "Other"
+  },
+  "dict": {
+    "moduleName": "Dictionary",
+    "dictType": "Dictionary Type",
+    "dictEntry": "Dictionary Entry",
+    "dictTypeList": "Dictionary Type List",
+    "dictEntryList": "Dictionary Entry List",
+    "typeCode": "Code",
+    "typeName": "Type Name",
+    "entryLabel": "Label",
+    "entryValue": "Value",
+    "numericValue": "Numeric Value",
+    "typeId": "Dictionary Type",
+    "languageCode": "Language Code",
+    "languageName": "Language Name",
+    "button": {
+      "create": "Add"
+    }
+  },
+  "menu": {
+    "moduleName": "Menu",
+    "name": "Title",
+    "type": "Type",
+    "icon": "Icon",
+    "path": "Route Path",
+    "component": "Component Path",
+    "show": "Show",
+    "isExt": "External Link",
+    "keepAlive": "Keep Alive",
+    "affixTab": "Affix Tab",
+    "hideInMenu": "Hide in Menu",
+    "hideChildrenInMenu": "Hide Children",
+    "hideInTab": "Hide in Tab",
+    "hideInBreadcrumb": "Hide in Breadcrumb",
+    "parentId": "Parent Menu",
+    "authority": "Authority",
+    "order": "Order",
+    "title": "Menu Title",
+    "advancedSettings": "Advanced Settings",
+    "tips": {
+      "authority": "Separate permissions with commas, e.g. sys:user:add,sys:user:edit"
+    },
+    "button": {
+      "create": "Create Menu"
+    }
+  },
+  "orgUnit": {
+    "moduleName": "Organizations",
+    "name": "Organization Name",
+    "code": "Unique Code",
+    "parentId": "Parent Organization",
+    "type": "Organization Type",
+    "isLegalEntity": "Legal Entity",
+    "businessScope": "Core Business Scope",
+    "registrationNumber": "Registration Number",
+    "taxId": "Tax ID",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "timezone": "Time Zone",
+    "country": "Region Code",
+    "leaderId": "Leader ID",
+    "leaderName": "Leader Name",
+    "contactUserId": "Contact User ID",
+    "contactUserName": "Contact User Name",
+    "description": "Description",
+    "button": {
+      "create": "Create Organization"
+    }
+  },
+  "position": {
+    "moduleName": "Position",
+    "name": "Position Name",
+    "parentId": "Parent Position",
+    "orgUnit": "Organization",
+    "orgUnitId": "Organization ID",
+    "orgUnitName": "Organization Name",
+    "description": "Description",
+    "type": "Position Type",
+    "code": "Unique Code",
+    "headcount": "Headcount",
+    "button": {
+      "create": "Create Position"
+    }
+  },
+  "tenant": {
+    "moduleName": "Tenant",
+    "name": "Tenant Name",
+    "code": "Tenant Code",
+    "type": "Tenant Type",
+    "auditStatus": "Audit Status",
+    "adminSetting": "Admin Account Settings",
+    "lastLoginAt": "Last Login Time",
+    "lastLoginIp": "Last Login IP",
+    "logoUrl": "Logo URL",
+    "industry": "Industry",
+    "expiredAt": "Expires At",
+    "memberCount": "Member Count",
+    "adminUserName": "Admin Username",
+    "adminPassword": "Initial Password",
+    "adminPasswordConfirm": "Confirm Password",
+    "adminMobile": "Mobile",
+    "adminEmail": "Email",
+    "button": {
+      "create": "Create Tenant"
+    },
+    "notification": {
+      "tenant_code_exists": "Tenant code already exists, please change and try again.",
+      "user_username_exists": "Admin username already exists, please change and try again."
+    },
+    "tenant_code_exists": "Tenant code already exists"
+  },
+  "file": {
+    "moduleName": "File",
+    "fileName": "Original File Name",
+    "saveFileName": "Stored File Name",
+    "bucketName": "Bucket Name",
+    "fileDirectory": "Directory",
+    "provider": "OSS Provider",
+    "fileGuid": "GUID",
+    "extension": "File Extension",
+    "size": "Size",
+    "createdBy": "Uploaded By",
+    "createdAt": "Uploaded At",
+    "button": {
+      "create": "Create File",
+      "upload": "Upload File",
+      "download": "Download File"
+    }
+  },
+  "task": {
+    "moduleName": "Task",
+    "type": "Schedule Type",
+    "typeName": "Schedule Method",
+    "taskPayload": "Task Payload",
+    "taskOptions": "Task Options",
+    "taskOptionsMaxRetry": "Max Retries",
+    "taskOptionsTimeout": "Timeout",
+    "taskOptionsDeadline": "Deadline",
+    "taskOptionsProcessIn": "Delay",
+    "taskOptionsProcessAt": "Run At",
+    "cronSpec": "Cron Expression",
+    "enable": "Enabled",
+    "button": {
+      "create": "Create Task",
+      "start": "Start",
+      "restart": "Restart",
+      "stop": "Stop",
+      "startAll": "Start All",
+      "restartAll": "Restart All",
+      "stopAll": "Stop All"
+    },
+    "text": {
+      "do_you_want_start_all_task": "Are you sure you want to start all tasks?",
+      "do_you_want_restart_all_task": "Are you sure you want to restart all tasks?",
+      "do_you_want_stop_all_task": "Are you sure you want to stop all tasks?",
+      "do_you_want_start_task": "Are you sure you want to start this task?",
+      "do_you_want_restart_task": "Are you sure you want to restart this task?",
+      "do_you_want_stop_task": "Are you sure you want to stop this task?"
+    }
+  },
+  "internalMessage": {
+    "moduleName": "Message",
+    "title": "Title",
+    "content": "Content",
+    "type": "Type",
+    "status": "Status",
+    "categoryName": "Category",
+    "senderName": "Sender",
+    "senderSystem": "System",
+    "categoryId": "Category",
+    "createdAt": "Received At",
+    "readAt": "Read At",
+    "button": {
+      "create": "Create Message",
+      "markAsRead": "Mark as Read",
+      "markAllRead": "Mark All Read"
+    },
+    "drawer": {
+      "create": "Create Message",
+      "update": "Update Message"
+    },
+    "sendScope": "Send To",
+    "sendScopeAll": "All Users",
+    "sendScopeUsers": "Selected Users",
+    "targetUsers": "Recipients"
+  },
+  "internalMessageCategory": {
+    "moduleName": "Message Categories",
+    "name": "Category Name",
+    "code": "Category Code",
+    "parentId": "Parent",
+    "button": {
+      "create": "Create Category"
+    }
+  },
+  "privateMessage": {
+    "moduleName": "Private Messages",
+    "subject": "Subject",
+    "button": {
+      "create": "Create Private Message"
+    }
+  },
+  "loginAuditLog": {
+    "moduleName": "Login Audit Logs",
+    "username": "Username",
+    "status": "Status",
+    "actionType": "Action",
+    "geoLocation": "Geo Location",
+    "platform": "Platform",
+    "ipAddress": "IP Address",
+    "failureReason": "Failure Reason",
+    "riskScore": "Risk Score",
+    "riskLevel": "Risk Level",
+    "riskFactors": "Risk Factors",
+    "createdAt": "Log Time"
+  },
+  "apiAuditLog": {
+    "moduleName": "API Audit Logs",
+    "username": "Operator",
+    "success": "Status",
+    "geoLocation": "Geo Location",
+    "platform": "Platform",
+    "ipAddress": "IP Address",
+    "createdAt": "Log Time",
+    "path": "Request Path",
+    "httpMethod": "HTTP Method",
+    "latencyMs": "API Latency (ms)",
+    "sectionBasic": "Basic Information",
+    "sectionDevice": "Device Information",
+    "sectionApi": "API Information",
+    "sectionOther": "Other Information",
+    "userId": "User ID",
+    "statusCode": "Status Code",
+    "tenantName": "Tenant",
+    "requestUri": "Request URI",
+    "apiModule": "API Module",
+    "apiOperation": "API Operation",
+    "apiDescription": "API Description",
+    "requestBody": "Request Body",
+    "requestHeader": "Request Header",
+    "response": "Response",
+    "reason": "Reason",
+    "referer": "Referer",
+    "spanId": "Span ID",
+    "requestId": "Request ID",
+    "traceId": "Trace ID",
+    "logHash": "Log Hash",
+    "signature": "Signature",
+    "osName": "OS",
+    "browserName": "Browser",
+    "userAgent": "User-Agent"
+  },
+  "redisCacheMonitor": {
+    "moduleName": "Redis Cache Monitor",
+    "dbSizeCardTitle": "Total Keys",
+    "dbSize": "Total Keys (DBSIZE)",
+    "infoCardTitle": "INFO Section",
+    "noInfo": "No INFO data available",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "noEntries": "No entries in this section",
+    "collapsed": "Collapsed, click title to expand",
+    "slowlogCardTitle": "Slow Log",
+    "noSlowlog": "No slow log entries",
+    "slowlogId": "Log ID",
+    "createdAt": "Occurred At",
+    "durationUsec": "Duration (μs)",
+    "clientAddr": "Client Address",
+    "clientName": "Client Name",
+    "args": "Command Arguments",
+    "disclaimer": "This is a read-only monitoring view. All data comes from Redis INFO/DBSIZE/SLOWLOG. No write operations are performed."
+  },
+  "dataAccessAuditLog": {
+    "moduleName": "Data Access Logs",
+    "createdAt": "Log Time",
+    "username": "Operator",
+    "requestId": "Request ID",
+    "ipAddress": "IP Address",
+    "geoLocation": "Geo Location",
+    "latencyMs": "Latency (ms)",
+    "success": "Status",
+    "sensitiveLevel": "Sensitivity Level",
+    "dataSource": "Data Source Type",
+    "tableName": "Table Name",
+    "dataId": "Data ID",
+    "accessType": "Access Type",
+    "sqlDigest": "SQL Digest",
+    "sqlText": "SQL Text",
+    "affectedRows": "Affected Rows",
+    "dataMasked": "Masked",
+    "maskingRules": "Masking Rules",
+    "businessPurpose": "Business Purpose",
+    "dataCategory": "Data Category",
+    "dbUser": "DB User"
+  },
+  "operationAuditLog": {
+    "moduleName": "Operation Logs",
+    "createdAt": "Log Time",
+    "username": "Operator",
+    "resourceType": "Resource Type",
+    "resourceId": "Resource ID",
+    "action": "Action",
+    "beforeData": "Before Data",
+    "afterData": "After Data",
+    "sensitiveLevel": "Sensitivity Level",
+    "requestId": "Request ID",
+    "success": "Status",
+    "ipAddress": "IP Address",
+    "geoLocation": "Geo Location"
+  },
+  "permissionAuditLog": {
+    "moduleName": "Permission Change Logs",
+    "createdAt": "Log Time",
+    "username": "Operator",
+    "requestId": "Request ID",
+    "ipAddress": "IP Address",
+    "geoLocation": "Geo Location",
+    "operatorId": "Operator ID",
+    "operatorName": "Operator Username",
+    "targetType": "Target Type",
+    "targetId": "Target ID",
+    "targetName": "Target Name",
+    "action": "Action",
+    "reason": "Reason"
+  },
+  "api": {
+    "moduleName": "API Resources",
+    "path": "Path",
+    "method": "Method",
+    "module": "Module",
+    "moduleDescription": "Module Description",
+    "operation": "Operation",
+    "button": {
+      "create": "Create API",
+      "sync": "Sync APIs"
+    }
+  },
+  "loginPolicy": {
+    "moduleName": "Login Policy",
+    "targetId": "Target User ID",
+    "type": "Restriction Type",
+    "method": "Restriction Method",
+    "value": "Restriction Value",
+    "reason": "Reason",
+    "button": {
+      "create": "Create Restriction"
+    }
+  },
+  "warehouse": {
+    "moduleName": "Warehouse",
+    "code": "Warehouse Code",
+    "name": "Warehouse Name",
+    "location": "Location",
+    "enable": "Enabled Status",
+    "button": {
+      "create": "Create Warehouse"
+    }
+  },
+  "stockQuant": {
+    "moduleName": "Stock Quant",
+    "locationId": "Location ID",
+    "productCode": "Product Code",
+    "quantity": "Quantity",
+    "frozen": "Frozen",
+    "frozenYes": "Frozen",
+    "frozenNo": "Normal",
+    "freeze": "Freeze",
+    "unfreeze": "Unfreeze"
+  },
+  "stockPicking": {
+    "moduleName": "Stock Picking",
+    "pickingNumber": "Picking Number",
+    "pickingType": "Picking Type",
+    "derivedState": "Derived State",
+    "productCode": "Product Code",
+    "plannedQuantity": "Planned Quantity",
+    "deleteNotAllowed": "Only draft or cancelled pickings can be deleted",
+    "transfer": {
+      "title": "Internal Transfer",
+      "remark": "Remark",
+      "fromWarehouse": "Source Warehouse",
+      "toWarehouse": "Destination Warehouse",
+      "sameWarehouse": "Source and destination warehouses must differ"
+    },
+    "button": {
+      "create": "Create Picking",
+      "transfer": "Transfer",
+      "confirm": "Confirm",
+      "validate": "Validate",
+      "adjustment": "Adjustment"
+    },
+    "adjustment": {
+      "title": "Inventory Adjustment",
+      "warehouse": "Warehouse",
+      "diff": "Difference",
+      "diffTip": "Positive = gain, negative = loss",
+      "diffNonZero": "Difference must not be 0",
+      "remark": "Remark"
+    },
+    "return": {
+      "salesTitle": "Sales Return",
+      "purchaseTitle": "Purchase Return",
+      "quantity": "Return Quantity",
+      "returnable": "Returnable",
+      "salesSuccess": "Sales return picking created; confirm and validate it in the picking list",
+      "purchaseSuccess": "Purchase return picking created; confirm and validate it in the picking list",
+      "failed": "Failed to create return picking"
+    },
+    "outgoing": {
+      "title": "Outbound Order",
+      "fromWarehouse": "Warehouse",
+      "partnerCode": "Consignee",
+      "remark": "Remark",
+      "lines": "Outbound Lines",
+      "addLine": "Add Line",
+      "linesRequired": "Add at least one outbound line",
+      "lineInvalid": "Each line needs a SKU code and a positive quantity",
+      "button": "Outbound"
+    }
+  },
+  "approval": {
+    "moduleName": "Approval",
+    "title": "Title",
+    "bizType": "Business Type",
+    "bizRef": "Business Reference",
+    "summary": "Summary",
+    "status": "Status",
+    "comment": "Comment",
+    "commentHint": "Approval comment (optional)",
+    "button": {
+      "create": "New Request",
+      "approve": "Approve",
+      "reject": "Reject",
+      "cancelRequest": "Cancel"
+    },
+    "progress": "Progress",
+    "stepOf": "Step {current}/{total}"
+  },
+  "doc": {
+    "purchaseTitle": "PURCHASE ORDER",
+    "salesTitle": "SALES ORDER",
+    "docNumber": "No.",
+    "printTime": "Printed At",
+    "supplier": "Supplier",
+    "customer": "Customer",
+    "warehouse": "Warehouse",
+    "status": "Status",
+    "sku": "SKU",
+    "productName": "Product",
+    "spec": "Spec",
+    "unit": "Unit",
+    "quantity": "Qty",
+    "unitPrice": "Unit Price",
+    "amount": "Amount",
+    "receivedQuantity": "Received",
+    "fulfilledQuantity": "Delivered",
+    "totalUpper": "Total (in words)",
+    "remark": "Remark",
+    "sign": {
+      "creator": "Prepared By",
+      "approver": "Approved By",
+      "supplierConfirm": "Supplier Confirmation",
+      "receiver": "Received By",
+      "customerConfirm": "Customer Confirmation",
+      "dispatcher": "Dispatched By",
+      "warehouseKeeper": "Warehouse Keeper",
+      "checker": "Checker"
+    },
+    "pickingType": "Type",
+    "partner": "Partner",
+    "fromWarehouse": "From Warehouse",
+    "toWarehouse": "To Warehouse"
+  },
+  "product": {
+    "moduleName": "Product",
+    "code": "SKU Code",
+    "name": "Product Name",
+    "spec": "Spec",
+    "unit": "Unit",
+    "enable": "Enabled",
+    "button": {
+      "create": "Create Product"
+    }
+  },
+  "receipt": {
+    "amount": "Amount",
+    "method": "Method",
+    "moduleName": "Receipt",
+    "receivableId": "Receivable ID",
+    "receiptNumber": "Receipt No.",
+    "status": "Status"
+  },
+  "agingAr": {
+    "title": "Receivable Aging Report",
+    "disclaimer": "This report buckets unsettled receivables by due date. The overdue bucket (red) requires priority action. Amounts in yuan.",
+    "bucket": "Bucket",
+    "count": "Count",
+    "totalAmount": "Amount",
+    "bucketLabel": {
+      "overdue": "Overdue",
+      "0_7": "0-7 days",
+      "8_30": "8-30 days",
+      "31_90": "31-90 days",
+      "over_90": "over 90 days",
+      "no_due_date": "No due date"
+    }
+  },
+  "profit": {
+    "title": "Profit Report",
+    "month": "Month",
+    "revenue": "Revenue (CNY)",
+    "cogs": "COGS (CNY)",
+    "profit": "Profit (CNY)",
+    "disclaimer": "This report is for operational reference only and does not constitute a financial audit basis."
+  },
+  "salesOrder": {
+    "addItem": "Add Item",
+    "amount": "Amount",
+    "button": {
+      "create": "New Sales Order",
+      "submit": "Submit",
+      "approve": "Approve",
+      "reject": "Reject",
+      "cancel": "Cancel",
+      "complete": "Complete",
+      "print": "Print"
+    },
+    "itemInvalid": "Fill SKU and a positive quantity",
+    "items": "Items",
+    "itemsRequired": "At least one item is required",
+    "moduleName": "Sales Order",
+    "soNumber": "SO Number",
+    "quantity": "Quantity",
+    "fulfillQuantity": "Delivered",
+    "skuCode": "SKU",
+    "status": "Status",
+    "customerCode": "Customer",
+    "totalAmount": "Total",
+    "unitPrice": "Unit Price",
+    "unitPriceCents": "Unit Price (cents)",
+    "warehouseCode": "Shipping Warehouse"
+  },
+  "register": {
+    "tenantName": "Company Name",
+    "tenantNameTip": "Enter your company name",
+    "tenantCode": "Tenant Code",
+    "tenantCodeTip": "Code for login (letters/digits/dash, 2+ chars)",
+    "tenantCodeInvalid": "Only letters, digits, underscore and dash are allowed",
+    "adminUsername": "Admin Username",
+    "passwordMin": "Password must be at least 6 characters",
+    "successTitle": "Registered",
+    "successDesc": "Tenant {tenantCode} is ready. Log in with admin {username}"
+  },
+  "onboarding": {
+    "title": "Getting Started",
+    "desc": "Follow the guide to set up master data and start your first order",
+    "autoTitle": "Done automatically",
+    "autoDesc": "Created at registration: admin account with permissions, default warehouse MAIN, supplier/customer virtual locations — ready to trade.",
+    "stepProduct": "Add Products",
+    "stepProductDesc": "Enter product SKUs, specs and units; purchase and sales flow by SKU",
+    "stepSupplier": "Add Suppliers",
+    "stepSupplierDesc": "Suppliers are partners of purchase orders; payables are created on approval",
+    "stepCustomer": "Add Customers",
+    "stepCustomerDesc": "Customers are partners of sales orders; receivables are created on approval",
+    "stepPo": "Create First Purchase Order",
+    "stepPoDesc": "Receiving increases stock and tracks weighted-average cost",
+    "stepSo": "Create First Sales Order",
+    "stepSoDesc": "Shipping decreases stock, freezes COGS; profit report updates live"
+  },
+  "stockLot": {
+    "moduleName": "Stock Lots",
+    "name": "Lot No.",
+    "skuCode": "SKU",
+    "expiryDate": "Expiry",
+    "remainingQuantity": "Remaining",
+    "lotStatus": "Status"
+  },
+  "approvalFlow": {
+    "moduleName": "Approval Flows",
+    "stepsCount": "Steps",
+    "stepsOverview": "Step Definitions",
+    "steps": "Approval Steps (advance in order)",
+    "stepName": "Step name (e.g. Manager Review)",
+    "stepRole": "Approver Role (holders may approve)",
+    "addStep": "Add Step",
+    "stepsRequired": "At least one step is required",
+    "formInvalid": "Fill biz type and flow name",
+    "bizType": {
+      "PURCHASE_ORDER": "Purchase Order",
+      "SALES_ORDER": "Sales Order",
+      "PAYMENT": "Payment",
+      "RECEIPT": "Receipt"
+    },
+    "name": "Flow Name",
+    "button": {
+      "create": "New Flow"
+    },
+    "bizTypeLabel": "Biz Type"
+  },
+  "language": {
+    "moduleName": "Language",
+    "languageName": "Language Name",
+    "languageCode": "Language Code",
+    "nativeName": "Native Name",
+    "isEnabled": "Enabled",
+    "isDefault": "Default",
+    "button": {
+      "create": "Create Language",
+      "update": "Update Language"
+    }
+  },
+  "trialBalance": {
+    "accountCode": "Account Code",
+    "accountName": "Account Name",
+    "category": "Category",
+    "debitTotal": "Debit Total",
+    "creditTotal": "Credit Total",
+    "balance": "Balance",
+    "fromDate": "From",
+    "toDate": "To"
+  },
+  "journal": {
+    "entryNumber": "Entry No.",
+    "entryDate": "Date",
+    "summary": "Summary",
+    "bizRef": "Biz Ref",
+    "amount": "Amount",
+    "showLines": "Lines",
+    "hideLines": "Hide",
+    "account": "Account",
+    "lineSummary": "Summary",
+    "debit": "Debit",
+    "credit": "Credit"
+  },
+  "statement": {
+    "title": "Partner Statement",
+    "customer": "Customer",
+    "supplier": "Supplier",
+    "partnerPlaceholder": "Select partner",
+    "partnerRequired": "Select a partner first",
+    "date": "Date",
+    "docType": "Type",
+    "docRef": "Doc",
+    "summary": "Summary",
+    "debit": "Debit",
+    "credit": "Credit",
+    "totalDebit": "Total Debit",
+    "totalCredit": "Total Credit",
+    "balance": "Balance",
+    "partnerConfirm": "Partner Confirmation",
+    "empty": "No data"
+  },
+  "salesRanking": {
+    "bySku": "By Product",
+    "byCustomer": "By Customer",
+    "rank": "Rank",
+    "name": "Name",
+    "quantity": "Qty",
+    "amount": "Amount",
+    "export": "Export Excel",
+    "chartTitle": "Amount Ranking"
+  },
+  "purchase": {
+    "moduleName": "Purchase",
+    "purchaseNumber": "Purchase No.",
+    "warehouseCode": "Dest. Warehouse",
+    "partnerCode": "Shipper",
+    "status": "Status",
+    "expectedDate": "Expected Date",
+    "lines": "Purchase Lines",
+    "skuCode": "SKU Code",
+    "expectedQty": "Expected Qty",
+    "line": {
+      "expected": "Expected",
+      "received": "Received",
+      "putaway": "Putaway",
+      "lotName": "Lot",
+      "expiryDate": "Expiry Date"
+    },
+    "qc": {
+      "pass": "QC Pass",
+      "fail": "QC Fail"
+    },
+    "statusText": {
+      "draft": "Draft",
+      "announced": "Announced",
+      "receiving": "Receiving",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "action": {
+      "announce": "Announce",
+      "receive": "Receive",
+      "putaway": "Putaway",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "button": {
+      "create": "Create Purchase",
+      "addLine": "Add Line"
+    },
+    "linesRequired": "Add at least one Purchase line",
+    "lineInvalid": "Each line needs a SKU code and a positive expected quantity",
+    "receive": {
+      "title": "Receive: {number}",
+      "qty": "Receive Qty",
+      "remaining": "Remaining",
+      "nothingToReceive": "No lines to receive",
+      "overQty": "Receive quantity exceeds remaining quantity",
+      "success": "Received. Inbound picking created",
+      "failed": "Receive failed"
+    },
+    "putaway": {
+      "title": "Putaway: {number}",
+      "qty": "Putaway Qty",
+      "targetLocation": "Target Location",
+      "remaining": "Remaining",
+      "nothingToPutaway": "No lines to putaway",
+      "locationRequired": "Target location is required",
+      "overQty": "Putaway quantity exceeds remaining quantity",
+      "qcBlocked": "QC-failed or pending lines cannot be put away",
+      "qcBlockedHint": "QC failed or pending - putaway blocked",
+      "success": "Putaway done. Picking created",
+      "failed": "Putaway failed"
+    }
+  },
+  "wave": {
+    "waveNumber": "Wave No.",
+    "status": {
+      "draft": "Draft",
+      "running": "Running",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "checked": "Checked",
+      "readyToRelease": "Ready to Release",
+      "released": "Released"
+    },
+    "button": {
+      "create": "Create Wave"
+    },
+    "action": {
+      "check": "Run",
+      "release": "Release"
+    },
+    "runSucceeded": "Succeeded",
+    "runFailed": "Failed",
+    "cancelConfirm": "Cancel this wave? SKU lines will be released.",
+    "noneSelected": "Select at least one outbound picking",
+    "noCandidates": "No eligible outbound pickings (OUTGOING + CONFIRMED + not in a wave)",
+    "noDelete": "Waves are immutable records; deletion is not supported",
+    "statusLabel": "Status",
+    "checkAllAvailable": "All SKUs available — all checked",
+    "checkPartial": "Wave ran, but some SKUs are short: {msg}",
+    "checkFailed": "Failed to run wave",
+    "releaseConfirm": "Release this wave? A picking task will be created.",
+    "released": "Wave released, picking task #{taskId} created",
+    "releaseFailed": "Release failed",
+    "executing": "Running wave…",
+    "releasing": "Releasing wave…",
+    "executingHint": "Checking stock, allocating and reserving — please wait."
+  },
+  "order": {
+    "moduleName": "Order",
+    "orderNumber": "Order No.",
+    "source": "Source",
+    "sourceRef": "External Order ID",
+    "sourceShop": "Shop",
+    "customerName": "Customer",
+    "customerPhone": "Phone",
+    "shippingAddress": "Shipping Address",
+    "warehouseCode": "Shipping Warehouse",
+    "status": "Status",
+    "totalAmount": "Total",
+    "currency": "Currency",
+    "remark": "Remark",
+    "orderedAt": "Ordered At",
+    "pickingId": "Picking ID",
+    "lines": "Order Lines",
+    "skuCode": "SKU",
+    "productName": "Product",
+    "quantity": "Qty",
+    "unitPriceCents": "Unit Price (cents)",
+    "statusText": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "fulfilling": "Fulfilling",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "sourceText": {
+      "manual": "Manual",
+      "shopee": "Shopee",
+      "tokopedia": "Tokopedia",
+      "lazada": "Lazada",
+      "tiktok": "TikTok Shop",
+      "other": "Other"
+    },
+    "button": {
+      "create": "Create Order",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "fulfill": "Fulfill (outbound)",
+      "complete": "Complete",
+      "addLine": "Add Line",
+      "importSample": "Import Sample (Marketplace)"
+    },
+    "importResult": "Import done: created {created}, skipped {skipped}, failed {failed}",
+    "fulfillConfirm": "Fulfill this order? An outbound picking will be created.",
+    "fulfillSuccess": "Fulfilled, picking #{pickingId}",
+    "fulfillFailed": "Fulfill failed",
+    "linesRequired": "At least one order line is required",
+    "lineInvalid": "Each line requires SKU and a positive quantity"
+  },
+  "orderAnalysis": {
+    "addSku": "Add {sku} to wave",
+    "addedToWave": "Added to wave #{waveId}",
+    "addToWaveFailed": "Failed to add to wave",
+    "moreSkus": "more SKUs",
+    "tabs": {
+      "single": "Single (1 order = 1 SKU)",
+      "multi": "Multi (1 order = many SKUs)"
+    },
+    "typeLabel": {
+      "SINGLE": "SINGLE",
+      "MULTI": "MULTI"
+    },
+    "type": "Type",
+    "title": "Order Analysis",
+    "columns": {
+      "sku": "SKU",
+      "product": "Product",
+      "qtyNeeded": "Qty Needed",
+      "orderCount": "# Orders"
+    },
+    "empty": "No pending demand",
+    "refresh": "Refresh",
+    "unfulfilled": "Unfulfilled orders only (excludes SORTED/PACKED/COMPLETED/CANCELLED)",
+    "addAllToWave": "Add All to Wave",
+    "createWave": "Create Wave ({count})"
+  },
+  "pickingTask": {
+    "moduleName": "Picking Tasks",
+    "taskNumber": "Task No.",
+    "waveId": "Wave",
+    "cartNumber": "Cart",
+    "status": "Status",
+    "item": "SKU",
+    "requiredQty": "Required",
+    "pickedQty": "Picked",
+    "allocatedLocation": "Location",
+    "statusText": {
+      "waiting": "Waiting",
+      "running": "In Progress",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "itemStatus": {
+      "pending": "Pending",
+      "picking": "Picking",
+      "done": "Done",
+      "short": "Short pick"
+    },
+    "button": {
+      "scanCart": "Scan Cart",
+      "scanLocation": "Scan Location",
+      "scanSku": "Scan SKU",
+      "scanQty": "Input Qty",
+      "cancel": "Cancel Task"
+    },
+    "shortReasonRequired": "Short pick requires a reason",
+    "pickQtyTooMuch": "Exceeds required qty",
+    "scanLocationFirst": "Please scan cart first to start the task"
+  },
+  "waveSettings": {
+    "moduleName": "Wave Settings",
+    "tabs": {
+      "single": "Single Wave",
+      "multi": "Multi Wave"
+    },
+    "form": {
+      "maxOrdersPerCart": "Max orders per basket",
+      "maxSkuPerWave": "Max SKU per wave (0 = unlimited)",
+      "groupingRule": "Grouping rule",
+      "autoSplit": "Auto-split waves when basket is full",
+      "defaultCartCapacity": "Default basket capacity",
+      "groupingRuleOptions": {
+        "PER_WAREHOUSE": "Per warehouse",
+        "PER_ZONE": "Per zone",
+        "PER_COURIER": "Per courier",
+        "NONE": "None"
+      }
+    },
+    "button": {
+      "save": "Save",
+      "saved": "Settings saved"
+    }
+  },
+  "pickingBaskets": {
+    "moduleName": "Picking Baskets",
+    "code": "Code",
+    "basketType": "Type",
+    "capacity": "Capacity",
+    "status": "Status",
+    "currentWaveId": "Current Wave",
+    "currentTaskId": "Current Task",
+    "button": {
+      "create": "Add Basket",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "create": {
+      "title": "Add Picking Basket"
+    },
+    "edit": {
+      "title": "Edit Picking Basket"
+    },
+    "basketTypes": {
+      "SINGLE": "Single",
+      "MULTI": "Multi"
+    },
+    "statuses": {
+      "FREE": "Free",
+      "IN_USE": "In use",
+      "WAITING_SORT": "Waiting sort",
+      "WAITING_PACK": "Waiting pack"
+    },
+    "capacityMax": "Max capacity",
+    "validation": {
+      "codeRequired": "Code is required",
+      "capacityPositive": "Capacity must be positive"
+    }
+  },
+  "sortBaskets": {
+    "moduleName": "Sort Baskets",
+    "prefix": "Prefix",
+    "count": "Count",
+    "startFrom": "Start number",
+    "boxCount": "Boxes per basket",
+    "code": "Code",
+    "status": "Status",
+    "button": {
+      "generate": "Generate",
+      "delete": "Delete"
+    },
+    "generated": "{created} baskets created, {skipped} skipped",
+    "statuses": {
+      "FREE": "Free",
+      "IN_USE": "In use",
+      "FULL": "Full"
+    },
+    "preview": "Codes will be generated like {prefix}01, {prefix}02, …",
+    "deleteConfirm": "Delete this basket?"
+  },
+  "sorting": {
+    "title": "Sorting",
+    "operatorLabel": "Operator",
+    "shiftLabel": "Shift",
+    "orderLabel": "Order No",
+    "scanCardTitle": "Scan Basket",
+    "basketNoLabel": "1. Basket No.",
+    "basketNoPlaceholder": "Scan / type picking basket no…",
+    "basketCodeLabel": "2. Basket Code",
+    "basketCodePlaceholder": "Scan barcode / QR…",
+    "skuLabel": "3. Scan SKU",
+    "skuFieldPlaceholder": "Scan item SKU…",
+    "skuScanned": "Scanned SKUs",
+    "totalItems": "{count} items",
+    "skuScannedEmpty": "No SKUs scanned yet",
+    "activeHint": "Scan the picking basket — it locks instantly if it exists; then scan the sort basket and the session starts automatically.",
+    "sortToNumber": "SORT TO NUMBER",
+    "waitingSku": "Waiting for SKU scan…",
+    "confirmSort": "Confirm Sort",
+    "reset": "Reset",
+    "mappingTitle": "Sort Mapping",
+    "legendTarget": "This scan target",
+    "legendFilled": "Filled",
+    "legendEmpty": "Empty",
+    "sortHere": "Sort here",
+    "boxLabel": "BOX",
+    "emptySlot": "Empty",
+    "slotItems": "{scanned}/{required} items",
+    "historyTitle": "Recent Sort History",
+    "historyTime": "Time",
+    "historyBasket": "Basket No.",
+    "historySlot": "Sort No.",
+    "historyStatus": "Status",
+    "historyStatusOk": "Matched",
+    "historyEmpty": "No sort history yet.",
+    "step1": "Step 1: Scan Picking Basket",
+    "step2": "Step 2: Scan Sorting Basket",
+    "pickingBasketPlaceholder": "Scan picking basket code (e.g. PS-PICK-001)",
+    "sortBasketPlaceholder": "Scan sort basket code (e.g. AB01)",
+    "pickingBasketLabel": "Picking",
+    "sortBasketLabel": "Sort",
+    "startSession": "Start Session",
+    "sessionStarted": "Sorting session started: {count} boxes for {code}",
+    "startFailed": "Failed to start sorting session",
+    "cancel": "Cancel Session",
+    "sessionCancelled": "Sorting session cancelled",
+    "scan": "Scan",
+    "skuPlaceholder": "Scan SKU from picking basket…",
+    "qtyLabel": "Qty",
+    "insertToBox": "Insert into Box {slot}",
+    "confirmBox": "Confirm Box {slot}",
+    "box": "Box",
+    "orderNumber": "Order No",
+    "customer": "Customer",
+    "progress": "Progress",
+    "status": "Status",
+    "slotStatuses": {
+      "SORT_SLOT_EMPTY": "Empty",
+      "SORT_SLOT_FILLED": "Filled",
+      "SORT_SLOT_COMPLETE": "Complete",
+      "SORT_SLOT_PACKED": "Packed"
+    },
+    "sessionComplete": "Sorting completed!",
+    "scanNext": "Scan Next Basket",
+    "slotComplete": "Box {slot} complete",
+    "errors": {
+      "basketRequired": "Both basket codes are required",
+      "skuNotFound": "SKU not found in any order",
+      "qtyInvalid": "Invalid qty",
+      "scanRejected": "Scan rejected",
+      "scanPickingFirst": "Scan picking basket first"
+    },
+    "locked": "Locked"
+  }
+}

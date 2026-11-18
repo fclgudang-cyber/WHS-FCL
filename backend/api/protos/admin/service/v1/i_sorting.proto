@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package admin.service.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+import "pagination/v1/pagination.proto";
+import "sorting/service/v1/sorting.proto";
+
+// 分拣服务（管理后台）
+service SortingService {
+  rpc ListSessions (pagination.PagingRequest) returns (sorting.service.v1.ListSortSessionsResponse) {
+    option (google.api.http) = { get: "/admin/v1/sorting/sessions" };
+  }
+  rpc GetSession (sorting.service.v1.GetSortSessionRequest) returns (sorting.service.v1.SortSession) {
+    option (google.api.http) = { get: "/admin/v1/sorting/sessions/{id}" };
+  }
+  rpc StartSession (sorting.service.v1.StartSortSessionRequest) returns (sorting.service.v1.StartSortSessionResponse) {
+    option (google.api.http) = { post: "/admin/v1/sorting/start-session", body: "*" };
+  }
+  rpc ScanSku (sorting.service.v1.ScanSkuSortingRequest) returns (sorting.service.v1.ScanSkuSortingResponse) {
+    option (google.api.http) = { post: "/admin/v1/sorting/scan-sku", body: "*" };
+  }
+  rpc ScanSlotItem (sorting.service.v1.ScanSortSlotItemRequest) returns (sorting.service.v1.ScanSortSlotItemResponse) {
+    option (google.api.http) = { post: "/admin/v1/sorting/scan-slot-item", body: "*" };
+  }
+  rpc CancelSession (sorting.service.v1.CancelSortSessionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/sorting/cancel-session", body: "*" };
+  }
+  rpc LockBasket (sorting.service.v1.LockBasketRequest) returns (sorting.service.v1.LockBasketResponse) {
+    option (google.api.http) = { post: "/admin/v1/sorting/lock-basket", body: "*" };
+  }
+  rpc UnlockBasket (sorting.service.v1.UnlockBasketRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/sorting/unlock-basket", body: "*" };
+  }
+}

@@ -1,0 +1,167 @@
+syntax = "proto3";
+
+package sorting.service.v1;
+
+import "gnostic/openapi/v3/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+import "pagination/v1/pagination.proto";
+
+// 分拣服务（仅 MULTI）：picking selesai → scan keranjang picking → bind keranjang sortir → scan SKU → kotak tujuan.
+service SortingService {
+  // 查询 semua sesi sortir
+  rpc ListSessions (pagination.PagingRequest) returns (ListSortSessionsResponse) {}
+  // 查询详情 satu sesi（slots + items）
+  rpc GetSession (GetSortSessionRequest) returns (SortSession) {}
+  // Mulai sesi: scan keranjang picking (scan code) + scan keranjang sortir → alokasi kotak (1 kotak = 1 order multi)
+  rpc StartSession (StartSortSessionRequest) returns (StartSortSessionResponse) {}
+  // Scan SKU dari hasil picking → sistem tentukan kotak tujuan
+  rpc ScanSku (ScanSkuSortingRequest) returns (ScanSkuSortingResponse) {}
+  // Scan kotak (konfirmasi) — tambah qty ke kotak; semua complete → sesi selesai
+  rpc ScanSlotItem (ScanSortSlotItemRequest) returns (ScanSortSlotItemResponse) {}
+  // Batalkan sesi（kembalikan keranjang sortir ke FREE & reset slot items）
+  rpc CancelSession (CancelSortSessionRequest) returns (google.protobuf.Empty) {}
+  // Lock keranjang: scan → deteksi ada/tidak → langsung terkunci (IN_USE)
+  rpc LockBasket (LockBasketRequest) returns (LockBasketResponse) {}
+  // Unlock keranjang yang terkunci tanpa sesi berjalan
+  rpc UnlockBasket (UnlockBasketRequest) returns (google.protobuf.Empty) {}
+}
+
+enum SortSessionStatus {
+  SORT_SESSION_RUNNING = 0;
+  SORT_SESSION_COMPLETED = 1;
+  SORT_SESSION_CANCELLED = 2;
+}
+
+enum SortSlotStatus {
+  SORT_SLOT_EMPTY = 0;
+  SORT_SLOT_FILLED = 1;
+  SORT_SLOT_COMPLETE = 2;
+  SORT_SLOT_PACKED = 3;
+}
+
+// Kotak dalam keranjang sortir — 1 kotak = 1 order multi
+message SortSlot {
+  optional uint32 id = 1 [json_name = "id"];
+  optional uint32 session_id = 2 [json_name = "sessionId"];
+  optional uint32 sort_basket_id = 3 [json_name = "sortBasketId"];
+  optional int32 slot_number = 4 [json_name = "slotNumber"];
+  optional uint32 order_id = 5 [json_name = "orderId"];
+  optional string order_number = 6 [json_name = "orderNumber"];
+  optional string customer_name = 7 [json_name = "customerName"];
+  optional SortSlotStatus status = 8 [json_name = "status"];
+  optional int64 qty_scanned = 9 [json_name = "qtyScanned"];
+  optional int64 qty_required = 10 [json_name = "qtyRequired"];
+  repeated SortSlotItem items = 11 [json_name = "items"];
+}
+
+message SortSlotItem {
+  optional uint32 id = 1 [json_name = "id"];
+  optional uint32 slot_id = 2 [json_name = "slotId"];
+  optional string sku_code = 3 [json_name = "skuCode"];
+  optional string product_name = 4 [json_name = "productName"];
+  optional int64 qty_required = 5 [json_name = "qtyRequired"];
+  optional int64 qty_scanned = 6 [json_name = "qtyScanned"];
+  optional string status = 7 [json_name = "status"]; // PENDING / DONE
+}
+
+message SortSession {
+  optional uint32 id = 1 [json_name = "id"];
+  optional uint32 tenant_id = 2 [json_name = "tenantId"];
+  optional uint32 picking_basket_id = 3 [json_name = "pickingBasketId"];
+  optional string picking_basket_code = 4 [json_name = "pickingBasketCode"];
+  optional uint32 picking_task_id = 5 [json_name = "pickingTaskId"];
+  optional uint32 sort_basket_id = 6 [json_name = "sortBasketId"];
+  optional string sort_basket_code = 7 [json_name = "sortBasketCode"];
+  optional uint32 wave_id = 8 [json_name = "waveId"];
+  optional string wave_number = 9 [json_name = "waveNumber"];
+  optional string device = 10 [json_name = "device"];
+  optional SortSessionStatus status = 11 [json_name = "status"];
+  repeated SortSlot slots = 12 [json_name = "slots"];
+  optional google.protobuf.Timestamp started_at = 100 [json_name = "startedAt"];
+  optional google.protobuf.Timestamp finished_at = 101 [json_name = "finishedAt"];
+  optional google.protobuf.Timestamp created_at = 102 [json_name = "createdAt"];
+}
+
+message ListSortSessionsResponse {
+  uint64 total = 1 [json_name = "total"];
+  repeated SortSession items = 2 [json_name = "items"];
+}
+
+message GetSortSessionRequest {
+  uint32 id = 1 [json_name = "id", (google.api.field_behavior) = REQUIRED];
+}
+
+message StartSortSessionRequest {
+  string picking_basket_code = 1 [json_name = "pickingBasketCode", (google.api.field_behavior) = REQUIRED];
+  string sort_basket_code = 2 [json_name = "sortBasketCode", (google.api.field_behavior) = REQUIRED];
+  optional string device = 3 [json_name = "device"];
+}
+
+message StartSortSessionResponse {
+  uint32 session_id = 1 [json_name = "sessionId"];
+  SortSession session = 2 [json_name = "session"];
+}
+
+message ScanSkuSortingRequest {
+  uint32 session_id = 1 [json_name = "sessionId", (google.api.field_behavior) = REQUIRED];
+  string sku_code = 2 [json_name = "skuCode", (google.api.field_behavior) = REQUIRED];
+}
+
+// Sistem menentukan kotak tujuan sesuai prioritas (box terkecil dulu)
+message ScanSkuSortingResponse {
+  uint32 slot_id = 1 [json_name = "slotId"];
+  int32 slot_number = 2 [json_name = "slotNumber"];
+  uint32 order_id = 3 [json_name = "orderId"];
+  string order_number = 4 [json_name = "orderNumber"];
+  int64 qty_required = 5 [json_name = "qtyRequired"];
+  int64 qty_scanned = 6 [json_name = "qtyScanned"];
+  string product_name = 7 [json_name = "productName"];
+  string message = 8 [json_name = "message"];
+}
+
+message ScanSortSlotItemRequest {
+  uint32 session_id = 1 [json_name = "sessionId", (google.api.field_behavior) = REQUIRED];
+  uint32 slot_id = 2 [json_name = "slotId", (google.api.field_behavior) = REQUIRED];
+  string sku_code = 3 [json_name = "skuCode", (google.api.field_behavior) = REQUIRED];
+  int64 qty = 4 [json_name = "qty", (google.api.field_behavior) = REQUIRED];
+}
+
+message ScanSortSlotItemResponse {
+  int64 qty_scanned = 1 [json_name = "qtyScanned"];
+  int64 qty_required = 2 [json_name = "qtyRequired"];
+  bool slot_complete = 3 [json_name = "slotComplete"];
+  bool session_complete = 4 [json_name = "sessionComplete"];
+  string message = 5 [json_name = "message"];
+}
+
+message CancelSortSessionRequest {
+  uint32 session_id = 1 [json_name = "sessionId", (google.api.field_behavior) = REQUIRED];
+}
+
+enum BasketType {
+  BASKET_TYPE_PICKING = 0;
+  BASKET_TYPE_SORTING = 1;
+}
+
+message LockBasketRequest {
+  BasketType basket_type = 1 [json_name = "basketType", (google.api.field_behavior) = REQUIRED];
+  string code = 2 [json_name = "code", (google.api.field_behavior) = REQUIRED];
+  optional string device = 3 [json_name = "device"];
+}
+
+message LockBasketResponse {
+  uint32 id = 1 [json_name = "id"];
+  string code = 2 [json_name = "code"];
+  string basket_type = 3 [json_name = "basketType"];
+  string status = 4 [json_name = "status"];
+  optional int32 capacity = 5 [json_name = "capacity"];   // picking: kapasitas order / sorting: jumlah kotak
+  string message = 6 [json_name = "message"];
+}
+
+message UnlockBasketRequest {
+  BasketType basket_type = 1 [json_name = "basketType", (google.api.field_behavior) = REQUIRED];
+  string code = 2 [json_name = "code", (google.api.field_behavior) = REQUIRED];
+}

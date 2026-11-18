@@ -1,0 +1,26 @@
+# 容器网络专用的数据配置（挂载覆盖到 /app/configs/data.yaml）。
+# 宿主机运行时用仓库默认的 127.0.0.1 配置即可。
+# 若在 Coolify/Compose 中修改了 POSTGRES_PASSWORD / REDIS_PASSWORD，这里的密码必须同步修改。
+# 注意：opensearch 当前代码未使用，保留为默认值。
+data:
+  database:
+    driver: "postgres"
+    source: "host=postgres port=5432 user=postgres password=*Abcd123456 dbname=ghost_wms sslmode=disable"
+    migrate: false
+    debug: false
+    max_idle_connections: 25
+    max_open_connections: 25
+    connection_max_lifetime: 300s
+
+  redis:
+    addr: "redis:6379"
+    password: "*Abcd123456"
+    dial_timeout: 10s
+    read_timeout: 0.4s
+    write_timeout: 0.6s
+
+  opensearch:
+    addresses:
+      - "http://127.0.0.1:9200"
+    username: "admin"
+    password: "@Abcd#123456"

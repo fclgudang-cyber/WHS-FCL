@@ -1,0 +1,100 @@
+{
+  "formRules": {
+    "required": "Masukkan {0}",
+    "selectRequired": "Pilih {0}"
+  },
+  "placeholder": {
+    "input": "Masukkan",
+    "select": "Pilih"
+  },
+  "captcha": {
+    "title": "Selesaikan verifikasi keamanan",
+    "sliderSuccessText": "Verifikasi berhasil",
+    "sliderDefaultText": "Tahan dan geser slider",
+    "sliderRotateDefaultTip": "Klik gambar untuk menyegarkan",
+    "sliderRotateFailTip": "Verifikasi gagal",
+    "sliderRotateSuccessTip": "Verifikasi berhasil, {0} detik",
+    "alt": "Mendukung nilai src tag img",
+    "refreshAriaLabel": "Muat ulang kode verifikasi",
+    "confirmAriaLabel": "Konfirmasi pilihan",
+    "confirm": "Konfirmasi",
+    "pointAriaLabel": "Klik titik",
+    "clickInOrder": "Klik secara berurutan"
+  },
+  "iconPicker": {
+    "placeholder": "Pilih ikon",
+    "search": "Cari ikon..."
+  },
+  "fallback": {
+    "pageNotFound": "Waduh! Halaman tidak ditemukan",
+    "pageNotFoundDesc": "Maaf, kami tidak dapat menemukan halaman yang Anda cari.",
+    "forbidden": "Waduh! Akses ditolak",
+    "forbiddenDesc": "Maaf, Anda tidak punya izin untuk mengakses halaman ini.",
+    "internalError": "Waduh! Terjadi kesalahan",
+    "internalErrorDesc": "Maaf, server mengalami kesalahan.",
+    "offline": "Halaman offline",
+    "offlineError": "Waduh! Kesalahan jaringan",
+    "offlineErrorDesc": "Maaf, tidak dapat terhubung ke internet. Periksa koneksi Anda dan coba lagi.",
+    "comingSoon": "Segera hadir",
+    "http": {
+      "requestTimeout": "Permintaan kehabisan waktu, coba lagi nanti.",
+      "networkError": "Kesalahan jaringan, periksa koneksi Anda lalu coba lagi.",
+      "badRequest": "Permintaan tidak valid. Periksa input Anda dan coba lagi.",
+      "unauthorized": "Sesi berakhir, silakan masuk kembali.",
+      "forbidden": "Dilarang, Anda tidak punya izin mengakses sumber daya ini.",
+      "notFound": "Tidak ditemukan, sumber daya tidak ada.",
+      "internalServerError": "Kesalahan server internal, coba lagi nanti."
+    }
+  },
+  "widgets": {
+    "document": "Dokumen",
+    "qa": "Masalah & Bantuan",
+    "setting": "Pengaturan",
+    "logoutTip": "Keluar dari akun?",
+    "viewAll": "Lihat semua pesan",
+    "notifications": "Notifikasi",
+    "markAllAsRead": "Tandai semua sudah dibaca",
+    "clearNotifications": "Bersihkan",
+    "checkUpdatesTitle": "Versi baru tersedia",
+    "checkUpdatesDescription": "Klik segarkan untuk mendapatkan versi terbaru",
+    "search": {
+      "title": "Pencarian",
+      "searchNavigate": "Cari menu navigasi",
+      "select": "Pilih",
+      "navigate": "Navigasi",
+      "close": "Tutup",
+      "noResults": "Tidak ada hasil pencarian",
+      "noRecent": "Belum ada riwayat pencarian",
+      "recent": "Riwayat pencarian"
+    },
+    "lockScreen": {
+      "title": "Layar terkunci",
+      "screenButton": "Kunci",
+      "password": "Kata sandi",
+      "placeholder": "Masukkan kata sandi layar kunci",
+      "unlock": "Klik untuk membuka",
+      "errorPasswordTip": "Kata sandi salah, coba lagi",
+      "backToLogin": "Kembali ke login",
+      "entry": "Masuk sistem"
+    }
+  },
+  "notification": {
+    "create_success": "Berhasil dibuat",
+    "create_failed": "Gagal membuat",
+    "update_success": "Berhasil diperbarui",
+    "update_failed": "Gagal memperbarui",
+    "delete_success": "Berhasil dihapus",
+    "delete_failed": "Gagal menghapus",
+    "save_success": "Berhasil disimpan",
+    "save_failed": "Gagal menyimpan",
+    "operation_success": "Berhasil",
+    "operation_failed": "Operasi gagal",
+    "sync_success": "Sinkronisasi berhasil",
+    "sync_failed": "Sinkronisasi gagal",
+    "upload_success": "Unggah berhasil",
+    "upload_failed": "Unggah gagal",
+    "update_status_success": "Status berhasil diperbarui",
+    "update_status_failed": "Gagal memperbarui status",
+    "password_mismatch": "Kata sandi tidak cocok"
+  }
+}

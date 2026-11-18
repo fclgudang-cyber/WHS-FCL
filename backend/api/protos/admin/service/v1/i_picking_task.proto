@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package admin.service.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "pagination/v1/pagination.proto";
+import "picking_task/service/v1/picking_task.proto";
+
+// 拣货任务服务（管理后台）
+service PickingTaskService {
+  rpc List (pagination.PagingRequest) returns (picking_task.service.v1.ListPickingTaskResponse) {
+    option (google.api.http) = { get: "/admin/v1/picking-tasks" };
+  }
+
+  rpc Get (picking_task.service.v1.GetPickingTaskRequest) returns (picking_task.service.v1.PickingTask) {
+    option (google.api.http) = { get: "/admin/v1/picking-tasks/{id}" };
+  }
+
+  rpc Create (picking_task.service.v1.CreatePickingTaskRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/picking-tasks", body: "*" };
+  }
+
+  rpc ScanCart (picking_task.service.v1.ScanCartRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/picking-tasks/scan-cart", body: "*" };
+  }
+
+  rpc ScanLocation (picking_task.service.v1.ScanLocationRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/picking-tasks/scan-location", body: "*" };
+  }
+
+  rpc ScanSku (picking_task.service.v1.ScanSkuRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/picking-tasks/scan-sku", body: "*" };
+  }
+
+  rpc ScanQty (picking_task.service.v1.ScanQtyRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/picking-tasks/scan-qty", body: "*" };
+  }
+
+  rpc CompleteItem (picking_task.service.v1.CompleteItemRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/picking-tasks/complete-item", body: "*" };
+  }
+
+  rpc Cancel (picking_task.service.v1.CancelPickingTaskRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/picking-tasks/{id}/cancel", body: "*" };
+  }
+}

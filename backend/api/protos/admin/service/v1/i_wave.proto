@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package admin.service.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+import "pagination/v1/pagination.proto";
+import "wave/service/v1/wave.proto";
+
+// 波次服务（管理后台）
+service WaveService {
+  rpc List (pagination.PagingRequest) returns (wave.service.v1.ListWaveResponse) {
+    option (google.api.http) = { get: "/admin/v1/waves" };
+  }
+
+  rpc Count (pagination.PagingRequest) returns (wave.service.v1.CountWaveResponse) {
+    option (google.api.http) = { get: "/admin/v1/waves/count" };
+  }
+
+  rpc Get (wave.service.v1.GetWaveRequest) returns (wave.service.v1.Wave) {
+    option (google.api.http) = { get: "/admin/v1/waves/{id}" };
+  }
+
+  rpc Create (wave.service.v1.CreateWaveRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/waves", body: "*" };
+  }
+
+  // 将订单中的 SKU 加进波次
+  rpc AddSkus (wave.service.v1.AddSkusRequest) returns (wave.service.v1.AddSkusResponse) {
+    option (google.api.http) = { post: "/admin/v1/waves/add-skus", body: "*" };
+  }
+
+  // cek stok（检查 ketersediaan + reservasi）
+  rpc Check (wave.service.v1.CheckWaveRequest) returns (wave.service.v1.CheckWaveResponse) {
+    option (google.api.http) = { post: "/admin/v1/waves/{id}/check", body: "*" };
+  }
+
+  // lepaskan 波次 → 生成拣货任务
+  rpc Release (wave.service.v1.ReleaseWaveRequest) returns (wave.service.v1.ReleaseWaveResponse) {
+    option (google.api.http) = { post: "/admin/v1/waves/{id}/release", body: "*" };
+  }
+
+  rpc Cancel (wave.service.v1.CancelWaveRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/waves/{id}/cancel", body: "*" };
+  }
+}

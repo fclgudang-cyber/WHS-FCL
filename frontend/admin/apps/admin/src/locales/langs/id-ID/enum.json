@@ -1,0 +1,334 @@
+{
+  "status": {
+    "ON": "Aktif",
+    "OFF": "Nonaktif"
+  },
+  "enable": {
+    "true": "Aktif",
+    "false": "Nonaktif"
+  },
+  "gender": {
+    "SECRET": "Rahasia",
+    "MALE": "Laki-laki",
+    "FEMALE": "Perempuan"
+  },
+  "successStatus": {
+    "success": "Berhasil",
+    "failed": "Gagal"
+  },
+  "user": {
+    "status": {
+      "DISABLED": "Nonaktif",
+      "NORMAL": "Normal",
+      "PENDING": "Menunggu Aktivasi",
+      "LOCKED": "Terkunci",
+      "EXPIRED": "Kedaluwarsa",
+      "CLOSED": "Ditutup"
+    }
+  },
+  "menu": {
+    "type": {
+      "CATALOG": "Katalog",
+      "MENU": "Menu",
+      "BUTTON": "Tombol",
+      "EMBEDDED": "Tertanam",
+      "LINK": "Tautan Eksternal"
+    }
+  },
+  "task": {
+    "type": {
+      "Periodic": "Berkala",
+      "Delay": "Tugas Tunda",
+      "WaitResult": "Menunggu Hasil"
+    }
+  },
+  "loginPolicy": {
+    "type": {
+      "BLACKLIST": "Daftar Hitam",
+      "WHITELIST": "Daftar Putih"
+    },
+    "method": {
+      "IP": "Batasan IP",
+      "MAC": "Batasan Alamat MAC",
+      "REGION": "Batasan Wilayah",
+      "TIME": "Batasan Waktu",
+      "DEVICE": "Batasan Perangkat"
+    }
+  },
+  "orgUnit": {
+    "type": {
+      "DEPARTMENT": "Departemen",
+      "TEAM": "Tim",
+      "COMPANY": "Grup",
+      "DIVISION": "Divisi",
+      "PROJECT": "Kelompok Proyek",
+      "COMMITTEE": "Komite",
+      "REGION": "Pusat Wilayah",
+      "SUBSIDIARY": "Anak Perusahaan",
+      "BRANCH": "Kantor Cabang",
+      "OTHER": "Lainnya"
+    },
+    "status": {
+      "ON": "Aktif",
+      "OFF": "Nonaktif"
+    }
+  },
+  "tenant": {
+    "status": {
+      "ON": "Aktif",
+      "OFF": "Nonaktif",
+      "EXPIRED": "Kedaluwarsa",
+      "FREEZE": "Beku"
+    },
+    "type": {
+      "TRIAL": "Uji Coba",
+      "PAID": "Berbayar",
+      "INTERNAL": "Internal",
+      "PARTNER": "Mitra",
+      "CUSTOM": "Kustom"
+    },
+    "auditStatus": {
+      "PENDING": "Menunggu Persetujuan",
+      "APPROVED": "Disetujui",
+      "REJECTED": "Ditolak"
+    }
+  },
+  "role": {
+    "type": {
+      "SYSTEM": "Peran Bawaan",
+      "CUSTOM": "Peran Kustom"
+    },
+    "dataScope": {
+      "ALL": "Semua",
+      "SELECTED_UNITS": "Kustom",
+      "UNIT_AND_CHILD": "Departemen & Bawahan",
+      "UNIT_ONLY": "Departemen Saja",
+      "SELF": "Diri Sendiri"
+    }
+  },
+  "membershipPosition": {
+    "status": {
+      "PROBATION": "Masa Percobaan",
+      "ACTIVE": "Aktif",
+      "LEAVE": "Cuti",
+      "RESIGNED": "Resign",
+      "TERMINATED": "Diberhentikan",
+      "EXPIRED": "Kedaluwarsa"
+    }
+  },
+  "position": {
+    "type": {
+      "REGULAR": "Posisi Biasa",
+      "LEADER": "Posisi Pimpinan",
+      "MANAGER": "Posisi Manajerial",
+      "INTERN": "Magang",
+      "CONTRACT": "Kontrak",
+      "OTHER": "Lainnya"
+    }
+  },
+  "permission": {
+    "type": {
+      "CATALOG": "Hak Katalog",
+      "MENU": "Hak Menu",
+      "PAGE": "Hak Halaman",
+      "BUTTON": "Hak Tombol",
+      "API": "Hak API",
+      "DATA": "Hak Data"
+    }
+  },
+  "loginAuditLog": {
+    "status": {
+      "SUCCESS": "Berhasil",
+      "FAILED": "Gagal",
+      "PARTIAL": "Sebagian Berhasil"
+    },
+    "actionType": {
+      "LOGIN": "Pengguna Masuk",
+      "LOGOUT": "Pengguna Keluar",
+      "SESSION_EXPIRED": "Sesi Berakhir"
+    },
+    "riskLevel": {
+      "LOW": "Risiko Rendah",
+      "MEDIUM": "Risiko Menengah",
+      "HIGH": "Risiko Tinggi"
+    }
+  },
+  "operationAuditLog": {
+    "action": {
+      "CREATE": "Buat",
+      "UPDATE": "Perbarui",
+      "DELETE": "Hapus",
+      "READ": "Baca",
+      "ASSIGN": "Tetapkan",
+      "UNASSIGN": "Batalkan Penetapan",
+      "EXPORT": "Ekspor",
+      "IMPORT": "Impor",
+      "OTHER": "Lainnya"
+    }
+  },
+  "dataAccessAuditLog": {
+    "accessType": {
+      "SELECT": "Baca",
+      "INSERT": "Sisipkan",
+      "UPDATE": "Perbarui",
+      "DELETE": "Hapus",
+      "VIEW": "Lihat",
+      "BULK_READ": "Baca Massal",
+      "EXPORT": "Impor",
+      "IMPORT": "Impor",
+      "DDL_CREATE": "Buat Tabel",
+      "DDL_ALTER": "Ubah Tabel",
+      "DDL_DROP": "Hapus Tabel",
+      "METADATA_READ": "Metadata",
+      "SCAN": "Pindai",
+      "ADMIN_OPERATION": "Operasi Admin",
+      "OTHER": "Lainnya"
+    }
+  },
+  "permissionAuditLog": {
+    "action": {
+      "GRANT": "Berikan Hak",
+      "REVOKE": "Cabut Hak",
+      "UPDATE": "Ubah Hak",
+      "RESET": "Atur Ulang Hak",
+      "CREATE": "Buat Hak",
+      "DELETE": "Hapus Hak",
+      "ASSIGN": "Tetapkan Hak",
+      "UNASSIGN": "Batalkan Tetapkan Hak",
+      "BULK_GRANT": "Berikan Massal",
+      "BULK_REVOKE": "Cabut Massal",
+      "EXPIRE": "Hak Kedaluwarsa",
+      "SUSPEND": "Bekukan Hak",
+      "RESUME": "Pulihkan Hak",
+      "ROLLBACK": "Kembalikan Perubahan",
+      "OTHER": "Lainnya"
+    }
+  },
+  "internalMessage": {
+    "status": {
+      "DRAFT": "Draf",
+      "PUBLISHED": "Diterbitkan",
+      "SCHEDULED": "Terjadwal",
+      "REVOKED": "Dicabut",
+      "ARCHIVED": "Diarsipkan",
+      "DELETED": "Dihapus"
+    },
+    "type": {
+      "NOTIFICATION": "Notifikasi",
+      "PRIVATE": "Pesan Pribadi",
+      "GROUP": "Grup"
+    }
+  },
+  "internalMessageRecipient": {
+    "status": {
+      "SENT": "Terkirim",
+      "RECEIVED": "Diterima",
+      "READ": "Sudah Dibaca",
+      "REVOKED": "Ditarik",
+      "DELETED": "Dihapus"
+    }
+  },
+  "ossProvider": {
+    "LOCAL": "Penyimpanan Lokal",
+    "MINIO": "MinIO",
+    "ALIYUN": "Alibaba Cloud OSS",
+    "QINIU": "Qiniu Cloud",
+    "TENCENT": "Tencent Cloud COS",
+    "BAIDU": "Baidu Cloud BOS",
+    "HUAWEI": "Huawei Cloud OBS",
+    "AWS": "Amazon S3",
+    "AZURE": "Microsoft Azure Blob",
+    "GOOGLE": "Google Cloud Storage"
+  },
+  "stockPicking": {
+    "pickingType": {
+      "Incoming": "Masuk",
+      "Internal": "Internal",
+      "InventoryAdjustment": "Stock Opname"
+    },
+    "derivedState": {
+      "Draft": "Draf",
+      "Confirmed": "Dikonfirmasi",
+      "Done": "Selesai",
+      "Cancelled": "Dibatalkan"
+    }
+  },
+  "approval": {
+    "status": {
+      "Pending": "Menunggu Persetujuan",
+      "Approved": "Disetujui",
+      "Rejected": "Ditolak",
+      "Cancelled": "Dibatalkan"
+    }
+  },
+  "procurement": {
+    "status": {
+      "Draft": "Draf",
+      "Submitted": "Menunggu Persetujuan",
+      "Approved": "Disetujui",
+      "Rejected": "Ditolak",
+      "Completed": "Selesai",
+      "Cancelled": "Dibatalkan"
+    }
+  },
+  "finance": {
+    "payableStatus": {
+      "Pending": "Menunggu Pembayaran",
+      "Partial": "Bayar Sebagian",
+      "Settled": "Lunas",
+      "Cancelled": "Dibatalkan"
+    },
+    "paymentMethod": {
+      "BankTransfer": "Transfer Bank",
+      "Cash": "Tunai",
+      "Check": "Cek",
+      "Other": "Lainnya"
+    },
+    "paymentStatus": {
+      "Pending": "Menunggu Persetujuan",
+      "Applied": "Sudah Diposting",
+      "Rejected": "Ditolak"
+    },
+    "receivableStatus": {
+      "Pending": "Menunggu Penerimaan",
+      "Partial": "Diterima Sebagian",
+      "Settled": "Lunas",
+      "Cancelled": "Dibatalkan"
+    },
+    "receiptStatus": {
+      "Pending": "Menunggu Persetujuan",
+      "Applied": "Sudah Diposting",
+      "Rejected": "Ditolak"
+    },
+    "receiptMethod": {
+      "BankTransfer": "Transfer Bank",
+      "Cash": "Tunai",
+      "Check": "Cek",
+      "Other": "Lainnya"
+    }
+  },
+  "sales": {
+    "status": {
+      "Draft": "Draf",
+      "Submitted": "Menunggu Persetujuan",
+      "Approved": "Disetujui",
+      "Rejected": "Ditolak",
+      "Completed": "Selesai",
+      "Cancelled": "Dibatalkan"
+    }
+  },
+  "stockLot": {
+    "Normal": "Normal",
+    "Expiring": "Mendekati Kedaluwarsa",
+    "Expired": "Kedaluwarsa"
+  },
+  "account": {
+    "category": {
+      "ASSET": "Aset",
+      "LIABILITY": "Liabilitas",
+      "EQUITY": "Ekuitas",
+      "REVENUE": "Pendapatan",
+      "EXPENSE": "Beban"
+    }
+  }
+}

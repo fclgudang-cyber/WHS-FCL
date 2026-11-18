@@ -1,0 +1,1194 @@
+{
+  "auth": {
+    "login": "Masuk",
+    "register": "Daftar",
+    "codeLogin": "Masuk dengan kode",
+    "qrcodeLogin": "Masuk dengan QR",
+    "forgetPassword": "Lupa kata sandi"
+  },
+  "dashboard": {
+    "title": "Ringkasan",
+    "inventoryOverview": "Ringkasan Inventaris",
+    "warehouseCount": "Jumlah Gudang",
+    "skuCount": "SKU Tersedia",
+    "totalQuantity": "Total Stok",
+    "movementCount": "Jumlah Transaksi",
+    "lowStockTitle": "Stok Menipis",
+    "lowStockEmpty": "Tidak ada stok menipis",
+    "movementTrendTitle": "Tren Transaksi Stok 30 Hari Terakhir",
+    "expiringLotsTitle": "Batch Mendekati Kedaluwarsa (30 hari)",
+    "expiringLotsCount": "{count} batch perlu ditangani"
+  },
+  "user": {
+    "moduleName": "Pengguna",
+    "form": {
+      "username": "Nama Pengguna",
+      "nickname": "Nama Panggilan",
+      "realname": "Nama Lengkap",
+      "email": "Email",
+      "mobile": "Nomor HP",
+      "tenant": "Tenant",
+      "role": "Peran",
+      "orgUnit": "Organisasi",
+      "position": "Jabatan",
+      "oldPassword": "Kata sandi lama",
+      "newPassword": "Kata sandi baru",
+      "confirmPassword": "Konfirmasi kata sandi",
+      "status": "Status"
+    },
+    "table": {
+      "seq": "No",
+      "username": "Nama Pengguna",
+      "nickname": "Nama Panggilan",
+      "realname": "Nama",
+      "password": "Kata sandi",
+      "avatar": "Avatar",
+      "email": "Email",
+      "mobile": "HP",
+      "telephone": "Telepon",
+      "gender": "Jenis Kelamin",
+      "address": "Alamat",
+      "region": "Wilayah",
+      "description": "Deskripsi",
+      "lastLoginAt": "Login Terakhir",
+      "lastLoginIp": "IP Terakhir",
+      "roleId": "Peran",
+      "tenantId": "Tenant",
+      "orgUnitId": "Organisasi",
+      "positionId": "Jabatan",
+      "workId": "No. Karyawan",
+      "status": "Status"
+    },
+    "button": {
+      "create": "Buat Akun",
+      "editPassword": "Ubah Kata Sandi",
+      "banAccount": "Nonaktifkan Akun",
+      "updateUserInfo": "Perbarui Info Dasar",
+      "updatePassword": "Perbarui Kata Sandi",
+      "uploadAvatar": "Unggah Avatar",
+      "deleteAvatar": "Hapus Avatar",
+      "resetMfa": "Atur Ulang MFA"
+    },
+    "profile": {
+      "tab": {
+        "basicSettings": "Pengaturan Dasar",
+        "securitySettings": "Pengaturan Keamanan",
+        "editPassword": "Ubah Kata Sandi",
+        "accountBind": "Tautkan Akun",
+        "notification": "Notifikasi"
+      }
+    },
+    "detail": {
+      "title": "Profil pengguna {userId}",
+      "tab": {
+        "basicInfo": "Info Dasar",
+        "permission": "Info Hak Akses",
+        "apiAuditLog": "Log API",
+        "internalMessage": "Kotak Masuk"
+      },
+      "desc": {
+        "username": "Nama Pengguna",
+        "realname": "Nama Lengkap",
+        "nickname": "Nama Panggilan",
+        "gender": "Jenis Kelamin",
+        "mobile": "Nomor HP",
+        "email": "Email",
+        "region": "Wilayah",
+        "address": "Alamat",
+        "roleNames": "Daftar Peran",
+        "tenantName": "Tenant",
+        "orgUnitName": "Organisasi",
+        "positionName": "Jabatan",
+        "lastLoginAt": "Login Terakhir",
+        "lastLoginIp": "IP Terakhir"
+      }
+    }
+  },
+  "role": {
+    "moduleName": "Peran",
+    "name": "Nama Peran",
+    "code": "Kode Peran",
+    "description": "Deskripsi Peran",
+    "isProtected": "Peran Bawaan",
+    "apis": "Tetapkan API",
+    "permissions": "Tetapkan Hak Akses",
+    "tenantName": "Tenant",
+    "button": {
+      "create": "Buat Peran"
+    },
+    "dataScope": "Cakupan Data",
+    "orgUnits": "Organisasi yang Diotorisasi",
+    "fieldPerm": {
+      "title": "Hak Akses Field",
+      "userTitle": "Hak Akses Field (User)",
+      "roleTitle": "Hak Akses Field (Role)",
+      "hint": "Field yang dicentang tidak terlihat bagi pengguna peran ini: tidak tampil di daftar/detail, dan tidak bisa diisi saat buat/edit (berlaku setelah login ulang).",
+      "field": {
+        "email": "Email",
+        "mobile": "Nomor HP",
+        "telephone": "Telepon",
+        "address": "Alamat",
+        "region": "Wilayah",
+        "lastLoginAt": "Login Terakhir",
+        "lastLoginIp": "IP Terakhir",
+        "permissions": "Kumpulan Hak (daftar hak yang terikat peran)"
+      }
+    }
+  },
+  "permission": {
+    "moduleName": "Hak Akses",
+    "name": "Nama Hak",
+    "code": "Kode Hak",
+    "path": "Path Pohon",
+    "groupId": "Grup",
+    "groupName": "Nama Grup",
+    "menuIds": "Menu Terkait",
+    "apiIds": "API Terkait",
+    "menuIdsPlaceholder": "Pilih menu terkait",
+    "apiIdsPlaceholder": "Pilih API terkait",
+    "treeExpandAll": "Perluas",
+    "treeCollapseAll": "Ciutkan",
+    "selectAll": "Pilih Semua",
+    "deselectAll": "Batalkan Pilih",
+    "description": "Deskripsi",
+    "button": {
+      "create": "Buat Hak Akses",
+      "syncPermissions": "Sinkronkan Hak"
+    }
+  },
+  "permissionGroup": {
+    "moduleName": "Grup Hak",
+    "name": "Nama Grup",
+    "module": "Modul Bisnis",
+    "parentId": "Grup Induk",
+    "button": {
+      "create": "Buat Grup"
+    },
+    "moduleOther": "Lainnya"
+  },
+  "dict": {
+    "moduleName": "Kamus",
+    "dictType": "Tipe Kamus",
+    "dictEntry": "Entri Kamus",
+    "dictTypeList": "Daftar Tipe Kamus",
+    "dictEntryList": "Daftar Entri Kamus",
+    "typeCode": "Kode",
+    "typeName": "Nama Tipe",
+    "entryLabel": "Label",
+    "entryValue": "Nilai",
+    "numericValue": "Nilai Numerik",
+    "typeId": "Tipe Kamus",
+    "languageCode": "Kode Bahasa",
+    "languageName": "Nama Bahasa",
+    "button": {
+      "create": "Tambah"
+    }
+  },
+  "menu": {
+    "moduleName": "Menu",
+    "name": "Judul",
+    "type": "Tipe",
+    "icon": "Ikon",
+    "path": "Alamat Rute",
+    "component": "Path Komponen",
+    "show": "Tampilkan",
+    "isExt": "Tautan Eksternal",
+    "keepAlive": "Cache Tab",
+    "affixTab": "Sematkan Tab",
+    "hideInMenu": "Sembunyikan Menu",
+    "hideChildrenInMenu": "Sembunyikan Submenu",
+    "hideInTab": "Tampilkan di Bilah Tab",
+    "hideInBreadcrumb": "Sembunyikan di Remah Roti",
+    "parentId": "Menu Induk",
+    "authority": "Kode Hak",
+    "order": "Urutan",
+    "title": "Judul Menu",
+    "advancedSettings": "Pengaturan Lainnya",
+    "tips": {
+      "authority": "Pisahkan beberapa hak dengan koma, misalnya: sys:user:add,sys:user:edit"
+    },
+    "button": {
+      "create": "Buat Menu"
+    }
+  },
+  "orgUnit": {
+    "moduleName": "Daftar Organisasi",
+    "name": "Nama Organisasi",
+    "code": "Kode Unik",
+    "parentId": "Organisasi Induk",
+    "type": "Tipe Organisasi",
+    "isLegalEntity": "Badan Hukum",
+    "businessScope": "Ruang Lingkup Bisnis",
+    "registrationNumber": "Nomor Pendaftaran",
+    "taxId": "NPWP",
+    "address": "Alamat",
+    "phone": "Telepon",
+    "email": "Email",
+    "timezone": "Zona Waktu",
+    "country": "Kode Wilayah",
+    "leaderId": "ID Pimpinan",
+    "leaderName": "Nama Pimpinan",
+    "contactUserId": "ID Kontak Bisnis",
+    "contactUserName": "Nama Kontak Bisnis",
+    "description": "Deskripsi Organisasi",
+    "button": {
+      "create": "Buat Organisasi"
+    }
+  },
+  "position": {
+    "moduleName": "Jabatan",
+    "name": "Nama Jabatan",
+    "parentId": "Jabatan Induk",
+    "orgUnit": "Organisasi",
+    "orgUnitId": "ID Organisasi",
+    "orgUnitName": "Nama Organisasi",
+    "description": "Deskripsi Tugas",
+    "type": "Tipe Jabatan",
+    "code": "Kode Unik",
+    "headcount": "Jumlah Posisi",
+    "button": {
+      "create": "Buat Jabatan"
+    }
+  },
+  "tenant": {
+    "moduleName": "Tenant",
+    "name": "Nama Tenant",
+    "code": "Kode Tenant",
+    "type": "Tipe Tenant",
+    "auditStatus": "Status Audit",
+    "adminSetting": "Konfigurasi Akun Admin",
+    "lastLoginAt": "Login Terakhir",
+    "lastLoginIp": "IP Terakhir",
+    "logoUrl": "URL Logo",
+    "industry": "Industri",
+    "expiredAt": "Kedaluwarsa",
+    "memberCount": "Jumlah Anggota",
+    "adminUserName": "Nama Admin",
+    "adminPassword": "Kata Sandi Awal",
+    "adminPasswordConfirm": "Konfirmasi Kata Sandi",
+    "adminMobile": "Nomor HP",
+    "adminEmail": "Email",
+    "button": {
+      "create": "Buat Tenant"
+    },
+    "notification": {
+      "tenant_code_exists": "Kode tenant sudah ada, silakan ganti lalu buat ulang!",
+      "user_username_exists": "Nama pengguna admin sudah ada, silakan ganti lalu buat ulang!"
+    },
+    "tenant_code_exists": "Kode tenant sudah ada"
+  },
+  "file": {
+    "moduleName": "Berkas",
+    "fileName": "Nama Berkas Asli",
+    "saveFileName": "Nama Tersimpan",
+    "bucketName": "Bucket",
+    "fileDirectory": "Direktori",
+    "provider": "Penyedia OSS",
+    "fileGuid": "GUID",
+    "extension": "Ekstensi",
+    "size": "Ukuran",
+    "createdBy": "Pengunggah",
+    "createdAt": "Waktu Unggah",
+    "button": {
+      "create": "Buat Berkas",
+      "upload": "Unggah Berkas",
+      "download": "Unduh Berkas"
+    }
+  },
+  "task": {
+    "moduleName": "Tugas",
+    "type": "Tipe Penjadwalan",
+    "typeName": "Metode Penjadwalan",
+    "taskPayload": "Data Tugas",
+    "taskOptions": "Opsi Tugas",
+    "taskOptionsMaxRetry": "Jumlah Percobaan Ulang",
+    "taskOptionsTimeout": "Batas Waktu",
+    "taskOptionsDeadline": "Tenggat",
+    "taskOptionsProcessIn": "Waktu Tunda",
+    "taskOptionsProcessAt": "Waktu Eksekusi",
+    "cronSpec": "Ekspresi cron",
+    "enable": "Status Aktif",
+    "button": {
+      "create": "Buat Tugas",
+      "start": "Mulai",
+      "restart": "Mulai Ulang",
+      "stop": "Hentikan",
+      "startAll": "Mulai Semua",
+      "restartAll": "Mulai Ulang Semua",
+      "stopAll": "Hentikan Semua"
+    },
+    "text": {
+      "do_you_want_start_all_task": "Mulai semua tugas?",
+      "do_you_want_restart_all_task": "Mulai ulang semua tugas?",
+      "do_you_want_stop_all_task": "Hentikan semua tugas?",
+      "do_you_want_start_task": "Mulai tugas ini?",
+      "do_you_want_restart_task": "Mulai ulang tugas ini?",
+      "do_you_want_stop_task": "Hentikan tugas ini?"
+    }
+  },
+  "internalMessage": {
+    "moduleName": "Pesan Internal",
+    "title": "Judul Pesan",
+    "content": "Isi Pesan",
+    "type": "Tipe Pesan",
+    "status": "Status",
+    "categoryName": "Kategori Pesan",
+    "senderName": "Pengirim",
+    "senderSystem": "Sistem",
+    "categoryId": "Kategori Pesan",
+    "createdAt": "Diterima",
+    "readAt": "Waktu Dibaca",
+    "button": {
+      "create": "Buat Pesan",
+      "markAsRead": "Tandai Dibaca",
+      "markAllRead": "Semua Dibaca"
+    },
+    "drawer": {
+      "create": "Buat Pesan",
+      "update": "Perbarui Pesan"
+    },
+    "sendScope": "Cakupan Pengiriman",
+    "sendScopeAll": "Semua Orang",
+    "sendScopeUsers": "Pengguna Tertentu",
+    "targetUsers": "Penerima"
+  },
+  "internalMessageCategory": {
+    "moduleName": "Kategori Pesan",
+    "name": "Nama Kategori",
+    "code": "Kode Kategori",
+    "parentId": "Induk",
+    "button": {
+      "create": "Buat Kategori"
+    }
+  },
+  "privateMessage": {
+    "moduleName": "Pesan Pribadi",
+    "subject": "Subjek Pesan",
+    "button": {
+      "create": "Buat Pesan Pribadi"
+    }
+  },
+  "loginAuditLog": {
+    "moduleName": "Log Audit Login",
+    "username": "Nama Pengguna",
+    "status": "Status Login",
+    "actionType": "Aksi",
+    "geoLocation": "Lokasi",
+    "platform": "Platform Login",
+    "ipAddress": "Alamat IP",
+    "failureReason": "Alasan Gagal",
+    "riskScore": "Skor Risiko",
+    "riskLevel": "Tingkat Risiko",
+    "riskFactors": "Faktor Risiko",
+    "createdAt": "Waktu Log"
+  },
+  "apiAuditLog": {
+    "moduleName": "Log API",
+    "username": "Nama Operator",
+    "success": "Status Operasi",
+    "geoLocation": "Lokasi",
+    "platform": "Platform",
+    "ipAddress": "Alamat IP",
+    "createdAt": "Waktu Log",
+    "path": "Path Request",
+    "httpMethod": "Metode HTTP",
+    "latencyMs": "Durasi (ms)",
+    "sectionBasic": "Info Dasar",
+    "sectionDevice": "Info Perangkat",
+    "sectionApi": "Info API",
+    "sectionOther": "Info Lainnya",
+    "userId": "ID Pengguna",
+    "statusCode": "Kode Status",
+    "tenantName": "Tenant",
+    "requestUri": "URI Request",
+    "apiModule": "Modul API",
+    "apiOperation": "Operasi API",
+    "apiDescription": "Deskripsi API",
+    "requestBody": "Body Request",
+    "requestHeader": "Header Request",
+    "response": "Konten Respons",
+    "reason": "Alasan",
+    "referer": "Halaman Asal",
+    "spanId": "Span ID",
+    "requestId": "Request ID",
+    "traceId": "Trace ID",
+    "logHash": "Hash Log",
+    "signature": "Tanda Tangan",
+    "osName": "Sistem Operasi",
+    "browserName": "Browser",
+    "userAgent": "User-Agent"
+  },
+  "dataAccessAuditLog": {
+    "moduleName": "Log Akses Data",
+    "createdAt": "Waktu Log",
+    "username": "Nama Operator",
+    "requestId": "Request ID",
+    "ipAddress": "Alamat IP",
+    "geoLocation": "Lokasi",
+    "latencyMs": "Durasi (ms)",
+    "success": "Status Operasi",
+    "sensitiveLevel": "Tingkat Sensitivitas",
+    "dataSource": "Tipe Sumber Data",
+    "tableName": "Nama Tabel",
+    "dataId": "ID Data",
+    "accessType": "Tipe Akses",
+    "sqlDigest": "Ringkasan SQL",
+    "sqlText": "SQL",
+    "affectedRows": "Baris Terpengaruh",
+    "dataMasked": "Sudah Di-mask",
+    "maskingRules": "Aturan Masking",
+    "businessPurpose": "Tujuan Bisnis",
+    "dataCategory": "Kategori Data",
+    "dbUser": "Pengguna DB"
+  },
+  "operationAuditLog": {
+    "moduleName": "Log Operasi",
+    "createdAt": "Waktu Log",
+    "username": "Nama Operator",
+    "resourceType": "Tipe Sumber Daya",
+    "resourceId": "ID Sumber Daya",
+    "action": "Aksi",
+    "beforeData": "Sebelum",
+    "afterData": "Sesudah",
+    "sensitiveLevel": "Tingkat Sensitivitas",
+    "requestId": "Request ID",
+    "success": "Status Operasi",
+    "ipAddress": "Alamat IP",
+    "geoLocation": "Lokasi"
+  },
+  "permissionAuditLog": {
+    "moduleName": "Log Perubahan Hak",
+    "createdAt": "Waktu Log",
+    "username": "Nama Operator",
+    "requestId": "Request ID",
+    "ipAddress": "Alamat IP",
+    "geoLocation": "Lokasi",
+    "operatorId": "ID Operator",
+    "operatorName": "Nama Operator",
+    "targetType": "Tipe Target",
+    "targetId": "ID Target",
+    "targetName": "Nama Target",
+    "action": "Aksi",
+    "reason": "Alasan Perubahan"
+  },
+  "api": {
+    "moduleName": "Sumber Daya API",
+    "path": "Path",
+    "method": "Metode",
+    "module": "Modul",
+    "moduleDescription": "Deskripsi Modul",
+    "operation": "Operasi",
+    "button": {
+      "create": "Buat API",
+      "sync": "Sinkronkan API"
+    }
+  },
+  "loginPolicy": {
+    "moduleName": "Kebijakan Login",
+    "targetId": "ID Pengguna Target",
+    "type": "Tipe Batasan",
+    "method": "Metode Batasan",
+    "value": "Nilai Batasan",
+    "reason": "Alasan",
+    "button": {
+      "create": "Buat Batasan"
+    }
+  },
+  "language": {
+    "moduleName": "Bahasa",
+    "languageName": "Nama Bahasa",
+    "languageCode": "Kode Bahasa",
+    "nativeName": "Nama Asli",
+    "isEnabled": "Aktif",
+    "isDefault": "Default",
+    "button": {
+      "create": "Buat Bahasa",
+      "update": "Perbarui Bahasa"
+    }
+  },
+  "navigationItem": {
+    "moduleName": "Kelola Item Navigasi",
+    "title": "Teks Tampil",
+    "description": "Teks Deskripsi",
+    "icon": "Ikon",
+    "url": "URL Tautan",
+    "linkType": "Tipe Tautan",
+    "objectId": "Objek Terkait",
+    "sortOrder": "Prioritas",
+    "isOpenNewTab": "Buka di Tab Baru",
+    "isInvalid": "Tidak Valid",
+    "cssClass": "Kelas CSS Kustom",
+    "requiredPermission": "Hak Akses",
+    "button": {
+      "create": "Buat Item Navigasi"
+    }
+  },
+  "warehouse": {
+    "moduleName": "Gudang",
+    "code": "Kode Gudang",
+    "name": "Nama Gudang",
+    "location": "Alamat Gudang",
+    "enable": "Status Aktif",
+    "button": {
+      "create": "Buat Gudang"
+    }
+  },
+  "stockQuant": {
+    "moduleName": "Kuantitas Stok",
+    "locationId": "ID Lokasi",
+    "productCode": "Kode Produk",
+    "quantity": "Kuantitas",
+    "frozen": "Beku",
+    "frozenYes": "Dibekukan",
+    "frozenNo": "Normal",
+    "freeze": "Bekukan",
+    "unfreeze": "Cairkan"
+  },
+  "stockPicking": {
+    "moduleName": "Surat Picking",
+    "pickingNumber": "No. Picking",
+    "pickingType": "Tipe Picking",
+    "derivedState": "Status Turunan",
+    "productCode": "Kode Produk",
+    "plannedQuantity": "Kuantitas Rencana",
+    "deleteNotAllowed": "Hanya surat picking draf atau batal yang bisa dihapus",
+    "transfer": {
+      "title": "Transfer Internal",
+      "remark": "Catatan",
+      "fromWarehouse": "Gudang Asal",
+      "toWarehouse": "Gudang Tujuan",
+      "sameWarehouse": "Gudang asal dan tujuan tidak boleh sama"
+    },
+    "button": {
+      "create": "Buat Surat Picking",
+      "transfer": "Transfer",
+      "confirm": "Konfirmasi",
+      "validate": "Eksekusi",
+      "adjustment": "Stock Opname"
+    },
+    "adjustment": {
+      "title": "Stock Opname",
+      "warehouse": "Gudang",
+      "diff": "Selisih",
+      "diffTip": "Positif = selisih lebih, negatif = selisih kurang",
+      "diffNonZero": "Selisih tidak boleh 0",
+      "remark": "Catatan"
+    },
+    "return": {
+      "salesTitle": "Retur Penjualan",
+      "purchaseTitle": "Retur Pembelian",
+      "quantity": "Kuantitas Retur",
+      "returnable": "Bisa diretur",
+      "salesSuccess": "Surat retur penjualan dibuat, konfirmasi & eksekusi di daftar picking",
+      "purchaseSuccess": "Surat retur pembelian dibuat, konfirmasi & eksekusi di daftar picking",
+      "failed": "Gagal membuat surat retur"
+    },
+    "outgoing": {
+      "title": "Surat Keluar",
+      "fromWarehouse": "Gudang Keluar",
+      "partnerCode": "Pelanggan",
+      "remark": "Catatan",
+      "lines": "Detail Keluar",
+      "addLine": "Tambah Detail",
+      "linesRequired": "Minimal satu detail keluar",
+      "lineInvalid": "Detail SKU dan kuantitas (positif) harus lengkap",
+      "button": "Surat Keluar"
+    }
+  },
+  "approval": {
+    "moduleName": "Persetujuan",
+    "title": "Judul",
+    "bizType": "Tipe Bisnis",
+    "bizRef": "Dokumen Bisnis",
+    "summary": "Ringkasan Alasan",
+    "status": "Status Persetujuan",
+    "comment": "Komentar",
+    "commentHint": "Tulis komentar (opsional)",
+    "button": {
+      "create": "Ajukan Persetujuan",
+      "approve": "Setujui",
+      "reject": "Tolak",
+      "cancelRequest": "Batalkan"
+    },
+    "progress": "Progress",
+    "stepOf": "Langkah {current}/{total}"
+  },
+  "doc": {
+    "purchaseTitle": "SURAT PEMBELIAN",
+    "salesTitle": "SURAT PENJUALAN",
+    "docNumber": "No. Dokumen",
+    "printTime": "Waktu Cetak",
+    "supplier": "Pemasok",
+    "customer": "Pelanggan",
+    "warehouse": "Gudang",
+    "status": "Status",
+    "sku": "Kode SKU",
+    "productName": "Nama Produk",
+    "spec": "Spesifikasi",
+    "unit": "Satuan",
+    "quantity": "Kuantitas",
+    "unitPrice": "Harga Satuan",
+    "amount": "Jumlah",
+    "receivedQuantity": "Jumlah Diterima",
+    "fulfilledQuantity": "Jumlah Dikirim",
+    "totalUpper": "Total (Terbilang)",
+    "remark": "Catatan",
+    "sign": {
+      "creator": "Pembuat",
+      "approver": "Penyetuju",
+      "supplierConfirm": "Konfirmasi Pemasok",
+      "receiver": "Penerima",
+      "customerConfirm": "Konfirmasi Pelanggan",
+      "dispatcher": "Pengirim",
+      "warehouseKeeper": "Petugas Gudang",
+      "checker": "Pemeriksa"
+    },
+    "pickingType": "Tipe",
+    "partner": "Mitra",
+    "fromWarehouse": "Gudang Asal",
+    "toWarehouse": "Gudang Tujuan"
+  },
+  "product": {
+    "moduleName": "Produk",
+    "code": "Kode SKU",
+    "name": "Nama Produk",
+    "spec": "Spesifikasi",
+    "unit": "Satuan",
+    "enable": "Status Aktif",
+    "button": {
+      "create": "Buat Produk"
+    }
+  },
+  "receipt": {
+    "amount": "Jumlah",
+    "method": "Metode Pembayaran",
+    "moduleName": "Penerimaan",
+    "receivableId": "ID Piutang",
+    "receiptNumber": "No. Penerimaan",
+    "status": "Status"
+  },
+  "agingAr": {
+    "title": "Laporan Umur Piutang",
+    "disclaimer": "Laporan ini mengelompokkan piutang yang belum lunas berdasarkan jatuh tempo per bucket. Bucket jatuh tempo (merah) harus diprioritaskan. Satuan: rupiah.",
+    "bucket": "Bucket",
+    "count": "Jumlah",
+    "totalAmount": "Jumlah (Rp)",
+    "bucketLabel": {
+      "overdue": "Kedaluwarsa",
+      "0_7": "0-7 hari",
+      "8_30": "8-30 hari",
+      "31_90": "31-90 hari",
+      "over_90": "> 90 hari",
+      "no_due_date": "Tanpa jatuh tempo"
+    }
+  },
+  "profit": {
+    "title": "Laporan Laba",
+    "month": "Bulan",
+    "revenue": "Pendapatan (Rp)",
+    "cogs": "HPP (Rp)",
+    "profit": "Laba (Rp)",
+    "disclaimer": "Laporan ini hanya untuk referensi bisnis, bukan dasar audit keuangan."
+  },
+  "salesOrder": {
+    "addItem": "Tambah Detail",
+    "amount": "Jumlah (Rp)",
+    "button": {
+      "create": "Buat Sales Order",
+      "submit": "Ajukan Persetujuan",
+      "approve": "Setujui",
+      "reject": "Tolak",
+      "cancel": "Batalkan",
+      "complete": "Selesaikan",
+      "print": "Cetak"
+    },
+    "itemInvalid": "Isi SKU dan kuantitas bilangan bulat positif",
+    "items": "Detail Penjualan",
+    "itemsRequired": "Minimal satu detail",
+    "moduleName": "Sales Order",
+    "soNumber": "No. SO",
+    "quantity": "Kuantitas",
+    "fulfillQuantity": "Kuantitas Terkirim",
+    "skuCode": "SKU",
+    "status": "Status",
+    "customerCode": "Pelanggan",
+    "totalAmount": "Total (Rp)",
+    "unitPrice": "Harga Satuan",
+    "unitPriceCents": "Harga (sen)",
+    "warehouseCode": "Gudang Pengirim"
+  },
+  "register": {
+    "tenantName": "Nama Perusahaan",
+    "tenantNameTip": "Masukkan nama perusahaan",
+    "tenantCode": "Kode Tenant",
+    "tenantCodeTip": "Kode login (huruf/angka/strip, minimal 2 karakter)",
+    "tenantCodeInvalid": "Kode hanya boleh huruf, angka, garis bawah dan strip",
+    "adminUsername": "Nama Admin",
+    "passwordMin": "Kata sandi minimal 6 karakter",
+    "successTitle": "Pendaftaran berhasil",
+    "successDesc": "Tenant {tenantCode} telah dibuat, silakan login dengan akun admin {username}"
+  },
+  "onboarding": {
+    "title": "Panduan Inisialisasi",
+    "desc": "Ikuti panduan untuk menyiapkan data dasar, lalu mulai transaksi pertama",
+    "autoTitle": "Otomatis selesai",
+    "autoDesc": "Akun admin & hak akses, gudang default MAIN, lokasi virtual pemasok/pelanggan — semua dibuat otomatis saat pendaftaran; langsung bisa transaksi.",
+    "stepProduct": "Tambah Produk",
+    "stepProductDesc": "Masukkan SKU, spesifikasi dan satuan; pembelian dan penjualan mengalir per SKU",
+    "stepSupplier": "Tambah Pemasok",
+    "stepSupplierDesc": "Pemasok adalah mitra PO; setelah disetujui akan membuat utang dagang otomatis",
+    "stepCustomer": "Tambah Pelanggan",
+    "stepCustomerDesc": "Pelanggan adalah mitra SO; setelah disetujui akan membuat piutang otomatis",
+    "stepPo": "Buat PO Pertama Anda",
+    "stepPoDesc": "Pembelian menambah stok otomatis dan mencatat biaya rata-rata per satuan",
+    "stepSo": "Buat SO Pertama Anda",
+    "stepSoDesc": "Penjualan mengurangi stok dan membekukan biaya; laporan laba terlihat real-time"
+  },
+  "stockLot": {
+    "moduleName": "Stok Batch",
+    "name": "No. Batch",
+    "skuCode": "Kode Produk",
+    "expiryDate": "Kedaluwarsa",
+    "remainingQuantity": "Sisa Batch",
+    "lotStatus": "Status Batch"
+  },
+  "approvalFlow": {
+    "moduleName": "Konfigurasi Alur Persetujuan",
+    "stepsCount": "Jumlah Langkah",
+    "stepsOverview": "Definisi Langkah",
+    "steps": "Langkah (berurutan)",
+    "stepName": "Nama langkah (mis.: Peninjauan Atasan)",
+    "stepRole": "Peran persetujuan (pemegang bisa meninjau langkah ini)",
+    "addStep": "Tambah Langkah",
+    "stepsRequired": "Minimal satu langkah persetujuan",
+    "formInvalid": "Isi tipe bisnis dan nama alur",
+    "bizType": {
+      "PURCHASE_ORDER": "Purchase Order",
+      "SALES_ORDER": "Sales Order",
+      "PAYMENT": "Pembayaran",
+      "RECEIPT": "Penerimaan"
+    },
+    "name": "Nama Alur",
+    "button": {
+      "create": "Buat Alur"
+    },
+    "bizTypeLabel": "Tipe Bisnis"
+  },
+  "trialBalance": {
+    "accountCode": "Kode Akun",
+    "accountName": "Nama Akun",
+    "category": "Kategori",
+    "debitTotal": "Total Debit",
+    "creditTotal": "Total Kredit",
+    "balance": "Saldo Akhir",
+    "fromDate": "Tanggal Awal",
+    "toDate": "Tanggal Akhir"
+  },
+  "journal": {
+    "entryNumber": "No. Voucher",
+    "entryDate": "Tanggal",
+    "summary": "Keterangan",
+    "bizRef": "Sumber Bisnis",
+    "amount": "Jumlah",
+    "showLines": "Baris",
+    "hideLines": "Sembunyikan",
+    "account": "Akun",
+    "lineSummary": "Keterangan",
+    "debit": "Debit",
+    "credit": "Kredit"
+  },
+  "statement": {
+    "title": "Rekening Koran Mitra",
+    "customer": "Pelanggan",
+    "supplier": "Pemasok",
+    "partnerPlaceholder": "Pilih mitra",
+    "partnerRequired": "Pilih mitra terlebih dahulu",
+    "date": "Tanggal",
+    "docType": "Tipe",
+    "docRef": "Dokumen",
+    "summary": "Ringkasan",
+    "debit": "Terjadi (Rp)",
+    "credit": "Dicoret (Rp)",
+    "totalDebit": "Total Terjadi",
+    "totalCredit": "Total Dicoret",
+    "balance": "Saldo Akhir",
+    "partnerConfirm": "Konfirmasi Mitra",
+    "empty": "Belum ada data rekening"
+  },
+  "salesRanking": {
+    "bySku": "Berdasarkan Produk",
+    "byCustomer": "Berdasarkan Pelanggan",
+    "rank": "Peringkat",
+    "name": "Nama",
+    "quantity": "Kuantitas",
+    "amount": "Jumlah (Rp)",
+    "export": "Ekspor Excel",
+    "chartTitle": "Peringkat jumlah (Rp)"
+  },
+  "purchase": {
+    "moduleName": "Pemberitahuan Kedatangan",
+    "purchaseNumber": "No. Purchase",
+    "warehouseCode": "Gudang Tujuan",
+    "partnerCode": "Pengirim",
+    "status": "Status",
+    "expectedDate": "Perkiraan Kedatangan",
+    "lines": "Detail",
+    "skuCode": "Kode SKU",
+    "expectedQty": "Kuantitas Diharapkan",
+    "line": {
+      "expected": "Diharapkan",
+      "received": "Diterima",
+      "putaway": "Disimpan",
+      "lotName": "No. Batch",
+      "expiryDate": "Kedaluwarsa"
+    },
+    "qc": {
+      "pass": "QC Lulus",
+      "fail": "QC Tidak Lulus"
+    },
+    "statusText": {
+      "draft": "Draf",
+      "announced": "Diumumkan",
+      "receiving": "Penerimaan",
+      "completed": "Selesai",
+      "cancelled": "Dibatalkan"
+    },
+    "action": {
+      "announce": "Umumkan Kedatangan",
+      "receive": "Terima",
+      "putaway": "Simpan",
+      "close": "Selesaikan",
+      "cancel": "Batalkan"
+    },
+    "button": {
+      "create": "Buat Pemberitahuan Kedatangan",
+      "addLine": "Tambah Detail"
+    },
+    "linesRequired": "Minimal satu detail",
+    "lineInvalid": "Detail SKU dan kuantitas diharapkan (positif) harus lengkap",
+    "receive": {
+      "title": "Penerimaan: {number}",
+      "qty": "Kuantitas Diterima",
+      "remaining": "Sisa Bisa Diterima",
+      "nothingToReceive": "Detail penerimaan kosong",
+      "overQty": "Kuantitas tidak boleh melebihi sisa bisa diterima",
+      "success": "Penerimaan berhasil, surat masuk dibuat",
+      "failed": "Penerimaan gagal"
+    },
+    "putaway": {
+      "title": "Penyimpanan: {number}",
+      "qty": "Kuantitas Disimpan",
+      "targetLocation": "Lokasi Tujuan",
+      "remaining": "Sisa Bisa Disimpan",
+      "nothingToPutaway": "Detail penyimpanan kosong",
+      "locationRequired": "Lokasi tujuan wajib diisi",
+      "overQty": "Kuantitas tidak boleh melebihi sisa bisa disimpan",
+      "qcBlocked": "Detail QC gagal/belum lolos tidak bisa disimpan",
+      "qcBlockedHint": "QC gagal atau belum diperiksa, tidak bisa disimpan",
+      "success": "Penyimpanan berhasil, surat simpan dibuat",
+      "failed": "Penyimpanan gagal"
+    }
+  },
+  "wave": {
+    "waveNumber": "No. Gelombang",
+    "status": {
+      "draft": "Draf",
+      "running": "Berjalan",
+      "completed": "Selesai",
+      "cancelled": "Dibatalkan",
+      "checked": "Sudah Dicek",
+      "readyToRelease": "Siap Dilepas",
+      "released": "Sudah Dilepas"
+    },
+    "button": {
+      "create": "Buat Gelombang"
+    },
+    "action": {
+      "check": "Jalankan",
+      "release": "Lepaskan"
+    },
+    "runSucceeded": "Sukses",
+    "runFailed": "Gagal",
+    "cancelConfirm": "Batalkan wave ini? SKU di release.",
+    "noneSelected": "Centang minimal satu surat picking keluar",
+    "noCandidates": "Tidak ada surat picking yang bisa masuk gelombang (OUTGOING + dikonfirmasi + belum masuk gelombang)",
+    "noDelete": "Gelombang tidak mendukung penghapusan",
+    "statusLabel": "Status",
+    "checkAllAvailable": "Semua SKU tersedia — siap dilekesan",
+    "checkPartial": "Wave dijalankan, tapi ada SKU kurang: {msg}",
+    "checkFailed": "Gagal menjalankan wave",
+    "releaseConfirm": "Lepaskan wave ini? Tugas picking akan dibuat.",
+    "released": "Wave dilepas, tugas picking #{taskId} dibuat",
+    "releaseFailed": "Gagal melepas wave",
+    "executing": "Menjalankan wave…",
+    "releasing": "Melepas wave…",
+    "executingHint": "Memeriksa stok, mengalokasikan, dan mereservasi — mohon tunggu."
+  },
+  "order": {
+    "moduleName": "Order",
+    "orderNumber": "No. Order",
+    "source": "Sumber",
+    "sourceRef": "No. Order Eksternal",
+    "sourceShop": "Toko",
+    "customerName": "Penerima",
+    "customerPhone": "Telepon",
+    "shippingAddress": "Alamat",
+    "warehouseCode": "Gudang Pengirim",
+    "status": "Status",
+    "totalAmount": "Total",
+    "currency": "Mata Uang",
+    "remark": "Catatan",
+    "orderedAt": "Waktu Order",
+    "pickingId": "ID Picking",
+    "lines": "Detail Order",
+    "skuCode": "SKU",
+    "productName": "Produk",
+    "quantity": "Qty",
+    "unitPriceCents": "Harga/satuan (sen)",
+    "statusText": {
+      "pending": "Pending",
+      "confirmed": "Dikonfirmasi",
+      "fulfilling": "Diproses",
+      "completed": "Selesai",
+      "cancelled": "Dibatalkan"
+    },
+    "sourceText": {
+      "manual": "Manual",
+      "shopee": "Shopee",
+      "tokopedia": "Tokopedia",
+      "lazada": "Lazada",
+      "tiktok": "TikTok Shop",
+      "other": "Lainnya"
+    },
+    "button": {
+      "create": "Buat Order",
+      "confirm": "Konfirmasi",
+      "cancel": "Batalkan",
+      "fulfill": "Proses (Outbound)",
+      "complete": "Selesaikan",
+      "addLine": "Tambah Detail",
+      "importSample": "Impor Contoh (Marketplace)"
+    },
+    "importResult": "Impor selesai: dibuat {created}, dilewati {skipped}, gagal {failed}",
+    "fulfillConfirm": "Proses order ini? Picking outbound akan dibuat.",
+    "fulfillSuccess": "Berhasil diproses, picking #{pickingId}",
+    "fulfillFailed": "Gagal memproses",
+    "linesRequired": "Minimal satu detail order",
+    "lineInvalid": "Setiap detail wajib SKU dan qty (positif)"
+  },
+  "orderAnalysis": {
+    "addSku": "Tambah ke wave: {sku}",
+    "addedToWave": "Ditambahkan ke wave #{waveId}",
+    "addToWaveFailed": "Gagal tambah ke wave",
+    "moreSkus": "SKU lainnya",
+    "tabs": {
+      "single": "Single (1 order = 1 SKU)",
+      "multi": "Multi (1 order = banyak SKU)"
+    },
+    "typeLabel": {
+      "SINGLE": "SINGLE",
+      "MULTI": "MULTI"
+    },
+    "type": "Tipe",
+    "title": "Analisis Pesanan",
+    "columns": {
+      "sku": "SKU",
+      "product": "Produk",
+      "qtyNeeded": "Qty Dibutuhkan",
+      "orderCount": "# Order"
+    },
+    "empty": "Tidak ada kebutuhan yang belum dipenuhi",
+    "refresh": "Muat Ulang",
+    "unfulfilled": "Hanya order yang belum selesai (kecuali SORTED/PACKED/COMPLETED/CANCELLED)",
+    "addAllToWave": "Tambah Semua ke Wave",
+    "createWave": "Buat Wave ({count})"
+  },
+  "pickingTask": {
+    "moduleName": "Tugas Picking",
+    "taskNumber": "No. Tugas",
+    "waveId": "Wave",
+    "cartNumber": "Keranjang",
+    "status": "Status",
+    "item": "SKU",
+    "requiredQty": "Diminta",
+    "pickedQty": "Sudah Dipick",
+    "allocatedLocation": "Lokasi",
+    "statusText": {
+      "waiting": "Menunggu",
+      "running": "Berjalan",
+      "done": "Selesai",
+      "cancelled": "Dibatalkan"
+    },
+    "itemStatus": {
+      "pending": "Menunggu",
+      "picking": "Picking",
+      "done": "Selesai",
+      "short": "Short pick"
+    },
+    "button": {
+      "scanCart": "Scan Keranjang",
+      "scanLocation": "Scan Lokasi",
+      "scanSku": "Scan SKU",
+      "scanQty": "Isi Qty",
+      "cancel": "Batalkan Tugas"
+    },
+    "shortReasonRequired": "Short pick memerlukan alasan",
+    "pickQtyTooMuch": "Melebihi jumlah diminta",
+    "scanLocationFirst": "Scan keranjang dulu untuk mulai tugas"
+  },
+  "waveSettings": {
+    "moduleName": "Pengaturan Wave",
+    "tabs": {
+      "single": "Wave Single",
+      "multi": "Wave Multi"
+    },
+    "form": {
+      "maxOrdersPerCart": "Maks order per keranjang",
+      "maxSkuPerWave": "Maks SKU per wave (0 = tidak dibatasi)",
+      "groupingRule": "Aturan pengelompokan",
+      "autoSplit": "Pecah wave otomatis jika keranjang penuh",
+      "defaultCartCapacity": "Kapasitas default keranjang",
+      "groupingRuleOptions": {
+        "PER_WAREHOUSE": "Per gudang",
+        "PER_ZONE": "Per zona",
+        "PER_COURIER": "Per kurir",
+        "NONE": "Tidak ada"
+      }
+    },
+    "button": {
+      "save": "Simpan",
+      "saved": "Pengaturan tersimpan"
+    }
+  },
+  "pickingBaskets": {
+    "moduleName": "Master Keranjang Picking",
+    "code": "Kode",
+    "basketType": "Tipe",
+    "capacity": "Kapasitas",
+    "status": "Status",
+    "currentWaveId": "Wave sekarang",
+    "currentTaskId": "Tugas sekarang",
+    "button": {
+      "create": "Tambah Keranjang",
+      "edit": "Edit",
+      "save": "Simpan",
+      "cancel": "Batal"
+    },
+    "create": {
+      "title": "Tambah Keranjang Picking"
+    },
+    "edit": {
+      "title": "Edit Keranjang Picking"
+    },
+    "basketTypes": {
+      "SINGLE": "Single",
+      "MULTI": "Multi"
+    },
+    "statuses": {
+      "FREE": "Kosong",
+      "IN_USE": "Dipakai",
+      "WAITING_SORT": "Menunggu Sortir",
+      "WAITING_PACK": "Menunggu Packing"
+    },
+    "capacityMax": "Maks kapasitas",
+    "validation": {
+      "codeRequired": "Kode wajib diisi",
+      "capacityPositive": "Kapasitas harus positif"
+    }
+  },
+  "sortBaskets": {
+    "moduleName": "Master Keranjang Sortir",
+    "prefix": "Prefix",
+    "count": "Jumlah",
+    "startFrom": "Mulai dari nomor",
+    "boxCount": "Kotak per keranjang",
+    "code": "Kode",
+    "status": "Status",
+    "button": {
+      "generate": "Generate",
+      "delete": "Hapus"
+    },
+    "generated": "{created} keranjang dibuat, {skipped} dilewati",
+    "statuses": {
+      "FREE": "Kosong",
+      "IN_USE": "Dipakai",
+      "FULL": "Lengkap"
+    },
+    "preview": "Kode dibuat otomatis: {prefix}01, {prefix}02, …",
+    "deleteConfirm": "Hapus keranjang ini?"
+  },
+  "sorting": {
+    "title": "Sortir",
+    "operatorLabel": "Operator",
+    "shiftLabel": "Shift",
+    "orderLabel": "No. Order",
+    "scanCardTitle": "Scan Keranjang",
+    "basketNoLabel": "1. No. Keranjang",
+    "basketNoPlaceholder": "Scan / ketik No. keranjang picking…",
+    "basketCodeLabel": "2. Kode Keranjang",
+    "basketCodePlaceholder": "Scan barcode / QR…",
+    "skuLabel": "3. Scan SKU",
+    "skuFieldPlaceholder": "Scan SKU barang…",
+    "skuScanned": "SKU terscan",
+    "totalItems": "{count} item",
+    "skuScannedEmpty": "Belum ada SKU discan",
+    "activeHint": "Scan keranjang picking — langsung terkunci bila ada; lalu scan keranjang sortir, sesi mulai otomatis.",
+    "sortToNumber": "SORTIR KE NOMOR",
+    "waitingSku": "Menunggu scan SKU…",
+    "confirmSort": "Konfirmasi Sortir",
+    "reset": "Reset",
+    "mappingTitle": "Mapping Sortir",
+    "legendTarget": "Tujuan scan ini",
+    "legendFilled": "Terisi",
+    "legendEmpty": "Kosong",
+    "sortHere": "Sortir di sini",
+    "boxLabel": "KOTAK",
+    "emptySlot": "Kosong",
+    "slotItems": "{scanned}/{required} item",
+    "historyTitle": "Riwayat Sortir Terakhir",
+    "historyTime": "Waktu",
+    "historyBasket": "No. Keranjang",
+    "historySlot": "No. Sortir",
+    "historyStatus": "Status",
+    "historyStatusOk": "Sesuai",
+    "historyEmpty": "Belum ada riwayat sortir.",
+    "step1": "Langkah 1: Scan Keranjang Picking",
+    "step2": "Langkah 2: Scan Keranjang Sortir",
+    "pickingBasketPlaceholder": "Scan kode keranjang picking (mis. PS-PICK-001)",
+    "sortBasketPlaceholder": "Scan kode keranjang sortir (mis. AB01)",
+    "pickingBasketLabel": "Keranjang Picking",
+    "sortBasketLabel": "Keranjang Sortir",
+    "startSession": "Mulai Sesi",
+    "sessionStarted": "Sesi sortir dimulai: {count} kotak untuk {code}",
+    "startFailed": "Gagal memulai sesi sortir",
+    "cancel": "Batalkan Sesi",
+    "sessionCancelled": "Sesi sortir dibatalkan",
+    "scan": "Scan",
+    "skuPlaceholder": "Scan SKU dari keranjang picking…",
+    "qtyLabel": "Qty",
+    "insertToBox": "Masukkan ke Kotak {slot}",
+    "confirmBox": "Konfirmasi Kotak {slot}",
+    "box": "Kotak",
+    "orderNumber": "No. Order",
+    "customer": "Pelanggan",
+    "progress": "Progress",
+    "status": "Status",
+    "slotStatuses": {
+      "SORT_SLOT_EMPTY": "Kosong",
+      "SORT_SLOT_FILLED": "Terisi",
+      "SORT_SLOT_COMPLETE": "Lengkap",
+      "SORT_SLOT_PACKED": "Dipacking"
+    },
+    "sessionComplete": "Sortir selesai!",
+    "scanNext": "Scan Keranjang Berikutnya",
+    "slotComplete": "Kotak {slot} lengkap",
+    "errors": {
+      "basketRequired": "Kedua kode keranjang wajib diisi",
+      "skuNotFound": "SKU tidak ada di order mana pun",
+      "qtyInvalid": "Qty tidak valid",
+      "scanRejected": "Scan ditolak",
+      "scanPickingFirst": "Scan keranjang picking dulu"
+    },
+    "locked": "Terkunci"
+  }
+}

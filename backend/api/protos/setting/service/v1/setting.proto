@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package setting.service.v1;
+
+import "gnostic/openapi/v3/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+import "pagination/v1/pagination.proto";
+
+// 设置服务：波次设置 + keranjang picking/sortir master data。
+service SettingService {
+  // === 波次设置（per wave_type） ===
+  rpc GetWaveSetting (GetWaveSettingRequest) returns (WaveSetting) {}
+  rpc UpdateWaveSetting (UpdateWaveSettingRequest) returns (google.protobuf.Empty) {}
+
+  // === Keranjang picking master ===
+  rpc ListPickingBaskets (pagination.PagingRequest) returns (ListPickingBasketsResponse) {}
+  rpc CreatePickingBasket (CreatePickingBasketRequest) returns (google.protobuf.Empty) {}
+  rpc UpdatePickingBasket (UpdatePickingBasketRequest) returns (google.protobuf.Empty) {}
+  rpc DeletePickingBasket (DeletePickingBasketRequest) returns (google.protobuf.Empty) {}
+
+  // === Keranjang sortir master (generate batch) ===
+  rpc ListSortBaskets (pagination.PagingRequest) returns (ListSortBasketsResponse) {}
+  rpc GenerateSortBaskets (GenerateSortBasketsRequest) returns (GenerateSortBasketsResponse) {}
+  rpc DeleteSortBasket (DeleteSortBasketRequest) returns (google.protobuf.Empty) {}
+}
+
+message WaveSetting {
+  optional uint32 id = 1 [json_name = "id"];
+  optional string wave_type = 2 [json_name = "waveType", (gnostic.openapi.v3.property) = {description: "SINGLE / MULTI"}]; // SINGLE / MULTI
+  optional uint32 tenant_id = 3 [json_name = "tenantId"];
+  optional int32 max_orders_per_cart = 4 [json_name = "maxOrdersPerCart"]; // default 20/10
+  optional int32 max_sku_per_wave = 5 [json_name = "maxSkuPerWave", (gnostic.openapi.v3.property) = {description: "0 = unlimited"}];
+  optional string grouping_rule = 6 [json_name = "groupingRule", (gnostic.openapi.v3.property) = {description: "PER_WAREHOUSE / PER_ZONE / PER_COURIER / NONE"}];
+  optional bool auto_split = 7 [json_name = "autoSplit"];
+  optional int32 default_cart_capacity = 8 [json_name = "defaultCartCapacity"];
+  optional google.protobuf.Timestamp created_at = 100 [json_name = "createdAt"];
+  optional google.protobuf.Timestamp updated_at = 101 [json_name = "updatedAt"];
+}
+
+message GetWaveSettingRequest {
+  string wave_type = 1 [json_name = "waveType"];
+}
+
+message UpdateWaveSettingRequest {
+  string wave_type = 1 [json_name = "waveType", (google.api.field_behavior) = REQUIRED]; // SINGLE / MULTI
+  optional int32 max_orders_per_cart = 2 [json_name = "maxOrdersPerCart"];
+  optional int32 max_sku_per_wave = 3 [json_name = "maxSkuPerWave"];
+  optional string grouping_rule = 4 [json_name = "groupingRule"];
+  optional bool auto_split = 5 [json_name = "autoSplit"];
+  optional int32 default_cart_capacity = 6 [json_name = "defaultCartCapacity"];
+}
+
+// === Keranjang picking ===
+
+message PickingBasket {
+  optional uint32 id = 1 [json_name = "id"];
+  optional uint32 tenant_id = 2 [json_name = "tenantId"];
+  optional string code = 3 [json_name = "code"];
+  optional string basket_type = 4 [json_name = "basketType", (gnostic.openapi.v3.property) = {description: "SINGLE / MULTI"}];
+  optional int32 capacity = 5 [json_name = "capacity"];
+  optional string status = 6 [json_name = "status", (gnostic.openapi.v3.property) = {description: "FREE / IN_USE / WAITING_SORT / WAITING_PACK"}];
+  optional uint32 current_wave_id = 7 [json_name = "currentWaveId"];
+  optional uint32 current_task_id = 8 [json_name = "currentTaskId"];
+  optional google.protobuf.Timestamp created_at = 100 [json_name = "createdAt"];
+  optional google.protobuf.Timestamp updated_at = 101 [json_name = "updatedAt"];
+}
+
+message ListPickingBasketsResponse {
+  uint64 total = 1 [json_name = "total"];
+  repeated PickingBasket items = 2 [json_name = "items"];
+}
+
+message CreatePickingBasketRequest {
+  string code = 1 [json_name = "code", (google.api.field_behavior) = REQUIRED];
+  string basket_type = 2 [json_name = "basketType", (google.api.field_behavior) = REQUIRED];
+  optional int32 capacity = 3 [json_name = "capacity"];
+}
+
+message UpdatePickingBasketRequest {
+  uint32 id = 1 [json_name = "id", (google.api.field_behavior) = REQUIRED];
+  optional int32 capacity = 2 [json_name = "capacity"];
+  optional string status = 3 [json_name = "status"];
+  optional string basket_type = 4 [json_name = "basketType"];
+}
+
+message DeletePickingBasketRequest {
+  uint32 id = 1 [json_name = "id", (google.api.field_behavior) = REQUIRED];
+}
+
+// === Keranjang sortir ===
+
+message SortBasket {
+  optional uint32 id = 1 [json_name = "id"];
+  optional uint32 tenant_id = 2 [json_name = "tenantId"];
+  optional string prefix = 3 [json_name = "prefix"];
+  optional int32 number = 4 [json_name = "number"];
+  optional string code = 5 [json_name = "code"];
+  optional int32 box_count = 6 [json_name = "boxCount"];
+  optional string status = 7 [json_name = "status", (gnostic.openapi.v3.property) = {description: "FREE / IN_USE / FULL"}];
+  optional google.protobuf.Timestamp created_at = 100 [json_name = "createdAt"];
+  optional google.protobuf.Timestamp updated_at = 101 [json_name = "updatedAt"];
+}
+
+message ListSortBasketsResponse {
+  uint64 total = 1 [json_name = "total"];
+  repeated SortBasket items = 2 [json_name = "items"];
+}
+
+message GenerateSortBasketsRequest {
+  string prefix = 1 [json_name = "prefix", (google.api.field_behavior) = REQUIRED];
+  int32 count = 2 [json_name = "count", (google.api.field_behavior) = REQUIRED];
+  optional int32 start_from = 3 [json_name = "startFrom"]; // default 1
+  optional int32 box_count = 4 [json_name = "boxCount"];   // default 20
+}
+
+message GenerateSortBasketsResponse {
+  int32 created = 1 [json_name = "created"];
+  int32 skipped = 2 [json_name = "skipped"]; // yang sudah ada (skip)
+  repeated string codes = 3 [json_name = "codes"];
+}
+
+message DeleteSortBasketRequest {
+  uint32 id = 1 [json_name = "id", (google.api.field_behavior) = REQUIRED];
+}

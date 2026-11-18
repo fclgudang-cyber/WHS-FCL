@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package admin.service.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+import "pagination/v1/pagination.proto";
+import "setting/service/v1/setting.proto";
+
+// 设置服务（管理后台）
+service SettingService {
+  rpc GetWaveSetting (setting.service.v1.GetWaveSettingRequest) returns (setting.service.v1.WaveSetting) {
+    option (google.api.http) = { get: "/admin/v1/wave-settings" };
+  }
+  rpc UpdateWaveSetting (setting.service.v1.UpdateWaveSettingRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { put: "/admin/v1/wave-settings", body: "*" };
+  }
+
+  rpc ListPickingBaskets (pagination.PagingRequest) returns (setting.service.v1.ListPickingBasketsResponse) {
+    option (google.api.http) = { get: "/admin/v1/picking-baskets" };
+  }
+  rpc CreatePickingBasket (setting.service.v1.CreatePickingBasketRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { post: "/admin/v1/picking-baskets", body: "*" };
+  }
+  rpc UpdatePickingBasket (setting.service.v1.UpdatePickingBasketRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { put: "/admin/v1/picking-baskets/{id}", body: "*" };
+  }
+  rpc DeletePickingBasket (setting.service.v1.DeletePickingBasketRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { delete: "/admin/v1/picking-baskets/{id}" };
+  }
+
+  rpc ListSortBaskets (pagination.PagingRequest) returns (setting.service.v1.ListSortBasketsResponse) {
+    option (google.api.http) = { get: "/admin/v1/sort-baskets" };
+  }
+  rpc GenerateSortBaskets (setting.service.v1.GenerateSortBasketsRequest) returns (setting.service.v1.GenerateSortBasketsResponse) {
+    option (google.api.http) = { post: "/admin/v1/sort-baskets/generate", body: "*" };
+  }
+  rpc DeleteSortBasket (setting.service.v1.DeleteSortBasketRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = { delete: "/admin/v1/sort-baskets/{id}" };
+  }
+}

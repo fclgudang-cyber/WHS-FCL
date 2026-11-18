@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package admin.service.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+import "pagination/v1/pagination.proto";
+import "purchase/service/v1/purchase.proto";
+
+// 到货通知单服务（管理后台）
+service PurchaseService {
+  // 查询到货通知单列表
+  rpc List (pagination.PagingRequest) returns (purchase.service.v1.ListPurchaseResponse) {
+    option (google.api.http) = {
+      get: "/admin/v1/purchases"
+    };
+  }
+
+  // 统计到货通知单数量
+  rpc Count (pagination.PagingRequest) returns (purchase.service.v1.CountPurchaseResponse) {
+    option (google.api.http) = {
+      get: "/admin/v1/purchases/count"
+    };
+  }
+
+  // 查询到货通知单详情（含明细）
+  rpc Get (purchase.service.v1.GetPurchaseRequest) returns (purchase.service.v1.Purchase) {
+    option (google.api.http) = {
+      get: "/admin/v1/purchases/{id}"
+    };
+  }
+
+  // 创建到货通知单（草稿）
+  rpc Create (purchase.service.v1.CreatePurchaseRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/admin/v1/purchases"
+      body: "*"
+    };
+  }
+
+  // 更新到货通知单（仅草稿可改）
+  rpc Update (purchase.service.v1.UpdatePurchaseRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/admin/v1/purchases/{id}"
+      body: "*"
+    };
+  }
+
+  // 删除到货通知单（仅草稿/已取消）
+  rpc Delete (purchase.service.v1.DeletePurchaseRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/admin/v1/purchases/{id}"
+    };
+  }
+
+  // 宣告到货
+  rpc Announce (purchase.service.v1.AnnouncePurchaseRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/admin/v1/purchases/{id}/announce"
+      body: "*"
+    };
+  }
+
+  // 取消到货通知单
+  rpc Cancel (purchase.service.v1.CancelPurchaseRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/admin/v1/purchases/{id}/cancel"
+      body: "*"
+    };
+  }
+
+  // 收货（防超收，生成入库拣货单并自动确认）
+  rpc Receive (purchase.service.v1.ReceivePurchaseRequest) returns (purchase.service.v1.ReceivePurchaseResponse) {
+    option (google.api.http) = {
+      post: "/admin/v1/purchases/{purchase_id}/receive"
+      body: "*"
+    };
+  }
+
+  // 上架（质检通过数量 → 目标库位）
+  rpc Putaway (purchase.service.v1.PutawayPurchaseRequest) returns (purchase.service.v1.PutawayPurchaseResponse) {
+    option (google.api.http) = {
+      post: "/admin/v1/purchases/{purchase_id}/putaway"
+      body: "*"
+    };
+  }
+
+  // 完结到货通知单
+  rpc Close (purchase.service.v1.ClosePurchaseRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/admin/v1/purchases/{id}/close"
+      body: "*"
+    };
+  }
+}

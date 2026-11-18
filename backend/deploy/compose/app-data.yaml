@@ -1,0 +1,10 @@
+# 容器网络专用的 Redis 配置（挂载覆盖到 /app/configs/data.yaml）。
+# 宿主机运行时用仓库默认的 127.0.0.1 配置即可。
+# 若在 Coolify/Compose 中修改了 REDIS_PASSWORD，这里的密码必须同步修改。
+data:
+  redis:
+    addr: "redis:6379"
+    password: "*Abcd123456"
+    dial_timeout: 10s
+    read_timeout: 0.4s
+    write_timeout: 0.6s

@@ -1,0 +1,283 @@
+syntax = "proto3";
+
+package order.service.v1;
+
+import "gnostic/openapi/v3/annotations.proto";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+import "pagination/v1/pagination.proto";
+
+// 订单管理服务：接收来自 Marketplace（Shopee/Tokopedia/Lazada/TikTok 等）
+// 的外部订单，以及后台人工补录的手动订单；经确认后生成出库拣货单
+// （OUTGOING），完成发货与交付闭环。
+//
+// 状态机：PENDING → CONFIRMED → FULFILLING → COMPLETED
+// PENDING / CONFIRMED 可取消（CANCELLED，终态）。
+// FULFILLING → COMPLETED 由用户在发货完毕后标记（或由出库拣货单校验联动）。
+service OrderService {
+  // 查询订单列表
+  rpc List (pagination.PagingRequest) returns (ListOrderResponse) {}
+
+  // 统计订单数量
+  rpc Count (pagination.PagingRequest) returns (CountOrderResponse) {}
+
+  // 查询订单详情（含明细）
+  rpc Get (GetOrderRequest) returns (Order) {}
+
+  // 按单号查询
+  rpc GetByNumber (GetOrderByNumberRequest) returns (Order) {}
+
+  // 创建订单（手动补录，含嵌套明细）
+  rpc Create (CreateOrderRequest) returns (google.protobuf.Empty) {}
+
+  // 更新订单（仅 PENDING 可改）
+  rpc Update (UpdateOrderRequest) returns (google.protobuf.Empty) {}
+
+  // 删除订单（仅 PENDING / CANCELLED）
+  rpc Delete (DeleteOrderRequest) returns (google.protobuf.Empty) {}
+
+  // 确认订单（PENDING → CONFIRMED，锁定明细）
+  rpc Confirm (ConfirmOrderRequest) returns (google.protobuf.Empty) {}
+
+  // 取消订单（PENDING/CONFIRMED → CANCELLED）
+  rpc Cancel (CancelOrderRequest) returns (google.protobuf.Empty) {}
+
+  // 履约：生成 OUTGOING 出库拣货单（CONFIRMED → FULFILLING），
+  // 明细自动带入 moves（product_code=sku_code, planned_quantity=qty）。
+  rpc Fulfill (FulfillOrderRequest) returns (FulfillOrderResponse) {}
+
+  // 标记完结（FULFILLING → COMPLETED，终态）
+  rpc Complete (CompleteOrderRequest) returns (google.protobuf.Empty) {}
+
+  // Marketplace 同步（示例实现）：按租户范围幂等 upsert 外部订单。
+  // 调用方（市场对接网关/中间件）把已标准化后的订单列表传入即可，
+  // 幂等：tenant + source + source_ref 联合唯一，重复同步不会重复建单。
+  rpc ImportMarketplace (ImportMarketplaceRequest) returns (ImportMarketplaceResponse) {}
+}
+
+// 订单来源渠道
+enum OrderSource {
+  ORDER_SOURCE_MANUAL = 0;   // 手动补录
+  ORDER_SOURCE_SHOPEE = 1;   // Shopee
+  ORDER_SOURCE_TOKOPEDIA = 2; // Tokopedia
+  ORDER_SOURCE_LAZADA = 3;   // Lazada
+  ORDER_SOURCE_TIKTOK = 4;   // TikTok Shop
+  ORDER_SOURCE_OTHER = 99;   // 其他/未知
+}
+
+// 订单状态
+enum OrderStatus {
+  ORDER_PENDING = 0;    // 待确认
+  ORDER_CONFIRMED = 1;  // 已确认
+  ORDER_FULFILLING = 2; // 履约中（已生成出库拣货单）
+  ORDER_COMPLETED = 3;  // 已完结（终态）
+  ORDER_CANCELLED = 4;  // 已取消（终态）
+}
+
+// 订单
+message Order {
+  optional uint32 id = 1 [
+    json_name = "id",
+    (gnostic.openapi.v3.property) = {description: "订单ID"}
+  ]; // 订单ID
+
+  optional string order_number = 2 [
+    json_name = "orderNumber",
+    (gnostic.openapi.v3.property) = {description: "订单号，租户范围内唯一，服务端生成"}
+  ]; // 订单号
+
+  optional OrderSource source = 3 [
+    json_name = "source",
+    (gnostic.openapi.v3.property) = {description: "订单来源渠道"}
+  ]; // 订单来源渠道
+
+  optional string source_ref = 4 [
+    json_name = "sourceRef",
+    (gnostic.openapi.v3.property) = {description: "外部平台订单号（Marketplace），手动订单为空"}
+  ]; // 外部平台订单号
+
+  optional string source_shop = 5 [
+    json_name = "sourceShop",
+    (gnostic.openapi.v3.property) = {description: "店铺名称/店铺编码（Marketplace 店铺）"}
+  ]; // 店铺名称
+
+  optional string customer_name = 6 [
+    json_name = "customerName",
+    (gnostic.openapi.v3.property) = {description: "收货人姓名"}
+  ]; // 收货人姓名
+
+  optional string customer_phone = 7 [
+    json_name = "customerPhone",
+    (gnostic.openapi.v3.property) = {description: "收货人电话"}
+  ]; // 收货人电话
+
+  optional string shipping_address = 8 [
+    json_name = "shippingAddress",
+    (gnostic.openapi.v3.property) = {description: "收货地址"}
+  ]; // 收货地址
+
+  optional string warehouse_code = 9 [
+    json_name = "warehouseCode",
+    (gnostic.openapi.v3.property) = {description: "发货仓库编码（缺省 MAIN）"}
+  ]; // 发货仓库编码
+
+  optional OrderStatus status = 10 [
+    json_name = "status",
+    (gnostic.openapi.v3.property) = {description: "订单状态"}
+  ]; // 订单状态
+
+  repeated OrderLine lines = 11 [
+    json_name = "lines",
+    (gnostic.openapi.v3.property) = {description: "订单明细"}
+  ]; // 订单明细
+
+  optional uint32 picking_id = 12 [
+    json_name = "pickingId",
+    (gnostic.openapi.v3.property) = {description: "履约生成的出库拣货单ID"}
+  ]; // 履约拣货单ID
+
+  optional int64 total_amount_cents = 13 [
+    json_name = "totalAmountCents",
+    (gnostic.openapi.v3.property) = {description: "订单总额（分）"}
+  ]; // 订单总额（分）
+
+  optional string currency = 14 [
+    json_name = "currency",
+    (gnostic.openapi.v3.property) = {description: "币种，默认 IDR"}
+  ]; // 币种
+
+  optional google.protobuf.Timestamp ordered_at = 15 [
+    json_name = "orderedAt",
+    (gnostic.openapi.v3.property) = {description: "外部平台下单时间"}
+  ]; // 外部下单时间
+
+  optional string remark = 16 [
+    json_name = "remark",
+    (gnostic.openapi.v3.property) = {description: "备注"}
+  ]; // 备注
+
+  optional uint32 tenant_id = 20 [
+    json_name = "tenantId",
+    (gnostic.openapi.v3.property) = {description: "租户ID，0代表系统全局"}
+  ]; // 租户ID
+
+  optional uint32 created_by = 100 [json_name = "createdBy", (gnostic.openapi.v3.property) = {description: "创建者用户ID"}]; // 创建者
+  optional uint32 updated_by = 101 [json_name = "updatedBy", (gnostic.openapi.v3.property) = {description: "更新者用户ID"}]; // 更新者
+  optional google.protobuf.Timestamp created_at = 102 [json_name = "createdAt", (gnostic.openapi.v3.property) = {description: "创建时间"}]; // 创建时间
+  optional google.protobuf.Timestamp updated_at = 103 [json_name = "updatedAt", (gnostic.openapi.v3.property) = {description: "更新时间"}]; // 更新时间
+}
+
+// 订单明细
+message OrderLine {
+  optional uint32 id = 1 [
+    json_name = "id",
+    (gnostic.openapi.v3.property) = {description: "明细ID"}
+  ]; // 明细ID
+
+  optional uint32 order_id = 2 [
+    json_name = "orderId",
+    (gnostic.openapi.v3.property) = {description: "所属订单ID"}
+  ]; // 订单ID
+
+  optional string sku_code = 3 [
+    json_name = "skuCode",
+    (gnostic.openapi.v3.property) = {description: "SKU 编码"}
+  ]; // SKU 编码
+
+  optional string product_name = 4 [
+    json_name = "productName",
+    (gnostic.openapi.v3.property) = {description: "商品名称"}
+  ]; // 商品名称
+
+  optional int64 quantity = 5 [
+    json_name = "quantity",
+    (gnostic.openapi.v3.property) = {description: "数量"}
+  ]; // 数量
+
+  optional int64 unit_price_cents = 6 [
+    json_name = "unitPriceCents",
+    (gnostic.openapi.v3.property) = {description: "单价（分）"}
+  ]; // 单价（分）
+
+  optional string remark = 7 [
+    json_name = "remark",
+    (gnostic.openapi.v3.property) = {description: "备注"}
+  ]; // 备注
+}
+
+message GetOrderRequest {
+  oneof query_by {
+    uint32 id = 1 [json_name = "id"]; // 订单ID
+  }
+}
+
+message GetOrderByNumberRequest {
+  string number = 1 [json_name = "number"]; // 订单号
+}
+
+message CreateOrderRequest {
+  Order data = 1 [json_name = "data"]; // 订单（lines 嵌套）
+}
+
+message UpdateOrderRequest {
+  uint32 id = 1 [json_name = "id"]; // 订单ID
+
+  Order data = 2 [json_name = "data"]; // 订单（lines 整体替换，仅 PENDING 可改）
+
+  google.protobuf.FieldMask update_mask = 3 [
+    json_name = "updateMask",
+    (gnostic.openapi.v3.property) = {description: "更新字段掩码"}
+  ]; // 更新字段掩码
+}
+
+message DeleteOrderRequest {
+  uint32 id = 1 [json_name = "id"]; // 订单ID
+}
+
+message ConfirmOrderRequest {
+  uint32 id = 1 [json_name = "id"]; // 订单ID
+}
+
+message CancelOrderRequest {
+  uint32 id = 1 [json_name = "id"]; // 订单ID
+}
+
+message CompleteOrderRequest {
+  uint32 id = 1 [json_name = "id"]; // 订单ID
+}
+
+message FulfillOrderRequest {
+  uint32 id = 1 [json_name = "id"]; // 订单ID
+}
+
+message FulfillOrderResponse {
+  uint32 picking_id = 1 [json_name = "pickingId"]; // 生成的出库拣货单ID
+}
+
+message ListOrderResponse {
+  uint64 total = 1 [json_name = "total"]; // 总数
+
+  repeated Order items = 2 [json_name = "items"]; // 订单列表
+}
+
+message CountOrderResponse {
+  uint64 count = 1 [json_name = "count"]; // 数量
+}
+
+// 批量导入请求（Marketplace 同步/示例）。
+// 由平台对接网关把各平台的订单标准化成统一格式后传入；
+// 幂等：相同 (tenant, source, source_ref) 的订单会跳过不重复创建。
+message ImportMarketplaceRequest {
+  OrderSource source = 1 [json_name = "source"]; // 订单来源渠道
+
+  repeated Order orders = 2 [json_name = "orders"]; // 标准化订单列表
+}
+
+message ImportMarketplaceResponse {
+  uint32 created = 1 [json_name = "created"]; // 新建订单数
+  uint32 skipped = 2 [json_name = "skipped"]; // 已存在被跳过数
+  uint32 failed = 3 [json_name = "failed"];   // 失败数（订单缺关键字段等）
+}

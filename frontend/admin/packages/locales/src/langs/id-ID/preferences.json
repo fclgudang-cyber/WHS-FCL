@@ -1,0 +1,169 @@
+{
+  "title": "Preferensi",
+  "subtitle": "Kustomisasi preferensi & pratinjau langsung",
+  "resetTitle": "Atur ulang preferensi",
+  "resetTip": "Data berubah, klik untuk mengatur ulang",
+  "resetSuccess": "Preferensi berhasil diatur ulang",
+  "appearance": "Tampilan",
+  "layout": "Tata Letak",
+  "content": "Konten",
+  "other": "Lainnya",
+  "wide": "Fluid",
+  "compact": "Tetap",
+  "followSystem": "Ikuti sistem",
+  "vertical": "Vertikal",
+  "verticalTip": "Mode menu samping vertikal",
+  "horizontal": "Horizontal",
+  "horizontalTip": "Mode menu horizontal, semua menu tampil di atas",
+  "twoColumn": "Menu dua kolom",
+  "twoColumnTip": "Mode menu vertikal dua kolom",
+  "mixedMenu": "Menu campuran",
+  "mixedMenuTip": "Menu vertikal dan horizontal berdampingan",
+  "fullContent": "Konten penuh",
+  "fullContentTip": "Tanpa menu, hanya menampilkan konten utama",
+  "normal": "Normal",
+  "plain": "Sederhana",
+  "rounded": "Bulat",
+  "copyPreferences": "Salin preferensi",
+  "copyPreferencesSuccessTitle": "Berhasil disalin",
+  "copyPreferencesSuccess": "Berhasil disalin, tempel untuk menimpa di src/preferences.ts",
+  "clearAndLogout": "Bersihkan cache & keluar",
+  "mode": "Mode",
+  "general": "Umum",
+  "language": "Bahasa",
+  "dynamicTitle": "Judul dinamis",
+  "watermark": "Watermark",
+  "checkUpdates": "Cek pembaruan berkala",
+  "position": {
+    "title": "Posisi preferensi",
+    "header": "Bilah atas",
+    "auto": "Otomatis",
+    "fixed": "Tetap"
+  },
+  "sidebar": {
+    "title": "Bilah samping",
+    "width": "Lebar",
+    "visible": "Tampilkan bilah samping",
+    "collapsed": "Ciutkan menu",
+    "collapsedShowTitle": "Tampilkan nama menu saat diciutkan"
+  },
+  "tabbar": {
+    "title": "Bilah tab",
+    "enable": "Aktifkan bilah tab",
+    "icon": "Tampilkan ikon tab",
+    "showMore": "Tampilkan tombol lainnya",
+    "showMaximize": "Tampilkan tombol maksimalkan",
+    "persist": "Persistensi tab",
+    "draggable": "Seret untuk mengurutkan",
+    "styleType": {
+      "title": "Gaya tab",
+      "chrome": "Chrome",
+      "card": "Kartu",
+      "plain": "Sederhana",
+      "brisk": "Ringkas"
+    },
+    "contextMenu": {
+      "reload": "Muat ulang",
+      "close": "Tutup",
+      "pin": "Sematkan",
+      "unpin": "Lepas sematan",
+      "closeLeft": "Tutup tab kiri",
+      "closeRight": "Tutup tab kanan",
+      "closeOther": "Tutup tab lainnya",
+      "closeAll": "Tutup semua tab",
+      "openInNewWindow": "Buka di jendela baru",
+      "maximize": "Maksimalkan",
+      "restoreMaximize": "Pulihkan"
+    }
+  },
+  "navigationMenu": {
+    "title": "Menu navigasi",
+    "style": "Gaya menu navigasi",
+    "accordion": "Mode akordeon menu samping",
+    "split": "Pisahkan menu navigasi",
+    "splitTip": "Saat aktif, bilah samping menampilkan submenu dari menu bilah atas"
+  },
+  "breadcrumb": {
+    "title": "Navigasi remah roti",
+    "enable": "Aktifkan navigasi remah roti",
+    "icon": "Tampilkan ikon remah roti",
+    "home": "Tampilkan tombol beranda",
+    "style": "Gaya remah roti",
+    "hideOnlyOne": "Sembunyikan jika hanya satu",
+    "background": "Latar belakang"
+  },
+  "animation": {
+    "title": "Animasi",
+    "loading": "Loading saat pindah halaman",
+    "transition": "Animasi transisi halaman",
+    "progress": "Progres bar transisi halaman"
+  },
+  "theme": {
+    "title": "Tema",
+    "radius": "Sudut bulat",
+    "light": "Terang",
+    "dark": "Gelap",
+    "darkSidebar": "Bilah samping gelap",
+    "darkHeader": "Bilah atas gelap",
+    "weakMode": "Mode buta warna",
+    "grayMode": "Mode abu-abu",
+    "builtin": {
+      "title": "Tema bawaan",
+      "default": "Bawaan",
+      "violet": "Ungu",
+      "pink": "Merah muda",
+      "rose": "Merah mawar",
+      "skyBlue": "Biru langit",
+      "deepBlue": "Biru tua",
+      "green": "Hijau muda",
+      "deepGreen": "Hijau tua",
+      "orange": "Oranye",
+      "yellow": "Kuning",
+      "zinc": "Abu seng",
+      "neutral": "Netral",
+      "slate": "Abu batu",
+      "gray": "Abu",
+      "custom": "Kustom"
+    }
+  },
+  "header": {
+    "title": "Bilah atas",
+    "modeStatic": "Statis",
+    "modeFixed": "Tetap",
+    "modeAuto": "Otomatis sembunyikan & tampilkan",
+    "modeAutoScroll": "Sembunyikan saat scroll",
+    "visible": "Tampilkan bilah atas"
+  },
+  "footer": {
+    "title": "Bilah bawah",
+    "visible": "Tampilkan bilah bawah",
+    "fixed": "Tetap di bawah"
+  },
+  "copyright": {
+    "title": "Hak cipta",
+    "enable": "Aktifkan hak cipta",
+    "companyName": "Nama perusahaan",
+    "companySiteLink": "Situs perusahaan",
+    "date": "Tanggal",
+    "icp": "Nomor ICP",
+    "icpLink": "Tautan situs ICP"
+  },
+  "shortcutKeys": {
+    "title": "Pintasan",
+    "global": "Global",
+    "search": "Pencarian global",
+    "logout": "Keluar",
+    "preferences": "Preferensi"
+  },
+  "widget": {
+    "title": "Widget",
+    "globalSearch": "Aktifkan pencarian global",
+    "fullscreen": "Aktifkan layar penuh",
+    "themeToggle": "Aktifkan ganti tema",
+    "languageToggle": "Aktifkan ganti bahasa",
+    "notification": "Aktifkan notifikasi",
+    "sidebarToggle": "Aktifkan ganti bilah samping",
+    "lockScreen": "Aktifkan kunci layar",
+    "refresh": "Aktifkan segarkan"
+  }
+}

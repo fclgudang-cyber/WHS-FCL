@@ -1,0 +1,230 @@
+name: ghost-main
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  postgres:
+    image: docker.io/library/postgres:17-alpine
+    restart: always
+    ports:
+      - "127.0.0.1:5434:5432"
+    networks:
+      - app-tier
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-*Abcd123456}
+      - POSTGRES_DB=ghost_wms
+      - TZ=Asia/Shanghai
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ghost_wms"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+  redis:
+    image: docker.io/library/redis:8.2-alpine
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks:
+      - app-tier
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-*Abcd123456}
+      - TZ=Asia/Shanghai
+    volumes:
+      - redisdata:/data
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-*Abcd123456}"]
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" ping | grep -q PONG']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  minio:
+    build:
+      context: ./backend/deploy/minio
+    image: ghost-wms/minio:RELEASE.2025-09-07T16-13-09Z
+    restart: always
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    networks:
+      - app-tier
+    environment:
+      - MINIO_ROOT_USER=root
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-*Abcd123456}
+      - TZ=Asia/Shanghai
+    volumes:
+      - miniodata:/data
+    command: server /data --console-address ':9001'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:9000/minio/health/live || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.6.8
+    restart: always
+    networks:
+      - app-tier
+    ports:
+      - "127.0.0.1:2379:2379"
+      - "127.0.0.1:2380:2380"
+    environment:
+      - ETCDCTL_API=3
+      - ETCD_NAME=default
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://etcd:2380
+      - ETCD_INITIAL_CLUSTER=default=http://etcd:2380
+      - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster-token
+      - ETCD_INITIAL_CLUSTER_STATE=new
+      - TZ=Asia/Shanghai
+    volumes:
+      - etcddata:/var/lib/etcd
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/etcdctl", "--endpoints=http://127.0.0.1:2379", "endpoint", "health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  jaeger:
+    image: docker.io/jaegertracing/all-in-one:1.76.0
+    restart: always
+    networks:
+      - app-tier
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+      - "127.0.0.1:16686:16686"
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - COLLECTOR_OTLP_ENABLED=true
+
+  core-service:
+    image: ghost-wms/core-service:1.0.0
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: core
+        APP_VERSION: 1.0.0
+    restart: always
+    networks:
+      - app-tier
+    volumes:
+      - ./backend/deploy/compose/core-data.yaml:/app/configs/data.yaml:ro
+      - ./backend/deploy/compose/registry.yaml:/app/configs/registry.yaml:ro
+      - ./backend/deploy/compose/oss.yaml:/app/configs/oss.yaml:ro
+      - ./backend/deploy/compose/trace.yaml:/app/configs/trace.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
+
+  admin-service:
+    image: ghost-wms/admin-service:1.0.0
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: admin
+        APP_VERSION: 1.0.0
+    restart: always
+    networks:
+      - app-tier
+    ports:
+      - "127.0.0.1:6900:6900"
+      - "127.0.0.1:6901:6901"
+    volumes:
+      - ./backend/deploy/compose/admin-data.yaml:/app/configs/data.yaml:ro
+      - ./backend/deploy/compose/registry.yaml:/app/configs/registry.yaml:ro
+      - ./backend/deploy/compose/oss.yaml:/app/configs/oss.yaml:ro
+      - ./backend/deploy/compose/trace.yaml:/app/configs/trace.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
+      core-service:
+        condition: service_started
+
+  app-service:
+    image: ghost-wms/app-service:1.0.0
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: app
+        APP_VERSION: 1.0.0
+    restart: always
+    networks:
+      - app-tier
+    ports:
+      - "127.0.0.1:6700:6700"
+      - "127.0.0.1:6701:6701"
+    volumes:
+      - ./backend/deploy/compose/app-data.yaml:/app/configs/data.yaml:ro
+      - ./backend/deploy/compose/registry.yaml:/app/configs/registry.yaml:ro
+      - ./backend/deploy/compose/oss.yaml:/app/configs/oss.yaml:ro
+      - ./backend/deploy/compose/trace.yaml:/app/configs/trace.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      etcd:
+        condition: service_healthy
+      core-service:
+        condition: service_started
+
+  fcl-service:
+    build:
+      context: ./backend/app/fcl-service
+    environment:
+      DATABASE_URL: postgres://postgres:*Abcd123456@postgres:5432/ghost_wms?sslmode=disable
+      FCL_ADDR: ":6905"
+    restart: unless-stopped
+    networks:
+      - app-tier
+
+  admin:
+    build:
+      context: ./frontend/admin
+      dockerfile: scripts/deploy/Dockerfile
+      args: {}
+    ports:
+      - "${PORT:-8082}:8080"
+    restart: unless-stopped
+    networks:
+      - app-tier
+    depends_on:
+      - admin-service
+      - fcl-service
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:
+  etcddata:

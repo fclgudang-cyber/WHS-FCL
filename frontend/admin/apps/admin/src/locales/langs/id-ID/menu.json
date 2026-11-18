@@ -1,0 +1,79 @@
+{
+  "dashboard": {
+    "index": "Pusat Data",
+    "dashboard": "Dasbor",
+    "analysis": "Analisis Statistik",
+    "workbench": "Meja Kerja",
+    "about": "Tentang"
+  },
+  "profile": {
+    "moduleName": "Pusat Akun",
+    "profile": "Profil Saya",
+    "settings": "Pengaturan Saya",
+    "security": "Pengaturan Keamanan",
+    "customize": "Kustomisasi Tampilan",
+    "notification": "Notifikasi Pesan",
+    "internalMessage": "Pesan Internal"
+  },
+  "permission": {
+    "moduleName": "Manajemen Hak Akses",
+    "role": "Kelola Peran",
+    "permission": "Kelola Hak Akses",
+    "menu": "Kelola Menu",
+    "api": "Kelola API"
+  },
+  "opm": {
+    "moduleName": "Organisasi & SDM",
+    "orgUnit": "Kelola Organisasi",
+    "position": "Kelola Jabatan",
+    "user": "Kelola Pengguna",
+    "userDetail": "Detail Pengguna"
+  },
+  "tenant": {
+    "moduleName": "Manajemen Tenant",
+    "member": "Daftar Tenant"
+  },
+  "system": {
+    "moduleName": "Sistem",
+    "dict": "Kamus Data",
+    "task": "Penjadwalan Tugas",
+    "file": "Manajemen File",
+    "loginPolicy": "Kebijakan Login",
+    "language": "Manajemen Bahasa"
+  },
+  "log": {
+    "moduleName": "Audit Log",
+    "loginAuditLog": "Log Login",
+    "apiAuditLog": "Log API",
+    "dataAccessAuditLog": "Log Data",
+    "operationAuditLog": "Log Operasi",
+    "permissionAuditLog": "Log Hak Akses"
+  },
+  "internalMessage": {
+    "moduleName": "Pesan Internal",
+    "internalMessage": "Kelola Pesan",
+    "internalMessageCategory": "Kategori Pesan"
+  },
+  "wms": {
+    "moduleName": "Manajemen Gudang",
+    "warehouse": "Kelola Gudang",
+    "stockQuant": "Jumlah Stok",
+    "stockPicking": "Surat Picking",
+    "product": "Kelola Produk",
+    "stockLot": "Stok Batch",
+    "purchase": "Pemberitahuan Kedatangan",
+    "wave": "Eksekusi Gelombang",
+    "order": "Manajemen Order",
+    "orderAnalysis": "Analisis Pesanan",
+    "pickingTasks": "Tugas Picking",
+    "waveSettings": "Pengaturan Wave",
+    "pickingBaskets": "Master Keranjang Picking",
+    "sortBaskets": "Master Keranjang Sortir",
+    "sorting": "Sortir"
+  },
+  "approval": {
+    "moduleName": "Pusat Persetujuan",
+    "request": "Kelola Persetujuan",
+    "flow": "Konfigurasi Alur Persetujuan"
+  }
+}

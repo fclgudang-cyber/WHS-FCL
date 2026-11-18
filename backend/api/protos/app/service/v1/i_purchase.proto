@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package app.service.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+import "pagination/v1/pagination.proto";
+import "purchase/service/v1/purchase.proto";
+
+// 到货通知单服务（PDA 手持端：扫码收货/上架）
+service PurchaseService {
+  // 查询到货通知单列表
+  rpc List (pagination.PagingRequest) returns (purchase.service.v1.ListPurchaseResponse) {
+    option (google.api.http) = {
+      get: "/app/v1/purchases"
+    };
+  }
+
+  // 按单号查询（PDA 扫码入口）
+  rpc GetByNumber (purchase.service.v1.GetPurchaseByNumberRequest) returns (purchase.service.v1.Purchase) {
+    option (google.api.http) = {
+      get: "/app/v1/purchases/by-number/{number}"
+    };
+  }
+
+  // 查询到货通知单详情（含明细）
+  rpc Get (purchase.service.v1.GetPurchaseRequest) returns (purchase.service.v1.Purchase) {
+    option (google.api.http) = {
+      get: "/app/v1/purchases/{id}"
+    };
+  }
+
+  // 收货（防超收，生成入库拣货单并自动确认）
+  rpc Receive (purchase.service.v1.ReceivePurchaseRequest) returns (purchase.service.v1.ReceivePurchaseResponse) {
+    option (google.api.http) = {
+      post: "/app/v1/purchases/{purchase_id}/receive"
+      body: "*"
+    };
+  }
+
+  // 上架（质检通过数量 → 目标库位）
+  rpc Putaway (purchase.service.v1.PutawayPurchaseRequest) returns (purchase.service.v1.PutawayPurchaseResponse) {
+    option (google.api.http) = {
+      post: "/app/v1/purchases/{purchase_id}/putaway"
+      body: "*"
+    };
+  }
+}
