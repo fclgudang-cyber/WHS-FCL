@@ -6,7 +6,7 @@ COPY . .
 RUN go build -o /out/fcl-service .
 
 FROM alpine:3.20
-RUN adduser -D -H app
+RUN adduser -D -H app && mkdir -p /app/uploads && chown -R app:app /app/uploads
 COPY --from=builder /out/fcl-service /usr/local/bin/fcl-service
 USER app
 EXPOSE 6905

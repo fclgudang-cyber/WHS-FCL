@@ -48,3 +48,6 @@ batch*.png
 # Node/frontend dependencies & build output
 node_modules/
 dist/
+
+# Uploaded files (runtime)
+backend/deploy/uploads/

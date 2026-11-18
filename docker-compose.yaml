@@ -205,6 +205,8 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:*Abcd123456@postgres:5432/ghost_wms?sslmode=disable
       FCL_ADDR: ":6905"
+    volumes:
+      - ./backend/deploy/uploads:/app/uploads
     restart: unless-stopped
     networks:
       - app-tier

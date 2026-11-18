@@ -31,6 +31,10 @@ func router(w http.ResponseWriter, r *http.Request) {
 		handleFingerprintWebhook(w, r)
 	case p == "/api/fingerprint-check":
 		handleFingerprintSignal(w, r)
+	case p == "/api/file/upload" && r.Method == http.MethodPost:
+		handleFileUpload(w, r)
+	case strings.HasPrefix(p, "/api/files/pettycash/"):
+		handleFileDownload(w, r)
 	case p == "/iclock/cdata":
 		handleADMS(w, r)
 	case p == "/api/auth/login" && r.Method == "POST":

@@ -435,16 +435,56 @@ async function markLunas(t: TxRow) {
 const buktiModalOpen = ref(false);
 const buktiTarget = ref<TxRow | null>(null);
 const buktiInput = ref('');
+const buktiMode = ref<'link' | 'upload'>('link');
+const buktiFile = ref<File | null>(null);
+const buktiPreview = ref('');
+const buktiUploading = ref(false);
 
 function openBuktiModal(t: TxRow) {
   buktiTarget.value = t;
   buktiInput.value = t.buktiUrl ?? '';
+  buktiFile.value = null;
+  buktiMode.value = String(t.buktiUrl ?? '').startsWith('/api/files/') ? 'upload' : 'link';
+  buktiPreview.value = buktiMode.value === 'upload' ? String(t.buktiUrl ?? '') : '';
   buktiModalOpen.value = true;
+}
+
+function pickBuktiFile(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0] ?? null;
+  buktiFile.value = file;
+  buktiPreview.value = file ? URL.createObjectURL(file) : '';
+  if (file && file.size > 12 * 1024 * 1024) {
+    message.warning('Ukuran file maksimal 12 MB');
+    buktiFile.value = null;
+    buktiPreview.value = '';
+  }
 }
 
 async function saveBukti() {
   if (!buktiTarget.value) return;
-  await fclPatch('pettycash', buktiTarget.value.id, { buktiUrl: buktiInput.value.trim() });
+  let url = buktiTarget.value.buktiUrl ?? '';
+  if (buktiMode.value === 'upload') {
+    if (!buktiFile.value && !url) { message.warning('Pilih file bukti terlebih dahulu'); return; }
+    if (buktiFile.value) {
+      buktiUploading.value = true;
+      try {
+        const data = new FormData();
+        data.append('file', buktiFile.value);
+        const res = await fetch('/api/file/upload', { method: 'POST', body: data });
+        const out = await res.json();
+        if (!out?.success || !out?.url) throw new Error(out?.message || 'Upload gagal');
+        url = String(out.url);
+      } catch (err: any) {
+        notification.error({ message: 'Upload Bukti', description: err?.message || 'Gagal mengunggah file' });
+        return;
+      } finally {
+        buktiUploading.value = false;
+      }
+    }
+  } else {
+    url = buktiInput.value.trim();
+  }
+  await fclPatch('pettycash', buktiTarget.value.id, { buktiUrl: url });
   notification.success({ message: 'Bukti transaksi disimpan' });
   buktiModalOpen.value = false;
   await loadAll(true);
@@ -507,6 +547,13 @@ function openPrintWindow(title: string, bodyHtml: string) {
   .sign .line { border-top: 1px solid #111; margin: 42px 8px 4px; }
   .total-row td { font-weight: 700; background:#fafafa; }
   @media print { @page { size: A4; margin: 14mm; } }
+
+.fcl-pc-bukti-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.fcl-pc-bukti-tabs button { border: 1px solid hsl(var(--border)); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+.fcl-pc-bukti-tabs button.active { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.fcl-pc-file { font-size: 11px; width: 100%; color: hsl(var(--muted-foreground)); }
+.fcl-pc-bukti-preview { margin-top: 10px; max-height: 240px; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 6px; }
+.fcl-pc-bukti-preview img { max-width: 100%; max-height: 240px; object-fit: contain; display: block; }
 </style></head><body>${bodyHtml}</body></html>`);
   w.document.close();
   w.focus();
@@ -932,14 +979,27 @@ onMounted(loadAll);
     <!-- ══════════ Modal: Bukti ══════════ -->
     <a-modal
       v-model:open="buktiModalOpen"
-      title="Link Bukti (foto / struk)"
+      title="Bukti Transaksi"
       ok-text="Simpan"
       cancel-text="Batal"
-      width="480px"
+      :confirm-loading="buktiUploading"
+      width="520px"
       @ok="saveBukti"
     >
-      <p class="fcl-pc-bukti-hint">Masukkan link foto/struk (mis. dari Google Drive atau galeri online). Kosongkan untuk menghapus bukti.</p>
-      <a-input v-model:value="buktiInput" placeholder="https://drive.google.com/..." allow-clear />
+      <div class="fcl-pc-bukti-tabs">
+        <button :class="{ 'active': buktiMode === 'link' }" @click="buktiMode = 'link'">Link Google Drive</button>
+        <button :class="{ 'active': buktiMode === 'upload' }" @click="buktiMode = 'upload'">Upload Langsung</button>
+      </div>
+      <template v-if="buktiMode === 'link'">
+        <p class="fcl-pc-bukti-hint">Masukkan link foto/struk dari Google Drive (kosongkan untuk menghapus).</p>
+        <a-input v-model:value="buktiInput" placeholder="https://drive.google.com/..." allow-clear />
+      </template>
+      <template v-else>
+        <p class="fcl-pc-bukti-hint">Pilih foto/struk dari perangkat (maks. 12 MB). File akan tersimpan di server.</p>
+        <input type="file" accept="image/*,application/pdf" class="fcl-pc-file" @change="pickBuktiFile" />
+        <div v-if="buktiPreview" class="fcl-pc-bukti-preview"><img :src="buktiPreview" alt="Pratinjau bukti" /></div>
+        <p v-if="buktiTarget?.buktiUrl && !buktiFile" class="fcl-pc-bukti-hint">Biarkan kosong untuk menggunakan file yang sudah tersimpan.</p>
+      </template>
     </a-modal>
 
     <!-- ══════════ Modal: Invoice ══════════ -->
@@ -1246,4 +1306,11 @@ onMounted(loadAll);
   .fcl-pc-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .fcl-pc-period-card { flex: 1 1 200px; }
 }
+
+.fcl-pc-bukti-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.fcl-pc-bukti-tabs button { border: 1px solid hsl(var(--border)); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+.fcl-pc-bukti-tabs button.active { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.fcl-pc-file { font-size: 11px; width: 100%; color: hsl(var(--muted-foreground)); }
+.fcl-pc-bukti-preview { margin-top: 10px; max-height: 240px; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 6px; }
+.fcl-pc-bukti-preview img { max-width: 100%; max-height: 240px; object-fit: contain; display: block; }
 </style>
