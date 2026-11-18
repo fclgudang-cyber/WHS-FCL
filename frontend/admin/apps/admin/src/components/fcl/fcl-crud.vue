@@ -205,7 +205,8 @@ function buildPayload() {
     let v = (formState as any)[f.name];
     if (f.type === 'date') v = v && (v as Dayjs).isValid?.() ? (v as Dayjs).format('YYYY-MM-DD') : undefined;
     else if (f.type === 'datetime') v = v && (v as Dayjs).isValid?.() ? (v as Dayjs).format('YYYY-MM-DDTHH:mm:ss') : undefined;
-    if (v === undefined) continue;
+    // Kolom numerik: string kosong dari form harus diabaikan, bukan dikirim ke DB.
+    if (v === undefined || (f.type === 'number' && v === '')) continue;
     payload[f.name] = v;
   }
   return payload;

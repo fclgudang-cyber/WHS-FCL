@@ -134,10 +134,16 @@ const routes: RouteRecordRaw[] = [
         meta: { icon: 'lucide:coins', order: 4, title: 'Petty Cash', ignoreAccess: true },
       },
       {
+        path: 'pettyCashKategori',
+        name: 'FCLPettyCashKategori',
+        component: () => import('#/views/fcl/petty-cash-kategori/index.vue'),
+        meta: { icon: 'lucide:list', order: 5, title: 'Kategori Petty Cash', ignoreAccess: true },
+      },
+      {
         path: 'klaim',
         name: 'FCLKlaim',
         component: () => import('#/views/fcl/klaim/index.vue'),
-        meta: { icon: 'lucide:badge-alert', order: 5, title: 'Klaim Paket', ignoreAccess: true },
+        meta: { icon: 'lucide:badge-alert', order: 6, title: 'Klaim Paket', ignoreAccess: true },
       },
     ],
   },

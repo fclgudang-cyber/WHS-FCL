@@ -10,6 +10,7 @@
  * Alur: buat periode dulu, baru transaksi bisa dicatat (semua transaksi terikat ke periode).
  */
 import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
 import {
@@ -20,6 +21,7 @@ import {
   LucideEye,
   LucideFilePenLine,
   LucideInbox,
+  LucideList,
   LucideNotebookPen,
   LucidePencil,
   LucidePlus,
@@ -60,6 +62,17 @@ interface TxRow {
 }
 
 const CATEGORY_COLORS = ['#22d3ee', '#34d399', '#fbbf24', '#f472b6', '#a78bfa', '#fb923c', '#4ade80', '#60a5fa'];
+
+interface KategoriRow {
+  id: string;
+  kode?: string | null;
+  nama?: string | null;
+  urutan?: number | string | null;
+  aktif?: string | null;
+}
+const kategoris = ref<KategoriRow[]>([]);
+const KATEGORI_LAIN = '__LAINNYA__';
+const router = useRouter();
 
 const loading = ref(true);
 
@@ -196,12 +209,14 @@ const txRows = computed(() => {
 async function loadAll(silent = false) {
   if (!silent) loading.value = true;
   try {
-    const [pRows, tRows] = await Promise.all([
+    const [pRows, tRows, kRows] = await Promise.all([
       fclQuery<PeriodRow>('pettycashperiod', { select: '*', order: 'createdAt.desc', limit: 500 }),
       fclQuery<TxRow>('pettycash', { select: '*', order: 'tanggal.asc,createdAt.asc', limit: 5000 }),
+      fclQuery<KategoriRow>('pettycashkategori', { select: '*', order: 'urutan.asc', limit: 500 }),
     ]);
     periods.value = pRows;
     txs.value = tRows;
+    kategoris.value = kRows;
     // pertahankan pilihan jika masih valid; jika tidak, pilih periode Aktif pertama
     const tetapValid = activePeriodId.value && pRows.some((p) => String(p.id) === String(activePeriodId.value));
     if (!tetapValid) {
@@ -336,6 +351,24 @@ const trxForm = ref({
   buktiUrl: '',
 });
 
+const kategoriOptions = computed(() => [
+  ...kategoris.value
+    .filter((k) => String(k.aktif ?? 'Ya') !== 'Tidak')
+    .map((k) => {
+      const nama = String(k.nama ?? '').trim();
+      return { value: nama, label: k.kode ? `${String(k.kode)} — ${nama}` : nama };
+    })
+    .filter((o) => !!o.value),
+  { value: KATEGORI_LAIN, label: 'Lainnya...' },
+]);
+const kategoriCustom = ref('');
+const isKategoriLain = computed(() => trxForm.value.kategori === KATEGORI_LAIN);
+
+function kategoriValueFor(v?: string | null): string {
+  const s = String(v ?? '').trim();
+  return s && kategoris.value.some((k) => String(k.nama ?? '').trim() === s) ? s : (s ? KATEGORI_LAIN : '');
+}
+
 const trxTanggalModel = computed({
   get: () => (trxForm.value.tanggal ? dayjs(trxForm.value.tanggal) : undefined),
   set: (v: any) => {
@@ -355,11 +388,13 @@ function openTrxModal(t?: TxRow | null) {
     return;
   }
   trxEditing.value = t ?? null;
+  const katValue = kategoriValueFor(t?.kategori);
+  kategoriCustom.value = katValue === KATEGORI_LAIN ? String(t?.kategori ?? '') : '';
   trxForm.value = t
     ? {
         tanggal: (t.tanggal ?? '').slice(0, 10),
         tipe: normalizeTipe(t.tipe),
-        kategori: t.kategori ?? '',
+        kategori: katValue,
         keterangan: t.keterangan ?? '',
         nominal: toNum(t.nominal),
         statusBayar: t.statusBayar ?? 'Belum Bayar',
@@ -383,11 +418,13 @@ async function saveTrx() {
   if (!trxForm.value.tanggal) { message.warning('Tanggal wajib diisi'); return; }
   if (trxForm.value.nominal === undefined || trxForm.value.nominal === null) { message.warning('Nominal wajib diisi'); return; }
   if (!trxForm.value.periodId) { message.warning('Pilih periode untuk transaksi ini'); return; }
+  const kategori = (isKategoriLain.value ? kategoriCustom.value : trxForm.value.kategori).trim();
+  if (!kategori) { message.warning('Pilih kategori transaksi'); return; }
   trxSaving.value = true;
   const payload: Record<string, any> = {
     tanggal: trxForm.value.tanggal,
     tipe: trxForm.value.tipe,
-    kategori: trxForm.value.kategori.trim(),
+    kategori,
     keterangan: trxForm.value.keterangan,
     nominal: String(trxForm.value.nominal),
     statusBayar: trxForm.value.statusBayar,
@@ -845,6 +882,7 @@ onMounted(loadAll);
             >
               {{ onlyBelum ? 'Menampilkan: Belum Bayar' : 'Belum Bayar' }}
             </button>
+            <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-sm" @click="router.push('/fcl/keuangan/pettyCashKategori')"><LucideList :size="13" /> Kategori</button>
             <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-sm" @click="exportCsv"><LucideDownload :size="13" /> Export</button>
             <button class="fcl-pc-btn fcl-pc-btn-info fcl-pc-btn-sm" @click="openInvoice"><LucideFilePenLine :size="13" /> Invoice</button>
             <button class="fcl-pc-btn fcl-pc-btn-teal fcl-pc-btn-sm" @click="printDokumen"><LucideNotebookPen :size="13" /> Dokumen</button>
@@ -1006,7 +1044,20 @@ onMounted(loadAll);
           </a-form-item>
         </div>
         <a-form-item label="Kategori">
-          <a-input v-model:value="trxForm.kategori" placeholder="Contoh: DRINKING WATER, PEMBELIAN OFFLINE, WATER SUPPLY..." />
+          <a-select
+            v-model:value="trxForm.kategori"
+            :options="kategoriOptions"
+            placeholder="Pilih kategori..."
+            show-search
+            allow-clear
+            option-filter-prop="label"
+          />
+          <a-input
+            v-if="isKategoriLain"
+            v-model:value="kategoriCustom"
+            placeholder="Tulis kategori baru..."
+            style="margin-top: 8px"
+          />
         </a-form-item>
         <a-form-item label="Keterangan">
           <a-textarea v-model:value="trxForm.keterangan" :rows="2" placeholder="Keterangan transaksi" />
