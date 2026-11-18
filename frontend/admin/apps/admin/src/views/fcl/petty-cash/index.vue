@@ -678,23 +678,102 @@ function printFoto() {
   const period = activePeriod.value;
   if (!period) { message.warning('Pilih periode dulu'); return; }
   if (!periodTxs.value.length) { message.warning('Belum ada transaksi di periode ini'); return; }
+
   const grouped = new Map<string, TxRow[]>();
   periodTxs.value.forEach((t) => {
     const k = (t.kategori || 'Lainnya').trim() || 'Lainnya';
     if (!grouped.has(k)) grouped.set(k, []);
     grouped.get(k)!.push(t);
   });
-  const blocks = [...grouped.entries()].map(([kat, items]) => `
-    <h2 style="font-size:13px;margin:18px 0 8px;border-bottom:2px solid #111;padding-bottom:4px;">${esc(kat)}</h2>
-    <table><thead><tr><th>No</th><th>Tanggal</th><th>Keterangan</th><th class="r">Nominal</th><th>Foto</th></tr></thead>
-    <tbody>${items.map((t, i) => `<tr>
-      <td>${i + 1}</td><td>${esc((t.tanggal ?? '').slice(0, 10))}</td><td>${esc(t.keterangan)}</td><td class="r">Rp ${toNum(t.nominal).toLocaleString('id-ID')}</td>
-      <td>${t.buktiUrl ? `<img src="${esc(t.buktiUrl)}" alt="bukti" style="max-height:90px;max-width:120px;object-fit:contain;border:1px solid #ddd;border-radius:4px;" onerror="this.onerror=null;this.alt='(gagal dimuat)'"/>` : '<span style="color:#b91c1c">tanpa foto</span>'}</td>
-    </tr>`).join('')}</tbody></table>`).join('');
-  openPrintWindow(`Bukti Foto Petty Cash - ${period.nama}`, `
-    <h1>BUKTI FOTO PETTY CASH</h1>
-    <div class="sub">${esc(period.nama)} &nbsp;•&nbsp; ${esc(fmtTanggalPendek(period.tanggalMulai))} s/d ${esc(fmtTanggalPendek(period.tanggalSelesai))}</div>
-    ${blocks}`);
+
+  const palette = ['#1e3a5f', '#0f6b4f', '#9a3412', '#6d28d9', '#0e7490', '#b91c1c'];
+  const absUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `${window.location.origin}${u}`);
+
+  const sections = [...grouped.entries()].map(([kat, items], gi) => {
+    const color = palette[gi % palette.length];
+    const fotoCount = items.filter((t) => !!t.buktiUrl).length;
+    const cards = items.map((t, i) => {
+      const by = t.createdBy ? `<div class="card-by">• ${esc(t.createdBy)}</div>` : '';
+      const image = t.buktiUrl
+        ? `<img src="${esc(absUrl(t.buktiUrl))}" alt="Bukti ${esc(t.keterangan || i + 1)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="img-fallback" style="display:none">Foto tidak dapat dimuat</div>`
+        : '<div class="img-fallback">Tanpa foto</div>';
+      return '<div class="card">'
+        + '<div class="card-top"><span class="num">#' + (i + 1) + '</span><span class="date">' + esc(fmtTanggalPendek(t.tanggal)) + '</span></div>'
+        + '<div class="card-title">' + esc(t.keterangan || '-') + '</div>'
+        + '<div class="card-amt">Rp ' + toNum(t.nominal).toLocaleString('id-ID') + '</div>'
+        + by
+        + '<div class="card-img">' + image + '</div>'
+        + '</div>';
+    }).join('');
+    return '<section class="cat" style="--cat:' + color + '">'
+      + '<div class="cat-head"><span class="cat-name">' + esc(kat) + '</span>'
+      + '<span class="pill">' + fotoCount + ' foto / ' + items.length + ' trx</span></div>'
+      + '<div class="cat-body">' + cards + '</div></section>';
+  }).join('');
+
+  const html = `<!doctype html><html lang="id"><head><meta charset="utf-8"/>
+<title>Bukti Foto Petty Cash - ${esc(period.nama)}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 22px; background: #f3f4f6; color: #111827;
+         font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; }
+  .page-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+               margin: 0 2px 16px; }
+  .page-title { font-size: 18px; font-weight: 800; }
+  .page-sub { color: #6b7280; font-size: 11px; }
+  .cat { border: 1px solid #e5e7eb; border-radius: 9px; background: #fff; overflow: hidden;
+         margin-bottom: 18px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .cat-head { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+              padding: 10px 16px; background: var(--cat); color: #fff; }
+  .cat-name { font-weight: 800; letter-spacing: .02em; font-size: 13px; }
+  .pill { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35);
+          border-radius: 999px; padding: 3px 12px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .cat-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 14px; }
+  .card { border: 1px solid #e5e7eb; border-radius: 7px; background: #fff; padding: 12px;
+          min-width: 0; break-inside: avoid; }
+  .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .num { display: inline-block; border: 1px solid #bfdbfe; color: #2563eb; background: #eff6ff;
+         border-radius: 3px; padding: 1px 6px; font-size: 10px; font-weight: 800; }
+  .date { color: #9ca3af; font-size: 10px; }
+  .card-title { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+  .card-amt { color: #dc2626; font-weight: 800; font-size: 12px; }
+  .card-by { color: #9ca3af; font-size: 10px; font-style: italic; margin-top: 2px; }
+  .card-img { margin-top: 10px; border: 1px solid #e5e7eb; border-radius: 5px; background: #fafafa;
+              padding: 6px; display: flex; align-items: center; justify-content: center;
+              min-height: 120px; }
+  .card-img img { display: block; width: 100%; max-height: 260px; object-fit: contain; }
+  .img-fallback { width: 100%; min-height: 120px; align-items: center; justify-content: center;
+                  color: #b91c1c; font-size: 11px; }
+  .actions { position: fixed; right: 20px; bottom: 18px; display: flex; gap: 8px; z-index: 10; }
+  .actions button { border: 0; border-radius: 6px; padding: 9px 18px; color: #fff;
+                    font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  .btn-print { background: #f59e0b; }
+  .btn-close { background: #6b7280; }
+  @media print {
+    @page { size: A4; margin: 10mm; }
+    body { background: #fff; padding: 0; }
+    .actions { display: none !important; }
+    .cat { break-inside: avoid; box-shadow: none; }
+    .card-img img { max-height: 190px; }
+    .cat-head { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style></head><body>
+  <div class="page-head">
+    <div><div class="page-title">BUKTI FOTO PETTY CASH</div>
+      <div class="page-sub">${esc(period.nama)} &nbsp;•&nbsp; ${esc(fmtTanggalPendek(period.tanggalMulai))} s/d ${esc(fmtTanggalPendek(period.tanggalSelesai))}</div></div>
+  </div>
+  ${sections}
+  <div class="actions">
+    <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
+    <button class="btn-close" onclick="window.close()">Tutup</button>
+  </div>
+</body></html>`;
+
+  const w = window.open('', '_blank', 'width=1240,height=860');
+  if (!w) { message.warning('Popup diblokir browser. Izinkan popup untuk mencetak.'); return; }
+  w.document.write(html);
+  w.document.close();
+  w.focus();
 }
 
 // Invoice: modal pilih transaksi → cetak
