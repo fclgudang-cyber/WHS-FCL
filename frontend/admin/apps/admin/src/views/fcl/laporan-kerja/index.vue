@@ -208,7 +208,8 @@ async function syncFromJadwalShift() {
     form.totalPHL = jml('phl');
     form.totalPekerjaLembur = lemburRows.length;
     form.jamLembur = totalJamLembur;
-    form.totalOrang = aktif.length;
+    // Total orang = jumlah Crew Leader/Admin/Staff/PHL (bukan semua baris roster).
+    form.totalOrang = jml('team leader') + jml('admin') + jml('staff') + jml('phl');
     notification.success({
       message: 'Sync Jadwal Shift',
       description: `${aktif.length} karyawan aktif dari ${list.length} data roster`,
@@ -223,7 +224,7 @@ async function syncFromJadwalShift() {
 const autoHitung = ref(true);
 const soreReload = ref(false);
 
-const totalCrew = computed(() => ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'totalPekerjaLembur']
+const totalCrew = computed(() => ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL']
   .reduce((s, k) => s + num(form[k]), 0));
 // Jam kerja = (jam normal 8 × total orang) + total jam lembur.
 const jamKerjaNormal = computed(() => num(form.totalOrang) * 8);
@@ -362,7 +363,7 @@ function exportExcel() {
       <td>${fmtNum(Number(r.totalOrang ?? 0) * 8)}</td><td>${fmtNum(r.totalJamKerja, 1)}</td><td>${fmtNum(r.jamLembur, 1)}</td>
       <td>${esc(alasanChips(r).join(', '))}</td><td>${fmtNum(r.totalTeamLeader)}</td>
       <td>${fmtNum(r.totalAdmin)}</td><td>${fmtNum(r.totalStaff)}</td><td>${fmtNum(r.totalPHL)}</td>
-      <td>${fmtNum(r.totalOrang)}</td>
+      <td>${fmtNum(Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0) + Number(r.totalPHL ?? 0))}</td>
       <td>${fmtNum(r.totalOrder)}</td><td>${fmtNum(r.totalQty)}</td><td>${fmtNum(r.sisaOrder)}</td></tr>`;
   }).join('');
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -427,7 +428,7 @@ function exportExcel() {
           <div class="lk-num"><b>{{ fmtNum(r.totalAdmin) }}</b><span>Admin</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalStaff) }}</b><span>Staff</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalPHL) }}</b><span>PHL</span></div>
-          <div class="lk-num lk-hijau"><b>{{ fmtNum(r.totalOrang) }}</b><span>Org</span></div>
+          <div class="lk-num lk-hijau"><b>{{ fmtNum(Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0) + Number(r.totalPHL ?? 0)) }}</b><span>Org</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalOrder) }}</b><span>PO {{ fmtNum(r.totalPO) }}</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalQty) }}</b></div>
           <div><span class="lk-kpi">{{ fmtNum(r.sisaOrder) }}</span></div>
