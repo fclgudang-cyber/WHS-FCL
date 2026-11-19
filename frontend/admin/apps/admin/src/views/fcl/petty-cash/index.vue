@@ -497,6 +497,19 @@ function pickBuktiFile(e: Event) {
   }
 }
 
+// Unggah file ke Drive/penyimpanan sesuai periode transaksi.
+async function uploadBuktiFile(file: File, target: TxRow): Promise<string> {
+  const data = new FormData();
+  data.append('file', file);
+  const trxPeriodId = target.periodId ?? activePeriodId.value;
+  const trxPeriod = periods.value.find((p) => String(p.id) === String(trxPeriodId));
+  data.append('period', String(trxPeriod?.nama ?? activePeriod.value?.nama ?? 'Tanpa Periode'));
+  const res = await fetch('/api/file/upload', { method: 'POST', body: data });
+  const out = await res.json();
+  if (!out?.success || !out?.url) throw new Error(out?.message || 'Upload gagal');
+  return String(out.url);
+}
+
 async function saveBukti() {
   if (!buktiTarget.value) return;
   let url = buktiTarget.value.buktiUrl ?? '';
@@ -505,16 +518,7 @@ async function saveBukti() {
     if (buktiFile.value) {
       buktiUploading.value = true;
       try {
-        const data = new FormData();
-        data.append('file', buktiFile.value);
-        // Folder tujuan di Drive dibuat sesuai nama periode transaksi.
-        const trxPeriodId = buktiTarget.value.periodId ?? activePeriodId.value;
-        const trxPeriod = periods.value.find((p) => String(p.id) === String(trxPeriodId));
-        data.append('period', String(trxPeriod?.nama ?? activePeriod.value?.nama ?? 'Tanpa Periode'));
-        const res = await fetch('/api/file/upload', { method: 'POST', body: data });
-        const out = await res.json();
-        if (!out?.success || !out?.url) throw new Error(out?.message || 'Upload gagal');
-        url = String(out.url);
+        url = await uploadBuktiFile(buktiFile.value, buktiTarget.value);
       } catch (err: any) {
         notification.error({ message: 'Upload Bukti', description: err?.message || 'Gagal mengunggah file' });
         return;
@@ -529,6 +533,36 @@ async function saveBukti() {
   notification.success({ message: 'Bukti transaksi disimpan' });
   buktiModalOpen.value = false;
   await loadAll(true);
+}
+
+// Upload langsung: tanpa modal — pilih foto lalu langsung tersimpan.
+const directFileInput = ref<HTMLInputElement | null>(null);
+let directTargetId: string | null = null;
+const directUploading = ref(false);
+
+function directUpload(t: TxRow) {
+  directTargetId = t.id;
+  if (directFileInput.value) directFileInput.value.value = '';
+  directFileInput.value?.click();
+}
+
+async function onDirectFileChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0] ?? null;
+  const target = txs.value.find((t) => String(t.id) === String(directTargetId));
+  directTargetId = null;
+  if (!file || !target) return;
+  if (file.size > 12 * 1024 * 1024) { message.warning('Ukuran file maksimal 12 MB'); return; }
+  directUploading.value = true;
+  try {
+    const url = await uploadBuktiFile(file, target);
+    await fclPatch('pettycash', target.id, { buktiUrl: url });
+    notification.success({ message: 'Foto bukti tersimpan ke Google Drive' });
+    await loadAll(true);
+  } catch (err: any) {
+    notification.error({ message: 'Upload Bukti', description: err?.message || 'Gagal mengunggah file' });
+  } finally {
+    directUploading.value = false;
+  }
 }
 
 // Pratinjau foto bukti langsung di halaman (tanpa membuka tab/link baru).
@@ -922,6 +956,15 @@ onMounted(loadAll);
 
 <template>
   <Page auto-content-height>
+    <!-- Input tersembunyi untuk upload langsung (tanpa modal) -->
+    <input
+      ref="directFileInput"
+      type="file"
+      accept="image/*,application/pdf"
+      style="display: none"
+      :disabled="directUploading"
+      @change="onDirectFileChange"
+    />
     <!-- ══════════ BELUM ADA PERIODE → hero create-first ══════════ -->
     <div v-if="!loading && periods.length === 0" class="fcl-pc-hero">
       <div class="fcl-pc-hero-icon"><LucideWallet :size="44" /></div>
@@ -1097,10 +1140,11 @@ onMounted(loadAll);
                 <td>
                   <div class="fcl-pc-bukti">
                     <template v-if="row.buktiUrl">
-                      <button class="fcl-pc-bukti-link" @click="viewBukti(row)"><LucideEye :size="12" /> Lihat Bukti</button>
-                      <button class="fcl-pc-mini-btn" @click="openBuktiModal(row)">Ganti</button>
+                      <button class="fcl-pc-bukti-link" @click="viewBukti(row)"><LucideEye :size="12" /> Lihat Foto</button>
+                      <button class="fcl-pc-mini-btn" :disabled="directUploading" @click="directUpload(row)">Ganti Foto</button>
+                      <button class="fcl-pc-mini-btn" @click="openBuktiModal(row)">Link</button>
                     </template>
-                    <button v-else class="fcl-pc-bukti-upload" @click="openBuktiModal(row)"><LucidePlus :size="12" /> Upload</button>
+                    <button v-else class="fcl-pc-bukti-upload" :disabled="directUploading" @click="directUpload(row)"><LucidePlus :size="12" /> Upload Langsung</button>
                   </div>
                 </td>
                 <td class="fcl-pc-by">{{ row.createdBy || '-' }}</td>
