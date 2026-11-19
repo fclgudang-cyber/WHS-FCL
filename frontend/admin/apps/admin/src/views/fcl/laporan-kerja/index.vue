@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import type { Dayjs } from 'dayjs';
 
 import { Page } from '@vben/common-ui';
@@ -158,7 +158,8 @@ const formFields: any[] = [
   { name: 'sisaOrder', label: 'KPI', type: 'number' },
 ];
 
-const tampilQtyUntuk = (divisi?: string | null) => !/market[\s_]*place/i.test(String(divisi ?? ''));
+const adalahMarketPlace = (divisi?: string | null) => /market[\s_]*place/i.test(String(divisi ?? ''));
+const tampilQtyUntuk = (divisi?: string | null) => !adalahMarketPlace(divisi);
 const tampilQty = computed(() => tampilQtyUntuk(form.divisi));
 const fieldLabel = (name: string) => formFields.find((f) => f.name === name)?.label ?? name;
 const groupAngka = ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'jamKerjaPHL', 'perbantuan', 'pengurangan', 'jamPengurangan', 'totalPekerjaLembur', 'jamLembur'];
@@ -233,6 +234,13 @@ const jamKerjaAuto = computed(() => {
 });
 const jamKerjaFinal = computed(() => (autoHitung.value ? jamKerjaAuto.value : num(form.totalJamKerja)));
 const wpi = computed(() => (jamKerjaFinal.value > 0 ? num(form.totalOrder) / jamKerjaFinal.value : 0));
+const kpiMarketPlace = computed(() => Math.round(wpi.value * 1000) / 1000);
+// Market Place: KPI = Total Order / Jam Kerja, dihitung otomatis.
+watch(
+  () => [form.divisi, form.totalOrder, form.totalJamKerja, jamKerjaFinal.value, autoHitung.value],
+  () => { if (adalahMarketPlace(form.divisi)) form.sisaOrder = kpiMarketPlace.value; },
+  { immediate: true },
+);
 const totalKecukupan = computed(() => totalCrew.value * 16);
 const totalKesesuaian = computed(() => Math.round((jamKerjaFinal.value - totalKecukupan.value) * 10) / 10);
 
