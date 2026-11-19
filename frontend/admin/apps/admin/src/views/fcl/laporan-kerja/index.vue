@@ -36,7 +36,6 @@ interface LaporanRow {
   alasanPengurangan?: string | null;
   alasanLembur?: string | null;
   totalTeamLeader?: number | string | null;
-  totalPelorporUtama?: number | string | null;
   jamPengurangan?: number | string | null;
   totalPekerjaLembur?: number | string | null;
   jamKerjaPHL?: number | string | null;
@@ -144,7 +143,6 @@ const formFields: any[] = [
   { name: 'pic', label: 'NAMA PELOPOR (PIC) · AKUN LOGIN', placeholder: 'Nama akun...' },
   { name: 'totalTeamLeader', label: 'TOTAL TEAM LEADER', type: 'number' },
   { name: 'totalStaff', label: 'TOTAL STAFF', type: 'number' },
-  { name: 'totalPelorporUtama', label: 'TOTAL PELOPOR UTAMA', type: 'number' },
   { name: 'totalAdmin', label: 'TOTAL ADMIN', type: 'number' },
   { name: 'totalPHL', label: 'TOTAL PHL', type: 'number' },
   { name: 'jamKerjaPHL', label: 'JAM KERJA PHL (DESKRIPSI)', type: 'number' },
@@ -164,7 +162,7 @@ const formFields: any[] = [
 ];
 
 const fieldLabel = (name: string) => formFields.find((f) => f.name === name)?.label ?? name;
-const groupAngka = ['totalTeamLeader', 'totalStaff', 'totalPelorporUtama', 'totalAdmin', 'totalPHL', 'jamKerjaPHL', 'perbantuan', 'pengurangan', 'jamPengurangan', 'totalPekerjaLembur', 'jamLembur'];
+const groupAngka = ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'jamKerjaPHL', 'perbantuan', 'pengurangan', 'jamPengurangan', 'totalPekerjaLembur', 'jamLembur'];
 const groupOrder = ['totalOrder', 'totalQty', 'sisaOrder'];
 
 // Ambil data PIC, shift, jumlah peran & lembur dari roster Jadwal Shift.
@@ -206,7 +204,6 @@ async function syncFromJadwalShift() {
     if (pic) form.pic = pic;
     form.totalTeamLeader = jml('team leader');
     form.totalStaff = jml('staff');
-    form.totalPelorporUtama = jml('pelopor');
     form.totalAdmin = jml('admin');
     form.totalPHL = jml('phl');
     form.totalPekerjaLembur = lemburRows.length;
@@ -228,10 +225,10 @@ const soreReload = ref(false);
 const semuaMalamKartu = ref(false);
 const semuaMemakaiSemuaKartu = ref(false);
 
-const totalCrew = computed(() => ['totalTeamLeader', 'totalStaff', 'totalPelorporUtama', 'totalAdmin', 'totalPHL', 'totalPekerjaLembur']
+const totalCrew = computed(() => ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'totalPekerjaLembur']
   .reduce((s, k) => s + num(form[k]), 0));
 const jamKerjaAuto = computed(() => {
-  const crew = ['totalTeamLeader', 'totalStaff', 'totalPelorporUtama', 'totalAdmin']
+  const crew = ['totalTeamLeader', 'totalStaff', 'totalAdmin']
     .reduce((s, k) => s + num(form[k]), 0);
   return crew * 1.5 + num(form.totalPHL) * num(form.jamKerjaPHL)
     + num(form.totalPekerjaLembur) * num(form.jamLembur)
