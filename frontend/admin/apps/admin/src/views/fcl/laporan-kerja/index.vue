@@ -153,9 +153,6 @@ const formFields: any[] = [
   { name: 'jamLembur', label: 'LAMA LEMBUR (JAM)', type: 'number' },
   { name: 'alasanLembur', label: 'LAMA LEMBUR (JAM), KETERANGAN' },
   { name: 'totalOrder', label: 'Total Order Marketplace', type: 'number' },
-  { name: 'noKartuTanpaKartu', label: 'NO KARTU KARYAWAN YANG TIDAK MENGGUNAKAN KARTU', type: 'textarea' },
-  { name: 'namaTanpaKartu', label: 'NAMA KARYAWAN YANG TIDAK MENGGUNAKAN KARTU', type: 'textarea' },
-  { name: 'kendala', label: 'KETERANGAN', type: 'textarea' },
   { name: 'totalJamKerja', label: 'TOTAL JAM KERJA (MANUAL)', type: 'number' },
   { name: 'totalQty', label: 'QTY', type: 'number' },
   { name: 'sisaOrder', label: 'KPI', type: 'number' },
@@ -224,8 +221,6 @@ async function syncFromJadwalShift() {
 
 const autoHitung = ref(true);
 const soreReload = ref(false);
-const semuaMalamKartu = ref(false);
-const semuaMemakaiSemuaKartu = ref(false);
 
 const totalCrew = computed(() => ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'totalPekerjaLembur']
   .reduce((s, k) => s + num(form[k]), 0));
@@ -248,8 +243,6 @@ function resetForm(row?: LaporanRow | null) {
   });
   autoHitung.value = row ? String((row as any).autoHitung ?? 'Ya') !== 'Tidak' : true;
   soreReload.value = row ? String((row as any).soreReload ?? 'Tidak') === 'Ya' : false;
-  semuaMalamKartu.value = row ? String((row as any).semuaMalamKartu ?? 'Tidak') === 'Ya' : false;
-  semuaMemakaiSemuaKartu.value = row ? String((row as any).semuaMemakaiSemuaKartu ?? 'Tidak') === 'Ya' : false;
 }
 
 function openCreate() {
@@ -287,8 +280,6 @@ async function saveForm() {
     payload.totalKesesuaian = String(totalKesesuaian.value);
     payload.autoHitung = autoHitung.value ? 'Ya' : 'Tidak';
     payload.soreReload = soreReload.value ? 'Ya' : 'Tidak';
-    payload.semuaMalamKartu = semuaMalamKartu.value ? 'Ya' : 'Tidak';
-    payload.semuaMemakaiSemuaKartu = semuaMemakaiSemuaKartu.value ? 'Ya' : 'Tidak';
     if (editingId.value) {
       await fclPatch('laporankerja', editingId.value, payload);
       notification.success({ message: 'Laporan Kerja diperbarui' });
@@ -509,23 +500,6 @@ function exportExcel() {
           <label v-for="name in groupOrder" :key="name" v-show="name !== 'totalQty' || tampilQty" class="lk-f">
             <span>{{ fieldLabel(name) }}</span>
             <a-input-number v-model:value="form[name]" :min="0" style="width: 100%" />
-          </label>
-        </div>
-
-        <div class="lk-checks lk-checks-kartu">
-          <label><input type="checkbox" v-model="semuaMalamKartu" /> Semua malam Kartu</label>
-          <label><input type="checkbox" v-model="semuaMemakaiSemuaKartu" /> Semua memakai Semua Kartu</label>
-        </div>
-
-        <div class="lk-grid2">
-          <label class="lk-f lk-full"><span>NO KARTU KARYAWAN YANG TIDAK MENGGUNAKAN KARTU</span>
-            <a-textarea v-model:value="form.noKartuTanpaKartu" :rows="2" placeholder="Posisi dengan format..." />
-          </label>
-          <label class="lk-f lk-full"><span>NAMA KARYAWAN YANG TIDAK MENGGUNAKAN KARTU</span>
-            <a-textarea v-model:value="form.namaTanpaKartu" :rows="2" placeholder="Posisi dengan format..." />
-          </label>
-          <label class="lk-f lk-full"><span>KETERANGAN</span>
-            <a-textarea v-model:value="form.kendala" :rows="2" />
           </label>
         </div>
 
