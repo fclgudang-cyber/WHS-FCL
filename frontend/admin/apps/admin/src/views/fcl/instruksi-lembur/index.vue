@@ -233,7 +233,12 @@ async function simpan() {
       const rmap = rosterMap();
       for (const i of valid) {
         const r = rmap.get(i.nama.trim().toLowerCase());
-        if (r) await fclPatch('jadwalroster', r.id, { [dayKey]: `LEMBUR ${i.totalJam}J` });
+        if (r) {
+          const nilai = i.shift
+            ? `${i.shift} + LEMBUR ${i.jamLembur}J`
+            : `LEMBUR ${i.totalJam}J`;
+          await fclPatch('jadwalroster', r.id, { [dayKey]: nilai });
+        }
       }
     }
     notification.success({ message: 'Instruksi lembur disimpan', description: `${valid.length} karyawan tercatat` });

@@ -47,6 +47,32 @@ const importInput = ref<HTMLInputElement | null>(null);
 
 const SHIFTS = ['', 'PAGI', 'MALAM', 'SETENGAH HARI', 'SPLIT', 'SD', 'STD', 'IJIN', 'CUTI', 'SAKIT', 'ALFA', 'OFF', 'LIBUR'];
 
+// Jam kerja normal per shift (bisa diubah lewat Setelan Jam bila diperlukan).
+function jamShiftDasar(v?: string): number {
+  const s = String(v ?? '').split('+')[0].toUpperCase();
+  if (s.includes('SETENGAH') || s.includes('SPLIT')) return 4;
+  if (s.includes('PAGI') || s.includes('MALAM')) return 8;
+  return 0;
+}
+function jamLemburDari(v?: string): number {
+  const s = String(v ?? '').toUpperCase();
+  if (!s.includes('LEMBUR')) return 0;
+  const m = s.match(/(\d+(?:[.,]\d+)?)\s*J/);
+  return m ? Number(m[1].replace(',', '.')) : 0;
+}
+function jamKerjaHari(r: RosterRow, d: number): number {
+  return jamShiftDasar(String(r[String(d)] ?? ''));
+}
+function totalJamHari(r: RosterRow, d: number): number {
+  return jamKerjaHari(r, d) + jamLemburDari(String(r[String(d)] ?? ''));
+}
+function jamInfo(r: RosterRow, d: number): string {
+  const v = String(r[String(d)] ?? '');
+  const jk = jamKerjaHari(r, d);
+  const jl = jamLemburDari(v);
+  return jk || jl ? `Shift ${jk} jam + lembur ${jl} jam = total ${jk + jl} jam` : '';
+}
+
 const SHIFT_META: Record<string, { label: string; bg: string; fg: string }> = {
   PAGI: { label: 'PAGI', bg: 'hsl(152 60% 24%)', fg: 'hsl(152 80% 78%)' },
   MALAM: { label: 'MALAM', bg: 'hsl(200 60% 24%)', fg: 'hsl(198 90% 80%)' },
@@ -60,11 +86,13 @@ const SHIFT_META: Record<string, { label: string; bg: string; fg: string }> = {
   ALFA: { label: 'ALFA', bg: 'hsl(0 60% 34%)', fg: 'hsl(0 90% 82%)' },
   OFF: { label: 'OFF', bg: 'hsl(0 45% 26%)', fg: 'hsl(0 80% 80%)' },
   LIBUR: { label: 'LIBUR', bg: 'hsl(0 45% 26%)', fg: 'hsl(0 80% 80%)' },
+  LEMBUR: { label: 'LEMBUR', bg: 'hsl(32 65% 26%)', fg: 'hsl(36 95% 75%)' },
 };
 
 function categoryOf(v?: string): string {
   const s = String(v ?? '').toUpperCase().trim();
   if (!s) return '';
+  if (s.includes('LEMBUR')) return 'LEMBUR';
   if (s.includes('SETENGAH HARI') || s.includes('SPLIT')) return 'SETENGAH_HARI';
   if (s.includes('MALAM')) return 'MALAM';
   if (s.includes('PAGI')) return 'PAGI';
@@ -344,6 +372,9 @@ onMounted(() => load());
           <thead>
             <tr>
               <th class="js-col-name">NAMA KARYAWAN</th><th class="js-col-jab">JABATAN</th><th class="js-col-div">DIVISI</th>
+              <th class="js-col-jam" title="Jam kerja normal sesuai shift">JAM KERJA</th>
+              <th class="js-col-jam2" title="Jam lembur dari instruksi">JAM LEMBUR</th>
+              <th class="js-col-jam3" title="Jam kerja + jam lembur">TOTAL JAM</th>
               <th v-for="d in DAYS" :key="d" :class="{ 'js-today': d === summaryDay }" @click="summaryDay = d">
                 {{ dayLabel(d) }} <b>{{ d }}</b>
               </th>
@@ -355,19 +386,24 @@ onMounted(() => load());
               <td class="js-name">{{ r.Nama || '-' }}</td>
               <td><span class="js-badge">{{ r.Jabatan || '-' }}</span></td>
               <td><span class="js-badge js-badge-div">{{ r.Divisi || '-' }}</span></td>
+              <td class="js-jam">{{ jamKerjaHari(r, summaryDay) ? `${jamKerjaHari(r, summaryDay)} jam` : '-' }}</td>
+              <td class="js-jam js-jam-lembur">{{ jamLemburDari(String(r[String(summaryDay)] ?? '')) ? `${jamLemburDari(String(r[String(summaryDay)] ?? ''))} jam` : '-' }}</td>
+              <td class="js-jam js-jam-total">{{ totalJamHari(r, summaryDay) ? `${totalJamHari(r, summaryDay)} jam` : '-' }}</td>
               <td v-for="d in DAYS" :key="d" class="js-cell-td" :class="{ 'js-today': d === summaryDay }">
                 <select
                   class="js-cell"
                   :style="cellStyle(r[String(d)])"
                   :value="r[String(d)] || ''"
+                  :title="jamInfo(r, d)"
                   @change="updateCell(r, d, ($event.target as HTMLSelectElement).value)"
                 >
                   <option v-for="o in SHIFTS" :key="o" :value="o">{{ o || '—' }}</option>
+                  <option v-if="r[String(d)] && !SHIFTS.includes(r[String(d)])" :value="r[String(d)]">{{ r[String(d)] }}</option>
                 </select>
               </td>
               <td class="js-col-act"><button class="js-btn js-btn-danger js-btn-xs" @click="removeRow(r)">Hapus</button></td>
             </tr>
-            <tr v-if="!visibleRows.length"><td :colspan="DAYS.length + 4" class="js-empty">Belum ada data roster bulan ini.</td></tr>
+            <tr v-if="!visibleRows.length"><td :colspan="DAYS.length + 7" class="js-empty">Belum ada data roster bulan ini.</td></tr>
           </tbody>
         </table>
       </div>
@@ -441,11 +477,20 @@ onMounted(() => load());
 .js-col-name { left: 0; z-index: 3 !important; min-width: 190px; }
 .js-col-jab { left: 190px; z-index: 3 !important; min-width: 130px; }
 .js-col-div { left: 320px; z-index: 3 !important; min-width: 100px; }
+.js-col-jam { left: 420px; z-index: 3 !important; min-width: 78px; }
+.js-col-jam2 { left: 498px; z-index: 3 !important; min-width: 82px; }
+.js-col-jam3 { left: 580px; z-index: 3 !important; min-width: 82px; }
 .js-col-act { min-width: 60px; }
-.js-grid th.js-col-name, .js-grid th.js-col-jab, .js-grid th.js-col-div { position: sticky; z-index: 4 !important; }
+.js-grid th.js-col-name, .js-grid th.js-col-jab, .js-grid th.js-col-div, .js-grid th.js-col-jam, .js-grid th.js-col-jam2, .js-grid th.js-col-jam3 { position: sticky; z-index: 4 !important; }
 .js-grid td.js-name { position: sticky; left: 0; z-index: 1; background: hsl(var(--card)); font-weight: 700; min-width: 190px; }
 .js-grid td:nth-child(2) { position: sticky; left: 190px; z-index: 1; background: hsl(var(--card)); }
 .js-grid td:nth-child(3) { position: sticky; left: 320px; z-index: 1; background: hsl(var(--card)); }
+.js-grid td:nth-child(4) { position: sticky; left: 420px; z-index: 1; background: hsl(var(--card)); }
+.js-grid td:nth-child(5) { position: sticky; left: 498px; z-index: 1; background: hsl(var(--card)); }
+.js-grid td:nth-child(6) { position: sticky; left: 580px; z-index: 1; background: hsl(var(--card)); }
+.js-jam { text-align: center; font-size: 10px; font-weight: 700; color: hsl(var(--muted-foreground)); white-space: nowrap; }
+.js-jam-lembur { color: #f59e0b; }
+.js-jam-total { color: #16a34a; }
 .js-today { box-shadow: inset 0 0 0 2px hsl(var(--primary) / 0.35); }
 .js-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); white-space: nowrap; }
 .js-badge-div { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
