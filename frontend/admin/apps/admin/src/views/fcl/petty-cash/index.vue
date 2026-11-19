@@ -538,7 +538,8 @@ async function saveBukti() {
 // Upload langsung: tanpa modal — pilih foto lalu langsung tersimpan.
 const directFileInput = ref<HTMLInputElement | null>(null);
 let directTargetId: string | null = null;
-const directUploading = ref(false);
+const directUploadingId = ref<string | null>(null);
+const isDirectUploading = (t: TxRow) => String(directUploadingId.value) === String(t.id);
 
 function directUpload(t: TxRow) {
   directTargetId = t.id;
@@ -552,7 +553,7 @@ async function onDirectFileChange(e: Event) {
   directTargetId = null;
   if (!file || !target) return;
   if (file.size > 12 * 1024 * 1024) { message.warning('Ukuran file maksimal 12 MB'); return; }
-  directUploading.value = true;
+  directUploadingId.value = String(target.id);
   try {
     const url = await uploadBuktiFile(file, target);
     await fclPatch('pettycash', target.id, { buktiUrl: url });
@@ -561,7 +562,7 @@ async function onDirectFileChange(e: Event) {
   } catch (err: any) {
     notification.error({ message: 'Upload Bukti', description: err?.message || 'Gagal mengunggah file' });
   } finally {
-    directUploading.value = false;
+    directUploadingId.value = null;
   }
 }
 
@@ -996,9 +997,12 @@ onMounted(loadAll);
       type="file"
       accept="image/*,application/pdf"
       style="display: none"
-      :disabled="directUploading"
+      :disabled="!!directUploadingId"
       @change="onDirectFileChange"
     />
+    <div v-if="directUploadingId" class="fcl-pc-upload-status">
+      <span class="fcl-pc-spin"></span> Mengunggah foto ke Google Drive...
+    </div>
     <!-- ══════════ BELUM ADA PERIODE → hero create-first ══════════ -->
     <div v-if="!loading && periods.length === 0" class="fcl-pc-hero">
       <div class="fcl-pc-hero-icon"><LucideWallet :size="44" /></div>
@@ -1175,10 +1179,17 @@ onMounted(loadAll);
                   <div class="fcl-pc-bukti">
                     <template v-if="row.buktiUrl">
                       <button class="fcl-pc-bukti-link" @click="viewBukti(row)"><LucideEye :size="12" /> Lihat Foto</button>
-                      <button class="fcl-pc-mini-btn" :disabled="directUploading" @click="directUpload(row)">Ganti Foto</button>
-                      <button class="fcl-pc-mini-btn" @click="openBuktiModal(row)">Link</button>
+                      <button class="fcl-pc-mini-btn" :disabled="isDirectUploading(row)" @click="directUpload(row)">
+                        <span v-if="isDirectUploading(row)" class="fcl-pc-spin"></span>
+                        {{ isDirectUploading(row) ? 'Mengunggah...' : 'Ganti Foto' }}
+                      </button>
+                      <button class="fcl-pc-mini-btn" :disabled="isDirectUploading(row)" @click="openBuktiModal(row)">Link</button>
                     </template>
-                    <button v-else class="fcl-pc-bukti-upload" :disabled="directUploading" @click="directUpload(row)"><LucidePlus :size="12" /> Upload Langsung</button>
+                    <button v-else class="fcl-pc-bukti-upload" :disabled="isDirectUploading(row)" @click="directUpload(row)">
+                      <span v-if="isDirectUploading(row)" class="fcl-pc-spin"></span>
+                      <LucidePlus v-else :size="12" />
+                      {{ isDirectUploading(row) ? 'Mengunggah...' : 'Upload Langsung' }}
+                    </button>
                   </div>
                 </td>
                 <td class="fcl-pc-by">{{ row.createdBy || '-' }}</td>
@@ -1683,4 +1694,9 @@ onMounted(loadAll);
 .fcl-pc-file { font-size: 11px; width: 100%; color: hsl(var(--muted-foreground)); }
 .fcl-pc-bukti-preview { margin-top: 10px; max-height: 240px; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 6px; }
 .fcl-pc-bukti-preview img { max-width: 100%; max-height: 240px; object-fit: contain; display: block; }
+.fcl-pc-spin { display: inline-block; width: 11px; height: 11px; flex: 0 0 auto; border: 2px solid hsl(var(--border)); border-top-color: hsl(var(--primary)); border-radius: 50%; animation: fcl-pc-spin 0.7s linear infinite; }
+@keyframes fcl-pc-spin { to { transform: rotate(360deg); } }
+.fcl-pc-upload-status { position: fixed; right: 22px; bottom: 22px; z-index: 2000; display: flex; align-items: center; gap: 9px; padding: 9px 15px; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--popover)); color: hsl(var(--popover-foreground)); box-shadow: 0 6px 20px rgba(0,0,0,.18); font-size: 12px; font-weight: 700; }
+.fcl-pc-upload-status .fcl-pc-spin { width: 14px; height: 14px; }
+button:disabled { opacity: 0.65; cursor: not-allowed; }
 </style>
