@@ -161,6 +161,8 @@ const formFields: any[] = [
   { name: 'sisaOrder', label: 'KPI', type: 'number' },
 ];
 
+const tampilQtyUntuk = (divisi?: string | null) => !/market[\s_]*place/i.test(String(divisi ?? ''));
+const tampilQty = computed(() => tampilQtyUntuk(form.divisi));
 const fieldLabel = (name: string) => formFields.find((f) => f.name === name)?.label ?? name;
 const groupAngka = ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'jamKerjaPHL', 'perbantuan', 'pengurangan', 'jamPengurangan', 'totalPekerjaLembur', 'jamLembur'];
 const groupOrder = ['totalOrder', 'totalQty', 'sisaOrder'];
@@ -274,6 +276,7 @@ async function saveForm() {
       let v = form[f.name];
       if (f.type === 'date') v = v && dayjs(v).isValid() ? dayjs(v).format('YYYY-MM-DD') : '';
       if (v === undefined || v === null || v === '') return;
+      if (f.name === 'totalQty' && !tampilQty.value) return;
       payload[f.name] = v;
     });
     // Nilai turunan & opsi form ikut tersimpan.
@@ -503,7 +506,7 @@ function exportExcel() {
         </div>
 
         <div class="lk-grid2">
-          <label v-for="name in groupOrder" :key="name" class="lk-f">
+          <label v-for="name in groupOrder" :key="name" v-show="name !== 'totalQty' || tampilQty" class="lk-f">
             <span>{{ fieldLabel(name) }}</span>
             <a-input-number v-model:value="form[name]" :min="0" style="width: 100%" />
           </label>
@@ -538,7 +541,7 @@ function exportExcel() {
     <!-- Modal: detail harian -->
     <a-modal v-model:open="detailOpen" title="Detail Laporan Kerja" :footer="null" width="640px">
       <div v-if="detailRow" class="lk-detail-grid">
-        <div v-for="f in formFields" :key="f.name" class="lk-detail-item">
+        <div v-for="f in formFields" :key="f.name" v-show="f.name !== 'totalQty' || tampilQtyUntuk(detailRow?.divisi)" class="lk-detail-item">
           <span class="lk-detail-label">{{ f.label }}</span>
           <span class="lk-detail-value">{{ f.type === 'number' ? fmtNum(detailRow[f.name as keyof LaporanRow], f.name === 'totalJamKerja' || f.name === 'jamLembur' ? 1 : 0) : (detailRow[f.name as keyof LaporanRow] || '-') }}</span>
         </div>
