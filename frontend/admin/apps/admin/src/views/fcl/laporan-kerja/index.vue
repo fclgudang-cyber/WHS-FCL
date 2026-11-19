@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import type { Dayjs } from 'dayjs';
 
 import { Page } from '@vben/common-ui';
+import { useUserStore } from '@vben/stores';
 import { LucideDownload, LucidePlus, LucideRefreshCw } from '@vben/icons';
 
 import { Modal, message, notification } from 'ant-design-vue';
@@ -51,6 +52,12 @@ interface LaporanRow {
   createdBy?: string | null;
   createdAt?: string | null;
 }
+
+const userStore = useUserStore();
+const namaAkun = () => {
+  const u: any = userStore.userInfo ?? {};
+  return String(u.realname || u.nama || u.username || u.nickname || '').trim();
+};
 
 const rows = ref<LaporanRow[]>([]);
 const loading = ref(true);
@@ -134,7 +141,7 @@ const formFields: any[] = [
   { name: 'tanggal', label: 'TANGGAL LAPORAN', type: 'date' },
   { name: 'shift', label: 'SHIFT', type: 'select', options: ['Shift Pagi', 'Shift Siang', 'Shift Malam'] },
   { name: 'divisi', label: 'DIVISI', placeholder: 'Marketplace...' },
-  { name: 'pic', label: 'NAMA PELOPOR (PIC)', placeholder: 'M Mixed Nursi...' },
+  { name: 'pic', label: 'NAMA PELOPOR (PIC) · AKUN LOGIN', placeholder: 'Nama akun...' },
   { name: 'totalTeamLeader', label: 'TOTAL TEAM LEADER', type: 'number' },
   { name: 'totalStaff', label: 'TOTAL STAFF', type: 'number' },
   { name: 'totalPelorporUtama', label: 'TOTAL PELOPOR UTAMA', type: 'number' },
@@ -186,11 +193,8 @@ async function syncFromJadwalShift() {
       if (s) hitung[s] = (hitung[s] ?? 0) + 1;
     });
     const shiftDominan = Object.entries(hitung).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
-    const pic = aktif
-      .filter((r) => /team leader|pelopor|koordinator/i.test(String(r.Jabatan ?? '')))
-      .map((r) => String(r.Nama ?? '').trim())
-      .filter(Boolean)
-      .join(', ');
+    // PIC memakai nama akun yang sedang login (bukan nama dari roster).
+    const pic = namaAkun();
 
     if (shiftDominan) form.shift = shiftDominan;
     if (pic) form.pic = pic;
@@ -247,6 +251,7 @@ function openCreate() {
   editingId.value = null;
   resetForm();
   form.tanggal = dayjs();
+  form.pic = namaAkun();
   formOpen.value = true;
   void syncFromJadwalShift();
 }
@@ -441,7 +446,7 @@ function exportExcel() {
           <button type="button" class="lk-btn lk-btn-ghost" :disabled="syncingShift" @click="syncFromJadwalShift">
             <LucideRefreshCw :size="13" /> {{ syncingShift ? 'Sinkron...' : 'Sync dari Jadwal Shift' }}
           </button>
-          <span>PIC, shift, jumlah peran &amp; lembur diambil otomatis dari roster bulan ini.</span>
+          <span>PIC memakai nama akun login; shift, jumlah peran &amp; lembur diambil dari roster bulan ini.</span>
         </div>
         <div class="lk-grid2">
           <label class="lk-f"><span>TANGGAL LAPORAN</span>
@@ -461,7 +466,7 @@ function exportExcel() {
               style="width: 100%"
             />
           </label>
-          <label class="lk-f"><span>NAMA PELOPOR (PIC)</span>
+          <label class="lk-f"><span>NAMA PELOPOR (PIC) · AKUN LOGIN</span>
             <a-input v-model:value="form.pic" placeholder="M Mixed Nursi..." />
           </label>
         </div>
