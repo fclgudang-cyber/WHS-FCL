@@ -185,7 +185,13 @@ async function syncFromJadwalShift() {
     const isOff = (s: string) => ['', 'OFF', 'LIBUR', 'CUTI', 'IJIN', 'SAKIT', 'ALFA'].includes(s);
     const aktif = list.filter((r) => !isOff(shiftOf(r)));
     const jml = (teks: string) => aktif.filter((r) => String(r.Jabatan ?? '').toLowerCase().includes(teks.toLowerCase())).length;
-    const lembur = aktif.filter((r) => /MALAM|LEMBUR/i.test(shiftOf(r)));
+    // Orang lembur & jam lembur berasal dari sel LEMBUR yang sama di Jadwal Shift.
+    const lemburRows = aktif.filter((r) => /LEMBUR/i.test(shiftOf(r)));
+    const jamPerOrang = (s: string) => {
+      const m = s.match(/LEMBUR\s*(\d+(?:[.,]\d+)?)\s*J/i);
+      return m ? Number(m[1].replace(',', '.')) : 2;
+    };
+    const totalJamLembur = lemburRows.reduce((s, r) => s + jamPerOrang(shiftOf(r)), 0);
 
     const hitung: Record<string, number> = {};
     aktif.forEach((r) => {
@@ -203,9 +209,9 @@ async function syncFromJadwalShift() {
     form.totalPelorporUtama = jml('pelopor');
     form.totalAdmin = jml('admin');
     form.totalPHL = jml('phl');
-    form.totalPekerjaLembur = lembur.length;
+    form.totalPekerjaLembur = lemburRows.length;
+    form.jamLembur = totalJamLembur;
     form.totalOrang = aktif.length;
-    if (!num(form.jamLembur) && lembur.length) form.jamLembur = lembur.length;
     notification.success({
       message: 'Sync Jadwal Shift',
       description: `${aktif.length} karyawan aktif dari ${list.length} data roster`,
@@ -474,6 +480,7 @@ function exportExcel() {
         <div class="lk-checks">
           <label><input type="checkbox" v-model="autoHitung" /> Auto-hitung dari jumlah PIC &amp; Lembur</label>
           <label><input type="checkbox" v-model="soreReload" /> Sore/Reload</label>
+          <span class="lk-lock-hint">🔒 Field terkunci ikuti Jadwal Shift — nonaktifkan Auto-hitung untuk edit manual.</span>
         </div>
 
         <div class="lk-info">
@@ -485,7 +492,7 @@ function exportExcel() {
         <div class="lk-grid2">
           <label v-for="name in groupAngka" :key="name" class="lk-f">
             <span>{{ fieldLabel(name) }} <i>🔒</i></span>
-            <a-input-number v-model:value="form[name]" :min="0" style="width: 100%" />
+            <a-input-number v-model:value="form[name]" :min="0" :readonly="autoHitung" :disabled="autoHitung" style="width: 100%" />
           </label>
         </div>
 
@@ -600,6 +607,7 @@ function exportExcel() {
 .lk-f > span i { font-style: normal; font-size: 9px; opacity: .7; }
 .lk-full { grid-column: 1 / -1; }
 .lk-checks { display: flex; gap: 20px; flex-wrap: wrap; padding: 6px 0; font-size: 12px; }
+.lk-lock-hint { font-size: 10px; color: hsl(var(--muted-foreground)); }
 .lk-checks label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 .lk-info { padding: 10px 12px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted)); font-size: 10px; line-height: 1.5; color: hsl(var(--muted-foreground)); }
 .lk-warning { padding: 8px 10px; border: 1px solid #f59e0b; border-radius: 6px; color: #f59e0b; font-size: 11px; font-weight: 700; }
