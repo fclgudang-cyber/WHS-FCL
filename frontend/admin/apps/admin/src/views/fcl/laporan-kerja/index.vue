@@ -225,13 +225,9 @@ const soreReload = ref(false);
 
 const totalCrew = computed(() => ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'totalPekerjaLembur']
   .reduce((s, k) => s + num(form[k]), 0));
-const jamKerjaAuto = computed(() => {
-  const crew = ['totalTeamLeader', 'totalStaff', 'totalAdmin']
-    .reduce((s, k) => s + num(form[k]), 0);
-  return crew * 1.5 + num(form.totalPHL) * num(form.jamKerjaPHL)
-    + num(form.totalPekerjaLembur) * num(form.jamLembur)
-    + num(form.perbantuan) - num(form.pengurangan);
-});
+// Jam kerja = (jam normal 8 × total orang) + total jam lembur.
+const jamKerjaNormal = computed(() => num(form.totalOrang) * 8);
+const jamKerjaAuto = computed(() => jamKerjaNormal.value + num(form.jamLembur));
 const jamKerjaFinal = computed(() => (autoHitung.value ? jamKerjaAuto.value : num(form.totalJamKerja)));
 const wpi = computed(() => (jamKerjaFinal.value > 0 ? num(form.totalOrder) / jamKerjaFinal.value : 0));
 const kpiMarketPlace = computed(() => Math.round(wpi.value * 1000) / 1000);
@@ -241,7 +237,7 @@ watch(
   () => { if (adalahMarketPlace(form.divisi)) form.sisaOrder = kpiMarketPlace.value; },
   { immediate: true },
 );
-const totalKecukupan = computed(() => totalCrew.value * 16);
+const totalKecukupan = computed(() => jamKerjaNormal.value);
 const totalKesesuaian = computed(() => Math.round((jamKerjaFinal.value - totalKecukupan.value) * 10) / 10);
 
 function resetForm(row?: LaporanRow | null) {
@@ -483,9 +479,10 @@ function exportExcel() {
         </div>
 
         <div class="lk-info">
-          (Shift Pagi = 1,5 jam + 1x istirahat + 1 jam lembur. Sementara 1 jam = 1 orang + 1 jam + 1 orang +
-          dst.) Auto: jam kerja = {{ fmtNum(jamKerjaAuto, 1) }} jam. Total crew = {{ fmtNum(totalCrew) }} orang.
-          Perhitungan (non manual) = {{ fmtNum(totalCrew) }} orang x 16 jam = {{ fmtNum(totalKecukupan) }} orang jam.
+          Jam Kerja Normal = 8 jam × {{ fmtNum(form.totalOrang) }} orang = {{ fmtNum(jamKerjaNormal) }} jam.
+          Di tambah Total Jam Lembur {{ fmtNum(form.jamLembur) }} jam
+          = <b>Total Jam Kerja {{ fmtNum(jamKerjaAuto) }} jam</b>.
+          Total crew = {{ fmtNum(totalCrew) }} orang.
         </div>
 
         <div class="lk-grid2">
@@ -513,7 +510,7 @@ function exportExcel() {
 
         <div class="lk-summary">
           <div><span>WPI (total Order / total jam Kerja)</span><b>{{ fmtNum(wpi, 3) }}</b></div>
-          <div><span>Total Kecukupan Jam Kerja</span><b class="lk-merah">{{ fmtNum(totalKecukupan) }}</b></div>
+          <div><span>Jam Kerja Normal (8 jam × orang)</span><b class="lk-merah">{{ fmtNum(totalKecukupan) }}</b></div>
           <div><span>TOTAL KESESUAIAN</span><b>{{ fmtNum(totalKesesuaian, 1) }}</b></div>
         </div>
         <div class="lk-catatan">* Jam Kerja Normal {{ fmtNum(totalCrew) }} orang ({{ fmtNum(jamKerjaFinal, 1) }} jam) &nbsp;•&nbsp; Total jam kerja dihitung {{ autoHitung ? 'otomatis' : 'manual' }}</div>
