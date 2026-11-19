@@ -162,8 +162,10 @@ const formFields: any[] = [
 ];
 
 const adalahMarketPlace = (divisi?: string | null) => /market[\s_]*place/i.test(String(divisi ?? ''));
+const adalahDistributor = (divisi?: string | null) => /distributor/i.test(String(divisi ?? ''));
 const tampilQtyUntuk = (divisi?: string | null) => !adalahMarketPlace(divisi);
 const tampilQty = computed(() => tampilQtyUntuk(form.divisi));
+const tampilTotalOrder = computed(() => !adalahDistributor(form.divisi));
 const fieldLabel = (name: string) => formFields.find((f) => f.name === name)?.label ?? name;
 const groupAngka = ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'jamKerjaPHL', 'perbantuan', 'pengurangan', 'jamPengurangan', 'totalPekerjaLembur', 'jamLembur'];
 const groupOrder = ['totalOrder', 'totalQty', 'sisaOrder'];
@@ -234,11 +236,16 @@ const jamKerjaNormal = computed(() => num(form.totalOrang) * 8);
 const jamKerjaAuto = computed(() => jamKerjaNormal.value + num(form.jamLembur));
 const jamKerjaFinal = computed(() => (autoHitung.value ? jamKerjaAuto.value : num(form.totalJamKerja)));
 const wpi = computed(() => (jamKerjaFinal.value > 0 ? num(form.totalOrder) / jamKerjaFinal.value : 0));
-const kpiMarketPlace = computed(() => Math.round(wpi.value * 1000) / 1000);
-// Market Place: KPI = Total Order / Jam Kerja, dihitung otomatis.
+const kpiOtomatis = computed(() => {
+  const dasar = adalahDistributor(form.divisi) ? num(form.totalQty) : num(form.totalOrder);
+  return jamKerjaFinal.value > 0 ? Math.round((dasar / jamKerjaFinal.value) * 1000) / 1000 : 0;
+});
+// Market Place: KPI = Total Order / Jam Kerja. Distributor: KPI = PCS / Jam Kerja.
 watch(
-  () => [form.divisi, form.totalOrder, form.totalJamKerja, jamKerjaFinal.value, autoHitung.value],
-  () => { if (adalahMarketPlace(form.divisi)) form.sisaOrder = kpiMarketPlace.value; },
+  () => [form.divisi, form.totalOrder, form.totalQty, form.totalJamKerja, jamKerjaFinal.value, autoHitung.value],
+  () => {
+    if (adalahMarketPlace(form.divisi) || adalahDistributor(form.divisi)) form.sisaOrder = kpiOtomatis.value;
+  },
   { immediate: true },
 );
 const totalKecukupan = computed(() => jamKerjaNormal.value);
@@ -278,6 +285,7 @@ async function saveForm() {
       if (f.type === 'date') v = v && dayjs(v).isValid() ? dayjs(v).format('YYYY-MM-DD') : '';
       if (v === undefined || v === null || v === '') return;
       if (f.name === 'totalQty' && !tampilQty.value) return;
+      if (f.name === 'totalOrder' && !tampilTotalOrder.value) return;
       payload[f.name] = v;
     });
     // Nilai turunan & opsi form ikut tersimpan.
@@ -510,7 +518,12 @@ function exportExcel() {
         </div>
 
         <div class="lk-grid2">
-          <label v-for="name in groupOrder" :key="name" v-show="name !== 'totalQty' || tampilQty" class="lk-f">
+          <label
+            v-for="name in groupOrder"
+            :key="name"
+            v-show="(name !== 'totalQty' || tampilQty) && (name !== 'totalOrder' || tampilTotalOrder)"
+            class="lk-f"
+          >
             <span>{{ fieldLabel(name) }}</span>
             <a-input-number v-model:value="form[name]" :min="0" style="width: 100%" />
           </label>
