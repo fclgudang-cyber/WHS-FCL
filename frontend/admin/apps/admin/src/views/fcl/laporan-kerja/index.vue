@@ -416,7 +416,7 @@ function exportExcel() {
             <span>{{ r.pic || '-' }}</span>
           </div>
           <div class="lk-num">{{ fmtNum(r.totalJamKerja, 1) }}</div>
-          <div class="lk-lembur"><b>{{ fmtNum(r.jamLembur, 1) }}</b><span>({{ fmtNum(r.perbantuan) }} orang)</span></div>
+          <div class="lk-lembur"><b>{{ fmtNum(r.jamLembur, 1) }}</b><span>({{ fmtNum(r.totalPekerjaLembur ?? r.perbantuan) }} orang)</span></div>
           <div class="lk-alasan">
             <span v-for="(a, ai) in alasanChips(r)" :key="ai" class="lk-chip">{{ a }}</span>
             <span v-if="!alasanChips(r).length">-</span>
