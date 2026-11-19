@@ -66,7 +66,8 @@ func handleFileUpload(w http.ResponseWriter, r *http.Request) {
 		if driveName == "" || !safeFileName.MatchString(driveName) {
 			driveName = name
 		}
-		driveURL, err := uploadToDrive(cfg, driveName, data, header.Header.Get("Content-Type"))
+		periodName := strings.TrimSpace(r.FormValue("period"))
+		driveURL, err := uploadToDrive(cfg, driveName, data, header.Header.Get("Content-Type"), periodName)
 		if err != nil {
 			writeJSON(w, http.StatusBadGateway, map[string]any{"success": false, "message": "Gagal upload ke Google Drive: " + err.Error()})
 			return

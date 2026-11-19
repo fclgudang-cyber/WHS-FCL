@@ -507,6 +507,10 @@ async function saveBukti() {
       try {
         const data = new FormData();
         data.append('file', buktiFile.value);
+        // Folder tujuan di Drive dibuat sesuai nama periode transaksi.
+        const trxPeriodId = buktiTarget.value.periodId ?? activePeriodId.value;
+        const trxPeriod = periods.value.find((p) => String(p.id) === String(trxPeriodId));
+        data.append('period', String(trxPeriod?.nama ?? activePeriod.value?.nama ?? 'Tanpa Periode'));
         const res = await fetch('/api/file/upload', { method: 'POST', body: data });
         const out = await res.json();
         if (!out?.success || !out?.url) throw new Error(out?.message || 'Upload gagal');
@@ -1246,7 +1250,7 @@ onMounted(loadAll);
         <a-input v-model:value="buktiInput" placeholder="https://drive.google.com/..." allow-clear />
       </template>
       <template v-else>
-        <p class="fcl-pc-bukti-hint">Pilih foto/struk dari perangkat (maks. 12 MB). File akan langsung tersimpan ke folder Google Drive.</p>
+        <p class="fcl-pc-bukti-hint">Pilih foto/struk dari perangkat (maks. 12 MB). File langsung tersimpan ke folder Google Drive sesuai nama periode ini.</p>
         <input type="file" accept="image/*,application/pdf" class="fcl-pc-file" @change="pickBuktiFile" />
         <div v-if="buktiPreview" class="fcl-pc-bukti-preview"><img :src="buktiPreview" alt="Pratinjau bukti" /></div>
         <p v-if="buktiTarget?.buktiUrl && !buktiFile" class="fcl-pc-bukti-hint">Biarkan kosong untuk menggunakan file yang sudah tersimpan.</p>

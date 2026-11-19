@@ -103,15 +103,88 @@ func drivePermissionPublic(token, fileID string) {
 	}
 }
 
-// uploadToDrive mengunggah file ke folder Drive dan mengembalikan URL "view".
-func uploadToDrive(cfg driveConfig, name string, data []byte, contentType string) (string, error) {
+// ensureDriveFolder mencari (atau membuat) subfolder di dalam parent Drive.
+func ensureDriveFolder(token, parentID, folderName string) (string, error) {
+	folderName = strings.TrimSpace(folderName)
+	if folderName == "" {
+		return parentID, nil
+	}
+	client := &http.Client{Timeout: 20 * time.Second}
+	escaped := strings.ReplaceAll(folderName, "'", "\\'")
+	q := fmt.Sprintf("name='%s' and mimeType='application/vnd.google-apps.folder' and '%s' in parents and trashed=false", escaped, parentID)
+	listURL := "https://www.googleapis.com/drive/v3/files?q=" + url.QueryEscape(q) + "&fields=files(id,name)&pageSize=10"
+	req, err := http.NewRequest(http.MethodGet, listURL, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	body, err := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if err != nil {
+		return "", err
+	}
+	var found struct {
+		Files []struct {
+			ID string `json:"id"`
+		} `json:"files"`
+	}
+	_ = json.Unmarshal(body, &found)
+	if len(found.Files) > 0 && found.Files[0].ID != "" {
+		return found.Files[0].ID, nil
+	}
+
+	meta, _ := json.Marshal(map[string]any{
+		"name":     folderName,
+		"mimeType": "application/vnd.google-apps.folder",
+		"parents":  []string{parentID},
+	})
+	req2, err := http.NewRequest(http.MethodPost, "https://www.googleapis.com/drive/v3/files?fields=id,name", bytes.NewReader(meta))
+	if err != nil {
+		return "", err
+	}
+	req2.Header.Set("Authorization", "Bearer "+token)
+	req2.Header.Set("Content-Type", "application/json")
+	resp2, err := client.Do(req2)
+	if err != nil {
+		return "", err
+	}
+	defer resp2.Body.Close()
+	body2, err := io.ReadAll(resp2.Body)
+	if err != nil {
+		return "", err
+	}
+	if resp2.StatusCode < 200 || resp2.StatusCode >= 300 {
+		return "", fmt.Errorf("gagal membuat folder Drive %q: %s", folderName, string(body2))
+	}
+	var created struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(body2, &created); err != nil || created.ID == "" {
+		return "", fmt.Errorf("respons pembuatan folder Drive tidak valid: %s", string(body2))
+	}
+	return created.ID, nil
+}
+
+// uploadToDrive mengunggah file ke folder Drive (opsional subfolder periode) dan mengembalikan URL "view".
+func uploadToDrive(cfg driveConfig, name string, data []byte, contentType, folderName string) (string, error) {
 	token, err := refreshGoogleAccessToken(cfg)
 	if err != nil {
 		return "", err
 	}
+	parentID := cfg.FolderID
+	if strings.TrimSpace(folderName) != "" {
+		parentID, err = ensureDriveFolder(token, cfg.FolderID, folderName)
+		if err != nil {
+			return "", err
+		}
+	}
 	meta, _ := json.Marshal(map[string]any{
 		"name":    name,
-		"parents": []string{cfg.FolderID},
+		"parents": []string{parentID},
 	})
 
 	var buf bytes.Buffer
