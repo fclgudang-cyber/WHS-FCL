@@ -70,6 +70,9 @@ const num = (v: unknown) => {
 };
 const fmtNum = (v: unknown, digits = 0) =>
   num(v).toLocaleString('id-ID', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+const totalOrangBaris = (r: any) =>
+  Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0) + Number(r.totalPHL ?? 0);
+const jamNormalBaris = (r: any) => totalOrangBaris(r) * 8;
 const tanggalDuaBaris = (v?: string | null): [string, string] => {
   const d = dayjs(v);
   return d.isValid() ? [d.format('DD MMM'), d.format('YYYY')] : ['-', ''];
@@ -360,7 +363,7 @@ function exportExcel() {
     const [d1, d2] = tanggalDuaBaris(r.tanggal);
     return `<tr>
       <td>${esc(d1)} ${esc(d2)}</td><td>${esc(r.divisi)}</td><td>${esc(r.pic)}</td>
-      <td>${fmtNum(Number(r.totalOrang ?? 0) * 8)}</td><td>${fmtNum(r.totalJamKerja, 1)}</td><td>${fmtNum(r.jamLembur, 1)}</td>
+      <td>${fmtNum(jamNormalBaris(r))}</td><td>${fmtNum(jamNormalBaris(r) + Number(r.jamLembur ?? 0), 1)}</td><td>${fmtNum(r.jamLembur, 1)}</td>
       <td>${esc(alasanChips(r).join(', '))}</td><td>${fmtNum(r.totalTeamLeader)}</td>
       <td>${fmtNum(r.totalAdmin)}</td><td>${fmtNum(r.totalStaff)}</td><td>${fmtNum(r.totalPHL)}</td>
       <td>${fmtNum(Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0) + Number(r.totalPHL ?? 0))}</td>
@@ -417,8 +420,8 @@ function exportExcel() {
             <b>{{ (r.divisi || '-').split(/[,/]+/).map((s) => s.trim().toUpperCase()).filter(Boolean).join(', ') }}</b>
             <span>{{ r.pic || '-' }}</span>
           </div>
-          <div class="lk-num">{{ fmtNum(Number(r.totalOrang ?? 0) * 8) }}</div>
-          <div class="lk-num lk-total-jam">{{ fmtNum(r.totalJamKerja, 1) }}</div>
+          <div class="lk-num">{{ fmtNum(jamNormalBaris(r)) }}</div>
+          <div class="lk-num lk-total-jam">{{ fmtNum(jamNormalBaris(r) + Number(r.jamLembur ?? 0), 1) }}</div>
           <div class="lk-lembur"><b>{{ fmtNum(r.jamLembur, 1) }}</b><span>({{ fmtNum(r.totalPekerjaLembur ?? r.perbantuan) }} orang)</span></div>
           <div class="lk-alasan">
             <span v-for="(a, ai) in alasanChips(r)" :key="ai" class="lk-chip">{{ a }}</span>
