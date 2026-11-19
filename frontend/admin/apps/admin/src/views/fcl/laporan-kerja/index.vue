@@ -34,6 +34,20 @@ interface LaporanRow {
   totalInbound?: number | string | null;
   alasanPengurangan?: string | null;
   alasanLembur?: string | null;
+  totalTeamLeader?: number | string | null;
+  totalPelorporUtama?: number | string | null;
+  jamPengurangan?: number | string | null;
+  totalPekerjaLembur?: number | string | null;
+  jamKerjaPHL?: number | string | null;
+  noKartuTanpaKartu?: string | null;
+  namaTanpaKartu?: string | null;
+  autoHitung?: string | null;
+  soreReload?: string | null;
+  semuaMalamKartu?: string | null;
+  semuaMemakaiSemuaKartu?: string | null;
+  wpi?: number | string | null;
+  totalKecukupanJamKerja?: number | string | null;
+  totalKesesuaian?: number | string | null;
   createdBy?: string | null;
   createdAt?: string | null;
 }
@@ -104,29 +118,63 @@ const saving = ref(false);
 const form = reactive<Record<string, any>>({});
 
 const formFields: any[] = [
-  { name: 'tanggal', label: 'Tanggal', type: 'date' },
-  { name: 'divisi', label: 'Divisi', placeholder: 'Inbound, Marketplace, Consumable...' },
-  { name: 'pic', label: 'PIC', placeholder: 'Nama-nama PIC' },
-  { name: 'shift', label: 'Shift', type: 'select', options: ['Pagi', 'Siang', 'Malam'] },
-  { name: 'totalJamKerja', label: 'Total Jam Kerja', type: 'number' },
-  { name: 'jamLembur', label: 'Jam Lembur', type: 'number' },
-  { name: 'perbantuan', label: 'Perbantuan (orang)', type: 'number' },
-  { name: 'totalPHL', label: 'Total PHL', type: 'number' },
-  { name: 'totalStaff', label: 'Total Staff', type: 'number' },
-  { name: 'totalOrang', label: 'Total Masuk (orang)', type: 'number' },
-  { name: 'totalOrder', label: 'Output', type: 'number' },
+  { name: 'tanggal', label: 'TANGGAL LAPORAN', type: 'date' },
+  { name: 'shift', label: 'SHIFT', type: 'select', options: ['Shift Pagi', 'Shift Siang', 'Shift Malam'] },
+  { name: 'divisi', label: 'DIVISI', placeholder: 'Marketplace...' },
+  { name: 'pic', label: 'NAMA PELOPOR (PIC)', placeholder: 'M Mixed Nursi...' },
+  { name: 'totalTeamLeader', label: 'TOTAL TEAM LEADER', type: 'number' },
+  { name: 'totalStaff', label: 'TOTAL STAFF', type: 'number' },
+  { name: 'totalPelorporUtama', label: 'TOTAL PELOPOR UTAMA', type: 'number' },
+  { name: 'totalAdmin', label: 'TOTAL ADMIN', type: 'number' },
+  { name: 'totalPHL', label: 'TOTAL PHL', type: 'number' },
+  { name: 'jamKerjaPHL', label: 'JAM KERJA PHL (DESKRIPSI)', type: 'number' },
+  { name: 'perbantuan', label: 'GRAND PENGERJAAN (+)', type: 'number' },
+  { name: 'pengurangan', label: 'GRAND PENGERJAAN (-)', type: 'number' },
+  { name: 'jamPengurangan', label: 'JAM PENGURANGAN', type: 'number' },
+  { name: 'totalPekerjaLembur', label: 'TOTAL PEKERJA LEMBUR', type: 'number' },
+  { name: 'jamLembur', label: 'LAMA LEMBUR (JAM)', type: 'number' },
+  { name: 'alasanLembur', label: 'LAMA LEMBUR (JAM), KETERANGAN' },
+  { name: 'totalOrder', label: 'Total Order Marketplace', type: 'number' },
+  { name: 'noKartuTanpaKartu', label: 'NO KARTU KARYAWAN YANG TIDAK MENGGUNAKAN KARTU', type: 'textarea' },
+  { name: 'namaTanpaKartu', label: 'NAMA KARYAWAN YANG TIDAK MENGGUNAKAN KARTU', type: 'textarea' },
+  { name: 'kendala', label: 'KETERANGAN', type: 'textarea' },
+  { name: 'totalJamKerja', label: 'TOTAL JAM KERJA (MANUAL)', type: 'number' },
   { name: 'totalQty', label: 'QTY', type: 'number' },
   { name: 'sisaOrder', label: 'KPI', type: 'number' },
-  { name: 'alasanLembur', label: 'Alasan Lembur' },
-  { name: 'alasanPengurangan', label: 'Alasan Pengurangan' },
-  { name: 'kendala', label: 'Kendala', type: 'textarea' },
 ];
+
+const fieldLabel = (name: string) => formFields.find((f) => f.name === name)?.label ?? name;
+const groupAngka = ['totalTeamLeader', 'totalStaff', 'totalPelorporUtama', 'totalAdmin', 'totalPHL', 'jamKerjaPHL', 'perbantuan', 'pengurangan', 'jamPengurangan', 'totalPekerjaLembur', 'jamLembur'];
+const groupOrder = ['totalOrder', 'totalQty', 'sisaOrder'];
+
+const autoHitung = ref(true);
+const soreReload = ref(false);
+const semuaMalamKartu = ref(false);
+const semuaMemakaiSemuaKartu = ref(false);
+
+const totalCrew = computed(() => ['totalTeamLeader', 'totalStaff', 'totalPelorporUtama', 'totalAdmin', 'totalPHL', 'totalPekerjaLembur']
+  .reduce((s, k) => s + num(form[k]), 0));
+const jamKerjaAuto = computed(() => {
+  const crew = ['totalTeamLeader', 'totalStaff', 'totalPelorporUtama', 'totalAdmin']
+    .reduce((s, k) => s + num(form[k]), 0);
+  return crew * 1.5 + num(form.totalPHL) * num(form.jamKerjaPHL)
+    + num(form.totalPekerjaLembur) * num(form.jamLembur)
+    + num(form.perbantuan) - num(form.pengurangan);
+});
+const jamKerjaFinal = computed(() => (autoHitung.value ? jamKerjaAuto.value : num(form.totalJamKerja)));
+const wpi = computed(() => (jamKerjaFinal.value > 0 ? num(form.totalOrder) / jamKerjaFinal.value : 0));
+const totalKecukupan = computed(() => totalCrew.value * 16);
+const totalKesesuaian = computed(() => Math.round((jamKerjaFinal.value - totalKecukupan.value) * 10) / 10);
 
 function resetForm(row?: LaporanRow | null) {
   formFields.forEach((f) => {
     const v = row ? (row as any)[f.name] : undefined;
     form[f.name] = f.type === 'date' ? (v ? dayjs(String(v).slice(0, 10)) : null) : f.type === 'number' ? (v === undefined || v === null || v === '' ? undefined : Number(v)) : (v ?? '');
   });
+  autoHitung.value = row ? String((row as any).autoHitung ?? 'Ya') !== 'Tidak' : true;
+  soreReload.value = row ? String((row as any).soreReload ?? 'Tidak') === 'Ya' : false;
+  semuaMalamKartu.value = row ? String((row as any).semuaMalamKartu ?? 'Tidak') === 'Ya' : false;
+  semuaMemakaiSemuaKartu.value = row ? String((row as any).semuaMemakaiSemuaKartu ?? 'Tidak') === 'Ya' : false;
 }
 
 function openCreate() {
@@ -153,6 +201,16 @@ async function saveForm() {
       if (v === undefined || v === null || v === '') return;
       payload[f.name] = v;
     });
+    // Nilai turunan & opsi form ikut tersimpan.
+    payload.totalJamKerja = String(Math.round(jamKerjaFinal.value * 10) / 10);
+    payload.totalOrang = String(totalCrew.value);
+    payload.wpi = String(Math.round(wpi.value * 1000) / 1000);
+    payload.totalKecukupanJamKerja = String(totalKecukupan.value);
+    payload.totalKesesuaian = String(totalKesesuaian.value);
+    payload.autoHitung = autoHitung.value ? 'Ya' : 'Tidak';
+    payload.soreReload = soreReload.value ? 'Ya' : 'Tidak';
+    payload.semuaMalamKartu = semuaMalamKartu.value ? 'Ya' : 'Tidak';
+    payload.semuaMemakaiSemuaKartu = semuaMemakaiSemuaKartu.value ? 'Ya' : 'Tidak';
     if (editingId.value) {
       await fclPatch('laporankerja', editingId.value, payload);
       notification.success({ message: 'Laporan Kerja diperbarui' });
@@ -304,22 +362,82 @@ function exportExcel() {
     <!-- Modal: form buat/edit -->
     <a-modal
       v-model:open="formOpen"
-      :title="editingId ? 'Edit Laporan Kerja' : 'Buat Laporan Kerja'"
+      title="Input Laporan Pengerjaan Orderan"
       :confirm-loading="saving"
-      width="640px"
+      width="720px"
       ok-text="Simpan"
       cancel-text="Batal"
       @ok="saveForm"
     >
-      <a-form layout="vertical" class="lk-form">
-        <a-form-item v-for="f in formFields" :key="f.name" :label="f.label">
-          <a-date-picker v-if="f.type === 'date'" v-model:value="form[f.name]" value-format="YYYY-MM-DD" style="width: 100%" />
-          <a-input-number v-else-if="f.type === 'number'" v-model:value="form[f.name]" :min="0" style="width: 100%" />
-          <a-select v-else-if="f.type === 'select'" v-model:value="form[f.name]" :options="f.options?.map((o: string) => ({ label: o, value: o }))" allow-clear />
-          <a-textarea v-else-if="f.type === 'textarea'" v-model:value="form[f.name]" :rows="2" />
-          <a-input v-else v-model:value="form[f.name]" :placeholder="f.placeholder" />
-        </a-form-item>
-      </a-form>
+      <div class="lk-input-form">
+        <div class="lk-grid2">
+          <label class="lk-f"><span>TANGGAL LAPORAN</span>
+            <a-date-picker v-model:value="form.tanggal" value-format="YYYY-MM-DD" style="width: 100%" />
+          </label>
+          <label class="lk-f"><span>SHIFT</span>
+            <a-select v-model:value="form.shift" :options="[{ label: 'Shift Pagi', value: 'Shift Pagi' }, { label: 'Shift Siang', value: 'Shift Siang' }, { label: 'Shift Malam', value: 'Shift Malam' }]" style="width: 100%" allow-clear />
+          </label>
+          <label class="lk-f"><span>DIVISI</span>
+            <a-input v-model:value="form.divisi" placeholder="Marketplace..." />
+          </label>
+          <label class="lk-f"><span>NAMA PELOPOR (PIC)</span>
+            <a-input v-model:value="form.pic" placeholder="M Mixed Nursi..." />
+          </label>
+        </div>
+
+        <div class="lk-checks">
+          <label><input type="checkbox" v-model="autoHitung" /> Auto-hitung dari jumlah PIC &amp; Lembur</label>
+          <label><input type="checkbox" v-model="soreReload" /> Sore/Reload</label>
+        </div>
+
+        <div class="lk-info">
+          (Shift Pagi = 1,5 jam + 1x istirahat + 1 jam lembur. Sementara 1 jam = 1 orang + 1 jam + 1 orang +
+          dst.) Auto: jam kerja = {{ fmtNum(jamKerjaAuto, 1) }} jam. Total crew = {{ fmtNum(totalCrew) }} orang.
+          Perhitungan (non manual) = {{ fmtNum(totalCrew) }} orang x 16 jam = {{ fmtNum(totalKecukupan) }} orang jam.
+        </div>
+
+        <div class="lk-grid2">
+          <label v-for="name in groupAngka" :key="name" class="lk-f">
+            <span>{{ fieldLabel(name) }} <i>🔒</i></span>
+            <a-input-number v-model:value="form[name]" :min="0" style="width: 100%" />
+          </label>
+        </div>
+
+        <div class="lk-warning" v-if="num(form.jamLembur) > 10">
+          ⚠ Jam lembur melebihi batas normal (maksimal 10 jam)
+        </div>
+
+        <div class="lk-grid2">
+          <label v-for="name in groupOrder" :key="name" class="lk-f">
+            <span>{{ fieldLabel(name) }}</span>
+            <a-input-number v-model:value="form[name]" :min="0" style="width: 100%" />
+          </label>
+        </div>
+
+        <div class="lk-checks lk-checks-kartu">
+          <label><input type="checkbox" v-model="semuaMalamKartu" /> Semua malam Kartu</label>
+          <label><input type="checkbox" v-model="semuaMemakaiSemuaKartu" /> Semua memakai Semua Kartu</label>
+        </div>
+
+        <div class="lk-grid2">
+          <label class="lk-f lk-full"><span>NO KARTU KARYAWAN YANG TIDAK MENGGUNAKAN KARTU</span>
+            <a-textarea v-model:value="form.noKartuTanpaKartu" :rows="2" placeholder="Posisi dengan format..." />
+          </label>
+          <label class="lk-f lk-full"><span>NAMA KARYAWAN YANG TIDAK MENGGUNAKAN KARTU</span>
+            <a-textarea v-model:value="form.namaTanpaKartu" :rows="2" placeholder="Posisi dengan format..." />
+          </label>
+          <label class="lk-f lk-full"><span>KETERANGAN</span>
+            <a-textarea v-model:value="form.kendala" :rows="2" />
+          </label>
+        </div>
+
+        <div class="lk-summary">
+          <div><span>WPI (total Order / total jam Kerja)</span><b>{{ fmtNum(wpi, 3) }}</b></div>
+          <div><span>Total Kecukupan Jam Kerja</span><b class="lk-merah">{{ fmtNum(totalKecukupan) }}</b></div>
+          <div><span>TOTAL KESESUAIAN</span><b>{{ fmtNum(totalKesesuaian, 1) }}</b></div>
+        </div>
+        <div class="lk-catatan">* Jam Kerja Normal {{ fmtNum(totalCrew) }} orang ({{ fmtNum(jamKerjaFinal, 1) }} jam) &nbsp;•&nbsp; Total jam kerja dihitung {{ autoHitung ? 'otomatis' : 'manual' }}</div>
+      </div>
     </a-modal>
 
     <!-- Modal: detail harian -->
@@ -386,6 +504,22 @@ function exportExcel() {
 .lk-detail-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 .lk-kpi-list { max-height: 420px; overflow: auto; }
 .lk-kpi-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid hsl(var(--border)); font-size: 12px; }
+.lk-input-form { display: flex; flex-direction: column; gap: 12px; }
+.lk-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+.lk-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.lk-f > span { font-size: 10px; font-weight: 800; letter-spacing: .03em; color: hsl(var(--muted-foreground)); text-transform: uppercase; }
+.lk-f > span i { font-style: normal; font-size: 9px; opacity: .7; }
+.lk-full { grid-column: 1 / -1; }
+.lk-checks { display: flex; gap: 20px; flex-wrap: wrap; padding: 6px 0; font-size: 12px; }
+.lk-checks label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.lk-info { padding: 10px 12px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted)); font-size: 10px; line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.lk-warning { padding: 8px 10px; border: 1px solid #f59e0b; border-radius: 6px; color: #f59e0b; font-size: 11px; font-weight: 700; }
+.lk-checks-kartu { border-top: 1px solid hsl(var(--border)); padding-top: 10px; }
+.lk-summary { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid hsl(var(--border)); border-radius: 6px; }
+.lk-summary > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 11px; }
+.lk-summary b { font-size: 13px; }
+.lk-merah { color: #dc2626; }
+.lk-catatan { font-size: 10px; color: #16a34a; }
 @media (max-width: 1400px) {
   .lk-row { grid-template-columns: 58px minmax(160px, 2fr) 70px 76px minmax(120px, 1.2fr) 48px 48px 70px 76px 76px 48px 92px; }
 }
