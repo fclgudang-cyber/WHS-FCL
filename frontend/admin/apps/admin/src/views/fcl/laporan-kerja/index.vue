@@ -477,7 +477,7 @@ function exportExcel() {
         <div class="lk-checks">
           <label><input type="checkbox" v-model="autoHitung" /> Auto-hitung dari jumlah PIC &amp; Lembur</label>
           <label><input type="checkbox" v-model="soreReload" /> Sore/Reload</label>
-          <span class="lk-lock-hint">TOTAL TEAM LEADER / TOTAL STAFF / TOTAL ADMIN terkunci mengikuti Jadwal Shift — field lain bisa diedit manual.</span>
+          <span class="lk-lock-hint">TOTAL TEAM LEADER, TOTAL STAFF, TOTAL ADMIN, TOTAL PEKERJA LEMBUR &amp; LAMA LEMBUR terkunci mengikuti Jadwal Shift — field lain bisa diedit manual.</span>
         </div>
 
         <div class="lk-info">
@@ -488,11 +488,11 @@ function exportExcel() {
 
         <div class="lk-grid2">
           <label v-for="name in groupAngka" :key="name" class="lk-f">
-            <span>{{ fieldLabel(name) }} <i v-if="['totalTeamLeader', 'totalStaff', 'totalAdmin'].includes(name)">🔒</i></span>
+            <span>{{ fieldLabel(name) }} <i v-if="['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPekerjaLembur', 'jamLembur'].includes(name)">🔒</i></span>
             <a-input-number
               v-model:value="form[name]"
               :min="0"
-              :disabled="['totalTeamLeader', 'totalStaff', 'totalAdmin'].includes(name)"
+              :disabled="['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPekerjaLembur', 'jamLembur'].includes(name)"
               style="width: 100%"
             />
           </label>
