@@ -480,7 +480,7 @@ function exportExcel() {
         <div class="lk-checks">
           <label><input type="checkbox" v-model="autoHitung" /> Auto-hitung dari jumlah PIC &amp; Lembur</label>
           <label><input type="checkbox" v-model="soreReload" /> Sore/Reload</label>
-          <span class="lk-lock-hint">🔒 Field terkunci ikuti Jadwal Shift — nonaktifkan Auto-hitung untuk edit manual.</span>
+          <span class="lk-lock-hint">Nilai awal diisi dari Jadwal Shift — tetap bisa diedit manual.</span>
         </div>
 
         <div class="lk-info">
@@ -491,8 +491,8 @@ function exportExcel() {
 
         <div class="lk-grid2">
           <label v-for="name in groupAngka" :key="name" class="lk-f">
-            <span>{{ fieldLabel(name) }} <i>🔒</i></span>
-            <a-input-number v-model:value="form[name]" :min="0" :readonly="autoHitung" :disabled="autoHitung" style="width: 100%" />
+            <span>{{ fieldLabel(name) }}</span>
+            <a-input-number v-model:value="form[name]" :min="0" style="width: 100%" />
           </label>
         </div>
 
