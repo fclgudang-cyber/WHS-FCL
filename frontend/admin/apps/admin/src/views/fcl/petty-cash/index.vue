@@ -785,6 +785,25 @@ function printFoto() {
   const palette = ['#1e3a5f', '#0f6b4f', '#9a3412', '#6d28d9', '#0e7490', '#b91c1c'];
   const absUrl = (u: string) => (/^https?:\/\//i.test(u) ? u : `${window.location.origin}${u}`);
 
+  // Link "view" Google Drive bukan gambar — harus diubah ke URL unduh/thumbnail langsung.
+  const imageUrls = (u: string): string[] => {
+    try {
+      const parsed = new URL(u);
+      if (/drive\.google\.com$/i.test(parsed.hostname)) {
+        const m = parsed.pathname.match(/\/file\/d\/([^/]+)/);
+        const id = m ? m[1] : parsed.searchParams.get('id') ?? '';
+        if (id) {
+          return [
+            `https://lh3.googleusercontent.com/d/${id}`,
+            `https://drive.google.com/uc?export=view&id=${id}`,
+            u,
+          ];
+        }
+      }
+    } catch { /* bukan URL absolut */ }
+    return [absUrl(u)];
+  };
+
   // Urutan grup diambil dari master kategori (urutan/kode A, B, C, D, F, ...).
   const katIndex = new Map<string, { kode: string; urutan: number }>();
   kategoris.value.forEach((k) => {
@@ -809,8 +828,9 @@ function printFoto() {
     const fotoCount = items.filter((t) => !!t.buktiUrl).length;
     const cards = items.map((t, i) => {
       const by = t.createdBy ? `<div class="card-by">• ${esc(t.createdBy)}</div>` : '';
+      const urls = imageUrls(String(t.buktiUrl));
       const image = t.buktiUrl
-        ? `<img src="${esc(absUrl(t.buktiUrl))}" alt="Bukti ${esc(t.keterangan || i + 1)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="img-fallback" style="display:none">Foto tidak dapat dimuat</div>`
+        ? `<img src="${esc(urls[0])}" data-urls="${esc(urls.join('|'))}" data-idx="0" alt="Bukti ${esc(t.keterangan || i + 1)}" onerror="imgFail(this)"/><div class="img-fallback" style="display:none">Foto tidak dapat dimuat</div>`
         : '<div class="img-fallback">Tanpa foto</div>';
       return '<div class="card">'
         + '<div class="card-top"><span class="num">#' + (i + 1) + '</span><span class="date">' + esc(fmtTanggalPendek(t.tanggal)) + '</span></div>'
@@ -873,6 +893,20 @@ function printFoto() {
     .cat-head { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style></head><body>
+<script>
+function imgFail(img) {
+  var list = (img.getAttribute('data-urls') || '').split('|');
+  var i = parseInt(img.getAttribute('data-idx') || '0', 10) + 1;
+  if (i < list.length && list[i]) {
+    img.setAttribute('data-idx', String(i));
+    img.src = list[i];
+    return;
+  }
+  img.style.display = 'none';
+  var f = img.nextElementSibling;
+  if (f) f.style.display = 'flex';
+}
+<\/script>
   <div class="page-head">
     <div><div class="page-title">BUKTI FOTO PETTY CASH</div>
       <div class="page-sub">${esc(period.nama)} &nbsp;•&nbsp; ${esc(fmtTanggalPendek(period.tanggalMulai))} s/d ${esc(fmtTanggalPendek(period.tanggalSelesai))}</div></div>
