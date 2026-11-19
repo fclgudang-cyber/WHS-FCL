@@ -352,7 +352,7 @@ async function saveKpi() {
 // ── export Excel ───────────────────────────────────────────────────────────────
 function exportExcel() {
   if (!filtered.value.length) { message.warning('Tidak ada data untuk diekspor'); return; }
-  const header = ['Tanggal', 'Divisi', 'PIC', 'Jam Kerja', 'Lembur', 'Alasan', 'PHL', 'Staff', 'Total Masuk', 'Output', 'QTY', 'KPI'];
+  const header = ['Tanggal', 'Divisi', 'PIC', 'Jam Kerja', 'Lembur', 'Alasan', 'Leader', 'Admin', 'Staff', 'PHL', 'Total Masuk', 'Output', 'QTY', 'KPI'];
   const esc = (s: unknown) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const head = header.map((h) => `<th>${h}</th>`).join('');
   const body = filtered.value.map((r) => {
@@ -360,8 +360,9 @@ function exportExcel() {
     return `<tr>
       <td>${esc(d1)} ${esc(d2)}</td><td>${esc(r.divisi)}</td><td>${esc(r.pic)}</td>
       <td>${fmtNum(r.totalJamKerja, 1)}</td><td>${fmtNum(r.jamLembur, 1)}</td>
-      <td>${esc(alasanChips(r).join(', '))}</td><td>${fmtNum(r.totalPHL)}</td>
-      <td>${fmtNum(r.totalStaff)}</td><td>${fmtNum(r.totalOrang)}</td>
+      <td>${esc(alasanChips(r).join(', '))}</td><td>${fmtNum(r.totalTeamLeader)}</td>
+      <td>${fmtNum(r.totalAdmin)}</td><td>${fmtNum(r.totalStaff)}</td><td>${fmtNum(r.totalPHL)}</td>
+      <td>${fmtNum(r.totalOrang)}</td>
       <td>${fmtNum(r.totalOrder)}</td><td>${fmtNum(r.totalQty)}</td><td>${fmtNum(r.sisaOrder)}</td></tr>`;
   }).join('');
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -399,8 +400,8 @@ function exportExcel() {
       <div class="lk-table">
         <div class="lk-row lk-row-head">
           <div>TANGGAL</div><div>DIVISI/PIC</div><div>JAM KERJA</div><div>LEMBUR</div>
-          <div>ALASAN</div><div>PHL</div><div>STAFF</div><div>TOTAL MASUK</div>
-          <div>OUTPUT</div><div>QTY</div><div>KPI</div><div>AKSI</div>
+          <div>ALASAN</div><div>Leader</div><div>Admin</div><div>STAFF</div><div>PHL</div>
+          <div>TOTAL MASUK</div><div>OUTPUT</div><div>QTY</div><div>KPI</div><div>AKSI</div>
         </div>
         <div v-if="loading" class="lk-empty">Memuat data...</div>
         <div v-else-if="!filtered.length" class="lk-empty">Belum ada laporan kerja.</div>
@@ -421,8 +422,10 @@ function exportExcel() {
             <span v-for="(a, ai) in alasanChips(r)" :key="ai" class="lk-chip">{{ a }}</span>
             <span v-if="!alasanChips(r).length">-</span>
           </div>
-          <div class="lk-num"><b>{{ fmtNum(r.totalPHL) }}</b><span>Org</span></div>
-          <div class="lk-num"><b>{{ fmtNum(r.totalStaff) }}</b><span>Org</span></div>
+          <div class="lk-num"><b>{{ fmtNum(r.totalTeamLeader) }}</b><span>Leader</span></div>
+          <div class="lk-num"><b>{{ fmtNum(r.totalAdmin) }}</b><span>Admin</span></div>
+          <div class="lk-num"><b>{{ fmtNum(r.totalStaff) }}</b><span>Staff</span></div>
+          <div class="lk-num"><b>{{ fmtNum(r.totalPHL) }}</b><span>PHL</span></div>
           <div class="lk-num lk-hijau"><b>{{ fmtNum(r.totalOrang) }}</b><span>Org</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalOrder) }}</b><span>PO {{ fmtNum(r.totalPO) }}</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalQty) }}</b></div>
@@ -556,7 +559,7 @@ function exportExcel() {
 .lk-btn-orange { background: #f59e0b; }
 .lk-btn-red { background: #dc2626; }
 .lk-table { border: 1px solid hsl(var(--border)); border-radius: 8px; overflow: hidden; background: hsl(var(--card)); }
-.lk-row { display: grid; grid-template-columns: 62px minmax(200px, 2fr) 82px 88px minmax(150px, 1.4fr) 58px 58px 80px 88px 88px 58px 100px; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid hsl(var(--border)); font-size: 11px; color: hsl(var(--card-foreground)); }
+.lk-row { display: grid; grid-template-columns: 62px minmax(200px, 2fr) 82px 88px minmax(150px, 1.4fr) 58px 58px 58px 58px 80px 88px 76px 58px 100px; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid hsl(var(--border)); font-size: 11px; color: hsl(var(--card-foreground)); }
 .lk-row-alt { background: hsl(var(--muted) / 0.45); }
 .lk-row-head { background: hsl(var(--muted)); font-size: 10px; font-weight: 800; letter-spacing: .04em; color: hsl(var(--muted-foreground)); }
 .lk-row > div { min-width: 0; }
@@ -602,6 +605,6 @@ function exportExcel() {
 .lk-merah { color: #dc2626; }
 .lk-catatan { font-size: 10px; color: #16a34a; }
 @media (max-width: 1400px) {
-  .lk-row { grid-template-columns: 58px minmax(160px, 2fr) 70px 76px minmax(120px, 1.2fr) 48px 48px 70px 76px 76px 48px 92px; }
+  .lk-row { grid-template-columns: 58px minmax(160px, 2fr) 70px 76px minmax(120px, 1.2fr) 48px 48px 48px 48px 70px 76px 70px 48px 92px; }
 }
 </style>
