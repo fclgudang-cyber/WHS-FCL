@@ -69,8 +69,10 @@ const tanggalDuaBaris = (v?: string | null): [string, string] => {
   return d.isValid() ? [d.format('DD MMM'), d.format('YYYY')] : ['-', ''];
 };
 
+// Daftar divisi diambil dari data Karyawan (master), dengan fallback dari laporan lama.
+const divisiKaryawan = ref<string[]>([]);
 const daftarDivisi = computed(() => {
-  const set = new Set<string>();
+  const set = new Set<string>(divisiKaryawan.value);
   rows.value.forEach((r) => {
     String(r.divisi ?? '')
       .split(/[,/]+/)
@@ -78,8 +80,11 @@ const daftarDivisi = computed(() => {
       .filter(Boolean)
       .forEach((s) => set.add(s.toUpperCase()));
   });
-  return ['Semua Divisi', ...[...set].sort()];
+  return ['Semua Divisi', ...[...set].sort((a, b) => a.localeCompare(b, 'id'))];
 });
+const divisiOptions = computed(() => daftarDivisi.value
+  .filter((d) => d !== 'Semua Divisi')
+  .map((d) => ({ label: d, value: d })));
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase();
@@ -102,7 +107,15 @@ function alasanChips(r: LaporanRow): string[] {
 async function load() {
   loading.value = true;
   try {
-    rows.value = await fclQuery<LaporanRow>('laporankerja', { select: '*', order: 'tanggal.desc', limit: 2000 });
+    const [data, karyawan] = await Promise.all([
+      fclQuery<LaporanRow>('laporankerja', { select: '*', order: 'tanggal.desc', limit: 2000 }),
+      fclQuery<{ divisi?: string | null }>('karyawan', { select: 'divisi', order: 'divisi.asc', limit: 2000 }),
+    ]);
+    rows.value = data;
+    divisiKaryawan.value = [...new Set(karyawan
+      .map((k) => String(k.divisi ?? '').trim())
+      .filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'id'));
   } catch (err: any) {
     notification.error({ message: 'Laporan Kerja', description: err?.message || 'Gagal memuat data' });
   } finally {
@@ -378,7 +391,15 @@ function exportExcel() {
             <a-select v-model:value="form.shift" :options="[{ label: 'Shift Pagi', value: 'Shift Pagi' }, { label: 'Shift Siang', value: 'Shift Siang' }, { label: 'Shift Malam', value: 'Shift Malam' }]" style="width: 100%" allow-clear />
           </label>
           <label class="lk-f"><span>DIVISI</span>
-            <a-input v-model:value="form.divisi" placeholder="Marketplace..." />
+            <a-select
+              v-model:value="form.divisi"
+              :options="divisiOptions"
+              placeholder="Pilih divisi..."
+              show-search
+              allow-clear
+              option-filter-prop="label"
+              style="width: 100%"
+            />
           </label>
           <label class="lk-f"><span>NAMA PELOPOR (PIC)</span>
             <a-input v-model:value="form.pic" placeholder="M Mixed Nursi..." />
