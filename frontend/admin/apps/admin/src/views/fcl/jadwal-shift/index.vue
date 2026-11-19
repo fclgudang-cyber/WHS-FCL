@@ -72,6 +72,12 @@ function jamInfo(r: RosterRow, d: number): string {
   const jl = jamLemburDari(v);
   return jk || jl ? `Shift ${jk} jam + lembur ${jl} jam = total ${jk + jl} jam` : '';
 }
+// Label opsi shift menyertakan jam kerja agar terlihat di setiap tanggal.
+function labelShift(o: string): string {
+  if (!o) return '—';
+  const jam = jamShiftDasar(o) + jamLemburDari(o);
+  return jam ? `${o} · ${jam}J` : o;
+}
 
 const SHIFT_META: Record<string, { label: string; bg: string; fg: string }> = {
   PAGI: { label: 'PAGI', bg: 'hsl(152 60% 24%)', fg: 'hsl(152 80% 78%)' },
@@ -397,9 +403,10 @@ onMounted(() => load());
                   :title="jamInfo(r, d)"
                   @change="updateCell(r, d, ($event.target as HTMLSelectElement).value)"
                 >
-                  <option v-for="o in SHIFTS" :key="o" :value="o">{{ o || '—' }}</option>
-                  <option v-if="r[String(d)] && !SHIFTS.includes(r[String(d)])" :value="r[String(d)]">{{ r[String(d)] }}</option>
+                  <option v-for="o in SHIFTS" :key="o" :value="o">{{ labelShift(o) }}</option>
+                  <option v-if="r[String(d)] && !SHIFTS.includes(r[String(d)])" :value="r[String(d)]">{{ labelShift(r[String(d)]) }}</option>
                 </select>
+                <div v-if="totalJamHari(r, d)" class="js-cell-jam">{{ totalJamHari(r, d) }} jam</div>
               </td>
               <td class="js-col-act"><button class="js-btn js-btn-danger js-btn-xs" @click="removeRow(r)">Hapus</button></td>
             </tr>
@@ -495,7 +502,8 @@ onMounted(() => load());
 .js-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); white-space: nowrap; }
 .js-badge-div { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
 .js-cell-td { width: 92px; min-width: 92px; }
-.js-cell { width: 100%; min-width: 84px; height: 46px; border: 1px solid transparent; border-radius: 4px; font-size: 9px; font-weight: 800; text-align: center; cursor: pointer; padding: 2px; appearance: none; }
+.js-cell { width: 100%; min-width: 84px; height: 40px; border: 1px solid transparent; border-radius: 4px; font-size: 9px; font-weight: 800; text-align: center; cursor: pointer; padding: 2px; appearance: none; }
+.js-cell-jam { margin-top: 2px; text-align: center; font-size: 9px; font-weight: 800; color: #16a34a; line-height: 1.1; }
 .js-cell option { background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: 11px; }
 .js-empty { text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 8px; }
 .js-add { align-self: flex-start; }
