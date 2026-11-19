@@ -24,6 +24,13 @@ interface RosterRow {
   Divisi?: string;
   [key: string]: any;
 }
+interface KaryawanRow {
+  id: string;
+  nama?: string | null;
+  divisi?: string | null;
+  jabatan?: string | null;
+  status?: string | null;
+}
 
 const month = ref(dayjs().format('YYYY-MM'));
 const divisiFilter = ref('');
@@ -31,6 +38,8 @@ const nameFilter = ref('');
 const summaryDay = ref(dayjs().date());
 const loading = ref(true);
 const rows = ref<RosterRow[]>([]);
+const karyawanList = ref<KaryawanRow[]>([]);
+const syncing = ref(false);
 const addOpen = ref(false);
 const settingsOpen = ref(false);
 const newRow = ref({ Nama: '', Jabatan: '', Divisi: '' });
@@ -80,8 +89,21 @@ function dayLabel(d: number): string {
   return DAY_NAMES[dayjs(`${month.value}-${String(d).padStart(2, '0')}`).day()];
 }
 
+const karyawanOptions = computed(() => [...new Set(karyawanList.value
+  .map((k) => String(k.nama ?? '').trim())
+  .filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id')));
+
+watch(() => newRow.value.Nama, (nama) => {
+  const k = karyawanMap().get(String(nama ?? '').trim().toLowerCase());
+  newRow.value.Jabatan = k ? String(k.jabatan ?? '') : '';
+  newRow.value.Divisi = k ? String(k.divisi ?? '') : '';
+});
+
 const divisiOptions = computed(() =>
-  [...new Set(rows.value.map((r) => String(r.Divisi ?? '').trim()).filter(Boolean))].sort(),
+  [...new Set([
+    ...karyawanList.value.map((k) => String(k.divisi ?? '').trim()),
+    ...rows.value.map((r) => String(r.Divisi ?? '').trim()),
+  ].filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id')),
 );
 
 const visibleRows = computed(() => {
@@ -102,11 +124,77 @@ const summary = computed(() => {
   return { total: visibleRows.value.length, ...c };
 });
 
-async function load(silent = false) {
+function karyawanMap(): Map<string, KaryawanRow> {
+  const map = new Map<string, KaryawanRow>();
+  karyawanList.value.forEach((k) => {
+    const nama = String(k.nama ?? '').trim().toLowerCase();
+    if (nama) map.set(nama, k);
+  });
+  return map;
+}
+
+// Samakan Divisi & Jabatan roster dengan data master Karyawan (berdasarkan nama).
+async function syncDivisiJabatan(addMissing = false) {
+  if (syncing.value) return { updated: 0, added: 0 };
+  syncing.value = true;
+  let updated = 0, added = 0;
+  try {
+    const map = karyawanMap();
+    const existing = new Set(rows.value.map((r) => String(r.Nama ?? '').trim().toLowerCase()));
+    for (const r of rows.value) {
+      const k = map.get(String(r.Nama ?? '').trim().toLowerCase());
+      if (!k) continue;
+      const divisi = String(k.divisi ?? '').trim();
+      const jabatan = String(k.jabatan ?? '').trim();
+      if (String(r.Divisi ?? '').trim() !== divisi || String(r.Jabatan ?? '').trim() !== jabatan) {
+        await fclPatch('jadwalroster', r.id, { Divisi: divisi, Jabatan: jabatan });
+        r.Divisi = divisi;
+        r.Jabatan = jabatan;
+        updated++;
+      }
+    }
+    if (addMissing) {
+      const payload = karyawanList.value
+        .filter((k) => !existing.has(String(k.nama ?? '').trim().toLowerCase()))
+        .map((k) => ({
+          Bulan: month.value,
+          Nama: String(k.nama ?? '').trim(),
+          Jabatan: String(k.jabatan ?? '').trim(),
+          Divisi: String(k.divisi ?? '').trim(),
+        }))
+        .filter((p) => !!p.Nama);
+      if (payload.length) {
+        await fclInsert('jadwalroster', payload);
+        added = payload.length;
+      }
+    }
+  } catch (err: any) {
+    notification.error({ message: 'Sinkronisasi Karyawan', description: err?.message || 'Gagal menyinkronkan data' });
+  } finally {
+    syncing.value = false;
+  }
+  return { updated, added };
+}
+
+async function syncKaryawan() {
+  const res = await syncDivisiJabatan(true);
+  notification.success({
+    message: 'Sinkronisasi Karyawan',
+    description: `${res.updated} baris diperbarui, ${res.added} karyawan ditambahkan`,
+  });
+  await load(false, false);
+}
+
+async function load(silent = false, doSync = true) {
   if (!silent) loading.value = true;
   try {
-    const all = await fclQuery<RosterRow>('jadwalroster', { select: '*', limit: 10000 });
+    const [all, kars] = await Promise.all([
+      fclQuery<RosterRow>('jadwalroster', { select: '*', limit: 10000 }),
+      fclQuery<KaryawanRow>('karyawan', { select: '*', order: 'nama.asc', limit: 2000 }),
+    ]);
+    karyawanList.value = kars || [];
     rows.value = (all || []).filter((r) => String(r.Bulan ?? '').startsWith(month.value));
+    if (doSync && rows.value.length) await syncDivisiJabatan(false);
   } catch (err: any) {
     console.error('[fcl/jadwal-shift]', err);
     notification.error({ message: 'Jadwal Shift', description: err?.message || 'Gagal memuat roster' });
@@ -221,6 +309,7 @@ onMounted(() => load());
         </div>
         <div class="js-field"><label>CARI NAMA</label><input v-model="nameFilter" class="js-input" placeholder="Nama karyawan..." /></div>
         <button class="js-btn js-btn-ghost" @click="load()"><LucideRefreshCw :size="13" /> Refresh</button>
+        <button class="js-btn js-btn-ghost" :disabled="syncing" @click="syncKaryawan"><LucideRefreshCw :size="13" /> {{ syncing ? 'Sinkron...' : 'Sync Karyawan' }}</button>
         <button class="js-btn js-btn-ghost" @click="settingsOpen = true">Setelan Jam</button>
         <div class="js-spacer"></div>
         <input ref="importInput" type="file" accept=".csv,text/csv" class="js-hidden" @change="importRoster" />
@@ -288,9 +377,14 @@ onMounted(() => load());
     <!-- ── Modal tambah baris ── -->
     <a-modal v-model:open="addOpen" title="Tambah Karyawan ke Roster" ok-text="Tambah" cancel-text="Batal" width="460px" @ok="addRow">
       <div class="js-form">
-        <div class="js-field"><label>Nama Karyawan *</label><input v-model="newRow.Nama" class="js-input" /></div>
-        <div class="js-field"><label>Jabatan</label><input v-model="newRow.Jabatan" class="js-input" /></div>
-        <div class="js-field"><label>Divisi</label><input v-model="newRow.Divisi" class="js-input" /></div>
+        <div class="js-field"><label>Nama Karyawan *</label>
+          <select v-model="newRow.Nama" class="js-input">
+            <option value="">Pilih karyawan...</option>
+            <option v-for="k in karyawanOptions" :key="k" :value="k">{{ k }}</option>
+          </select>
+        </div>
+        <div class="js-field"><label>Jabatan (dari data Karyawan)</label><input v-model="newRow.Jabatan" class="js-input" readonly /></div>
+        <div class="js-field"><label>Divisi (dari data Karyawan)</label><input v-model="newRow.Divisi" class="js-input" readonly /></div>
       </div>
     </a-modal>
 
