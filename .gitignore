@@ -26,6 +26,7 @@ go.work.sum
 
 # env file
 .env
+backend/deploy/fcl-drive.env
 
 # Editor/IDE
 .idea/

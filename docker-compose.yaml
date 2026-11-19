@@ -202,6 +202,9 @@ services:
   fcl-service:
     build:
       context: ./backend/app/fcl-service
+    env_file:
+      - path: ./backend/deploy/fcl-drive.env
+        required: false
     environment:
       DATABASE_URL: postgres://postgres:*Abcd123456@postgres:5432/ghost_wms?sslmode=disable
       FCL_ADDR: ":6905"

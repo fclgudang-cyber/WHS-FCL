@@ -1246,7 +1246,7 @@ onMounted(loadAll);
         <a-input v-model:value="buktiInput" placeholder="https://drive.google.com/..." allow-clear />
       </template>
       <template v-else>
-        <p class="fcl-pc-bukti-hint">Pilih foto/struk dari perangkat (maks. 12 MB). File akan tersimpan di server.</p>
+        <p class="fcl-pc-bukti-hint">Pilih foto/struk dari perangkat (maks. 12 MB). File akan langsung tersimpan ke folder Google Drive.</p>
         <input type="file" accept="image/*,application/pdf" class="fcl-pc-file" @change="pickBuktiFile" />
         <div v-if="buktiPreview" class="fcl-pc-bukti-preview"><img :src="buktiPreview" alt="Pratinjau bukti" /></div>
         <p v-if="buktiTarget?.buktiUrl && !buktiFile" class="fcl-pc-bukti-hint">Biarkan kosong untuk menggunakan file yang sudah tersimpan.</p>

@@ -57,18 +57,40 @@ func handleFileUpload(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"success": false, "message": "file kosong"})
 		return
 	}
+	name := fmt.Sprintf("%d-%d%s", time.Now().UnixNano(), len(data)%100000, contentTypeToExt(header.Header.Get("Content-Type")))
+
+	// Jika kredensial Google Drive tersedia, unggah langsung ke folder Drive.
+	cfg := driveConfigFromEnv()
+	if cfg.enabled() {
+		driveName := header.Filename
+		if driveName == "" || !safeFileName.MatchString(driveName) {
+			driveName = name
+		}
+		driveURL, err := uploadToDrive(cfg, driveName, data, header.Header.Get("Content-Type"))
+		if err != nil {
+			writeJSON(w, http.StatusBadGateway, map[string]any{"success": false, "message": "Gagal upload ke Google Drive: " + err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{
+			"success": true, "url": driveURL, "fileName": header.Filename,
+			"size": len(data), "storage": "drive",
+		})
+		return
+	}
+
+	// Fallback: simpan lokal bila kredensial Drive belum dikonfigurasi.
 	if err := os.MkdirAll(uploadDir, 0o755); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"success": false, "message": "gagal membuat direktori upload"})
 		return
 	}
-	name := fmt.Sprintf("%d-%d%s", time.Now().UnixNano(), len(data)%100000, contentTypeToExt(header.Header.Get("Content-Type")))
 	if err := os.WriteFile(filepath.Join(uploadDir, name), data, 0o644); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"success": false, "message": "gagal menyimpan file"})
 		return
 	}
 	url := "/api/files/pettycash/" + name
 	writeJSON(w, http.StatusOK, map[string]any{
-		"success": true, "url": url, "fileName": header.Filename, "size": len(data),
+		"success": true, "url": url, "fileName": header.Filename,
+		"size": len(data), "storage": "local",
 	})
 }
 
