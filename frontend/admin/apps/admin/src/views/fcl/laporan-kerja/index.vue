@@ -3,7 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import type { Dayjs } from 'dayjs';
 
 import { Page } from '@vben/common-ui';
-import { LucideDownload, LucidePlus } from '@vben/icons';
+import { LucideDownload, LucidePlus, LucideRefreshCw } from '@vben/icons';
 
 import { Modal, message, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
@@ -160,6 +160,59 @@ const fieldLabel = (name: string) => formFields.find((f) => f.name === name)?.la
 const groupAngka = ['totalTeamLeader', 'totalStaff', 'totalPelorporUtama', 'totalAdmin', 'totalPHL', 'jamKerjaPHL', 'perbantuan', 'pengurangan', 'jamPengurangan', 'totalPekerjaLembur', 'jamLembur'];
 const groupOrder = ['totalOrder', 'totalQty', 'sisaOrder'];
 
+// Ambil data PIC, shift, jumlah peran & lembur dari roster Jadwal Shift.
+const syncingShift = ref(false);
+async function syncFromJadwalShift() {
+  if (!form.tanggal) { message.warning('Pilih tanggal laporan dulu'); return; }
+  const tgl = dayjs(form.tanggal);
+  if (!tgl.isValid()) return;
+  const monthKey = tgl.format('YYYY-MM');
+  const dayKey = String(tgl.date());
+  syncingShift.value = true;
+  try {
+    const roster = await fclQuery<Record<string, any>>('jadwalroster', { select: '*', limit: 10000 });
+    const divisi = String(form.divisi ?? '').trim().toLowerCase();
+    const list = roster.filter((r) => String(r.Bulan ?? '') === monthKey
+      && (!divisi || String(r.Divisi ?? '').toLowerCase().includes(divisi)));
+    const shiftOf = (r: Record<string, any>) => String(r[dayKey] ?? '').toUpperCase().trim();
+    const isOff = (s: string) => ['', 'OFF', 'LIBUR', 'CUTI', 'IJIN', 'SAKIT', 'ALFA'].includes(s);
+    const aktif = list.filter((r) => !isOff(shiftOf(r)));
+    const jml = (teks: string) => aktif.filter((r) => String(r.Jabatan ?? '').toLowerCase().includes(teks.toLowerCase())).length;
+    const lembur = aktif.filter((r) => /MALAM|LEMBUR/i.test(shiftOf(r)));
+
+    const hitung: Record<string, number> = {};
+    aktif.forEach((r) => {
+      const s = /MALAM/i.test(shiftOf(r)) ? 'Shift Malam' : /PAGI/i.test(shiftOf(r)) ? 'Shift Pagi' : '';
+      if (s) hitung[s] = (hitung[s] ?? 0) + 1;
+    });
+    const shiftDominan = Object.entries(hitung).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
+    const pic = aktif
+      .filter((r) => /team leader|pelopor|koordinator/i.test(String(r.Jabatan ?? '')))
+      .map((r) => String(r.Nama ?? '').trim())
+      .filter(Boolean)
+      .join(', ');
+
+    if (shiftDominan) form.shift = shiftDominan;
+    if (pic) form.pic = pic;
+    form.totalTeamLeader = jml('team leader');
+    form.totalStaff = jml('staff');
+    form.totalPelorporUtama = jml('pelopor');
+    form.totalAdmin = jml('admin');
+    form.totalPHL = jml('phl');
+    form.totalPekerjaLembur = lembur.length;
+    form.totalOrang = aktif.length;
+    if (!num(form.jamLembur) && lembur.length) form.jamLembur = lembur.length;
+    notification.success({
+      message: 'Sync Jadwal Shift',
+      description: `${aktif.length} karyawan aktif dari ${list.length} data roster`,
+    });
+  } catch (err: any) {
+    notification.error({ message: 'Sync Jadwal Shift', description: err?.message || 'Gagal memuat roster' });
+  } finally {
+    syncingShift.value = false;
+  }
+}
+
 const autoHitung = ref(true);
 const soreReload = ref(false);
 const semuaMalamKartu = ref(false);
@@ -195,6 +248,7 @@ function openCreate() {
   resetForm();
   form.tanggal = dayjs();
   formOpen.value = true;
+  void syncFromJadwalShift();
 }
 function openEdit(r: LaporanRow) {
   editingId.value = r.id;
@@ -383,6 +437,12 @@ function exportExcel() {
       @ok="saveForm"
     >
       <div class="lk-input-form">
+        <div class="lk-sync-bar">
+          <button type="button" class="lk-btn lk-btn-ghost" :disabled="syncingShift" @click="syncFromJadwalShift">
+            <LucideRefreshCw :size="13" /> {{ syncingShift ? 'Sinkron...' : 'Sync dari Jadwal Shift' }}
+          </button>
+          <span>PIC, shift, jumlah peran &amp; lembur diambil otomatis dari roster bulan ini.</span>
+        </div>
         <div class="lk-grid2">
           <label class="lk-f"><span>TANGGAL LAPORAN</span>
             <a-date-picker v-model:value="form.tanggal" value-format="YYYY-MM-DD" style="width: 100%" />
@@ -526,6 +586,9 @@ function exportExcel() {
 .lk-kpi-list { max-height: 420px; overflow: auto; }
 .lk-kpi-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid hsl(var(--border)); font-size: 12px; }
 .lk-input-form { display: flex; flex-direction: column; gap: 12px; }
+.lk-sync-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 9px 11px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted)); }
+.lk-sync-bar > span { font-size: 10px; color: hsl(var(--muted-foreground)); }
+.lk-btn-ghost { background: hsl(var(--muted)); color: hsl(var(--foreground)); border: 1px solid hsl(var(--border)); }
 .lk-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
 .lk-f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .lk-f > span { font-size: 10px; font-weight: 800; letter-spacing: .03em; color: hsl(var(--muted-foreground)); text-transform: uppercase; }
