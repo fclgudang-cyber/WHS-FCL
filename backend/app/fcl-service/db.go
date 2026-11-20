@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	db     *sql.DB
-	colMu  sync.RWMutex
+	db       *sql.DB
+	colMu    sync.RWMutex
 	colCache = map[string]map[string]string{}
 
 	tableNameRe = regexp.MustCompile(`^[A-Za-z0-9_]+$`)
@@ -213,7 +213,7 @@ var filterOps = map[string]bool{
 func unquoteIdent(s string) string {
 	s = strings.TrimSpace(s)
 	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
-		s = s[1:len(s)-1]
+		s = s[1 : len(s)-1]
 		s = strings.ReplaceAll(s, `""`, `"`)
 		return s
 	}

@@ -200,7 +200,7 @@ func h3dHandleBootstrap(w http.ResponseWriter, r *http.Request) {
 	h3dSeedEmployees(wid)
 	employees := h3dRows(`select
 			k.id as employee_id, k.nama as full_name, k.jabatan, k.divisi, k.cabang,
-			k.status as employee_status, k.fingerprint_id,
+			k.status as employee_status, coalesce(k."fingerprintId", k.fingerprint_id) as fingerprint_id,
 			e.photo_url, e.warehouse_id, e.current_area, e.activity, e.activity_label,
 			e.task_code, e.current_task, e.position_x, e.position_y, e.position_z,
 			e.rotation, e.animation
@@ -828,17 +828,19 @@ func h3dHandleSearch(w http.ResponseWriter, r *http.Request) {
 		  or lower(coalesce(location_code,'')) like $1 limit 20`, like) {
 		results = append(results, row)
 	}
-	for _, row := range h3dRows(`select k.id as code, k.nama as name, 'EMPLOYEE' as type, k.jabatan as location, k.fingerprint_id as ref
+	for _, row := range h3dRows(`select k.id as code, k.nama as name, 'EMPLOYEE' as type, k.jabatan as location,
+			coalesce(k."fingerprintId", k.fingerprint_id) as ref
 		from karyawan k where lower(coalesce(k.nama,'')) like $1 or lower(coalesce(k.jabatan,'')) like $1
-		  or cast(k.id as text) like $1 limit 20`, like) {
+		  or cast(k.id as text) like $1
+		  or lower(coalesce(k."fingerprintId", k.fingerprint_id, '')) like $1 limit 20`, like) {
 		results = append(results, row)
 	}
 	for _, row := range h3dRows(`select object_uid as code, name, 'OBJECT' as type, object_type as location, object_uid as ref
 		from wh3d_object where lower(coalesce(name,'')) like $1 or lower(coalesce(object_uid,'')) like $1 limit 20`, like) {
 		results = append(results, row)
 	}
-	for _, row := range h3dRows(`select noresi as code, keterangan as name, 'ORDER' as type, status as location, cast(id as text) as ref
-		from "order" where lower(coalesce(noresi,'')) like $1 or lower(coalesce(keterangan,'')) like $1 limit 20`, like) {
+	for _, row := range h3dRows(`select coalesce("noResi", noresi) as code, keterangan as name, 'ORDER' as type, status as location, cast(id as text) as ref
+		from "order" where lower(coalesce("noResi", noresi, '')) like $1 or lower(coalesce(keterangan,'')) like $1 limit 20`, like) {
 		results = append(results, row)
 	}
 	h3dWrite(w, 200, results)
