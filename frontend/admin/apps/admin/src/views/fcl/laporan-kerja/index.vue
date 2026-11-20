@@ -186,7 +186,15 @@ async function syncFromJadwalShift() {
       && (!divisi || String(r.Divisi ?? '').toLowerCase().includes(divisi)));
     const shiftOf = (r: Record<string, any>) => String(r[dayKey] ?? '').toUpperCase().trim();
     const isOff = (s: string) => ['', 'OFF', 'LIBUR', 'CUTI', 'IJIN', 'SAKIT', 'ALFA'].includes(s);
-    const aktif = list.filter((r) => !isOff(shiftOf(r)));
+    const shiftPilih = String(form.shift ?? '').toUpperCase();
+    const cocokShift = (s: string) => {
+      if (!shiftPilih) return true;
+      if (shiftPilih.includes('MALAM')) return s.includes('MALAM');
+      if (shiftPilih.includes('SIANG')) return s.includes('PAGI') || s.includes('SIANG');
+      if (shiftPilih.includes('PAGI')) return s.includes('PAGI');
+      return true;
+    };
+    const aktif = list.filter((r) => !isOff(shiftOf(r)) && cocokShift(shiftOf(r)));
     const jml = (teks: string) => aktif.filter((r) => String(r.Jabatan ?? '').toLowerCase().includes(teks.toLowerCase())).length;
     // Orang lembur & jam lembur berasal dari sel LEMBUR yang sama di Jadwal Shift.
     const lemburRows = aktif.filter((r) => /LEMBUR/i.test(shiftOf(r)));
@@ -205,7 +213,7 @@ async function syncFromJadwalShift() {
     // PIC memakai nama akun yang sedang login (bukan nama dari roster).
     const pic = namaAkun();
 
-    if (shiftDominan) form.shift = shiftDominan;
+    if (!form.shift && shiftDominan) form.shift = shiftDominan;
     if (pic) form.pic = pic;
     form.totalTeamLeader = jml('team leader');
     form.totalStaff = jml('staff');
@@ -260,11 +268,16 @@ function resetForm(row?: LaporanRow | null) {
   soreReload.value = row ? String((row as any).soreReload ?? 'Tidak') === 'Ya' : false;
 }
 
-// Setiap kali tanggal dipilih/ubah, ambil data otomatis dari Jadwal Shift.
-watch(() => form.tanggal, (baru, lama) => {
-  if (!baru || String(baru) === String(lama) || !formOpen.value) return;
-  void syncFromJadwalShift();
-});
+// Tanggal atau Shift yang diganti → ambil data otomatis dari Jadwal Shift.
+watch(
+  () => [form.tanggal, form.shift],
+  (baru, lama) => {
+    if (syncingShift.value || !formOpen.value) return;
+    if (!baru[0]) return;
+    if (String(baru[0]) === String(lama?.[0]) && String(baru[1]) === String(lama?.[1])) return;
+    void syncFromJadwalShift();
+  },
+);
 
 function openCreate() {
   editingId.value = null;
