@@ -159,9 +159,9 @@ const formFields: any[] = [
   { name: 'totalPHL', label: 'TOTAL PHL', type: 'number' },
   { name: 'jamKerjaPHL', label: 'JAM KERJA PHL (DESKRIPSI)', type: 'number' },
   { name: 'perbantuan', label: 'ORANG PERBANTUAN', type: 'number' },
-  { name: 'perbantuanNames', label: 'DAFTAR ORANG PERBANTUAN', type: 'textarea' },
+  { name: 'perbantuanNames', label: 'ORANG (+)', type: 'textarea' },
   { name: 'jamPerbantuan', label: 'JAM PERBANTUAN', type: 'number' },
-  { name: 'pengurangan', label: 'ORANG PENGURANGAN', type: 'number' },
+  { name: 'pengurangan', label: 'ORANG (-)', type: 'number' },
   { name: 'jamPengurangan', label: 'JAM PENGURANGAN', type: 'number' },
   { name: 'totalPekerjaLembur', label: 'TOTAL PEKERJA LEMBUR', type: 'number' },
   { name: 'jamLembur', label: 'LAMA LEMBUR (JAM)', type: 'number' },
@@ -403,7 +403,7 @@ async function saveKpi() {
 // ── export Excel ───────────────────────────────────────────────────────────────
 function exportExcel() {
   if (!filtered.value.length) { message.warning('Tidak ada data untuk diekspor'); return; }
-  const header = ['Tanggal', 'Divisi', 'PIC', 'Jam Kerja Normal', 'Total Jam Kerja', 'Lembur', 'Alasan', 'Leader', 'Admin', 'Staff', 'PHL', 'Daftar Orang Perbantuan', 'Orang Pengurangan', 'Total Masuk', 'Output', 'QTY', 'KPI'];
+  const header = ['Tanggal', 'Divisi', 'PIC', 'Jam Kerja Normal', 'Total Jam Kerja', 'Lembur', 'Alasan', 'Leader', 'Admin', 'Staff', 'PHL', 'Orang (+)', 'Orang (-)', 'Total Masuk', 'Output', 'QTY', 'KPI'];
   const esc = (s: unknown) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const head = header.map((h) => `<th>${h}</th>`).join('');
   const body = filtered.value.map((r) => {
@@ -453,7 +453,7 @@ function exportExcel() {
         <div class="lk-row lk-row-head">
           <div>TANGGAL</div><div>DIVISI/PIC</div><div>JAM KERJA NORMAL</div><div>TOTAL JAM KERJA</div><div>LEMBUR</div>
           <div>ALASAN</div><div>Leader</div><div>Admin</div><div>STAFF</div><div>PHL</div>
-          <div>DAFTAR ORANG PERBANTUAN</div><div>ORANG PENGURANGAN</div>
+          <div>ORANG (+)</div><div>ORANG (-)</div>
           <div>TOTAL MASUK</div><div>OUTPUT</div><div>QTY</div><div>KPI</div><div>AKSI</div>
         </div>
         <div v-if="loading" class="lk-empty">Memuat data...</div>
@@ -583,7 +583,7 @@ function exportExcel() {
           </label>
 
           <label class="lk-f">
-            <span class="lk-bottom-label">DAFTAR ORANG PERBANTUAN</span>
+            <span class="lk-bottom-label">ORANG (+)</span>
             <a-textarea v-model:value="form.perbantuanNames" :rows="3" placeholder="Pisahkan dengan koma..." />
           </label>
 
