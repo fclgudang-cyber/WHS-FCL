@@ -158,8 +158,8 @@ const formFields: any[] = [
   { name: 'totalAdmin', label: 'TOTAL ADMIN', type: 'number' },
   { name: 'totalPHL', label: 'TOTAL PHL', type: 'number' },
   { name: 'jamKerjaPHL', label: 'JAM KERJA PHL (DESKRIPSI)', type: 'number' },
-  { name: 'perbantuan', label: 'ORANG PERBANTUAN', type: 'number' },
-  { name: 'perbantuanNames', label: 'ORANG (+)', type: 'textarea' },
+  { name: 'perbantuan', label: 'ORANG (+)', type: 'number' },
+  { name: 'perbantuanNames', label: 'DAFTAR ORANG PERBANTUAN', type: 'textarea' },
   { name: 'jamPerbantuan', label: 'JAM PERBANTUAN', type: 'number' },
   { name: 'pengurangan', label: 'ORANG (-)', type: 'number' },
   { name: 'jamPengurangan', label: 'JAM PENGURANGAN', type: 'number' },
@@ -413,7 +413,7 @@ function exportExcel() {
       <td>${fmtNum(jamNormalBaris(r))}</td><td>${fmtNum(totalJamBaris(r), 1)}</td><td>${fmtNum(r.jamLembur, 1)}</td>
       <td>${esc(alasanChips(r).join(', '))}</td><td>${fmtNum(r.totalTeamLeader)}</td>
       <td>${fmtNum(r.totalAdmin)}</td><td>${fmtNum(r.totalStaff)}</td><td>${fmtNum(r.totalPHL)}</td>
-      <td>${esc(r.perbantuanNames || '')}</td><td>${fmtNum(r.pengurangan)}</td>
+      <td>${fmtNum(r.perbantuan)}</td><td>${fmtNum(r.pengurangan)}</td>
       <td>${fmtNum(totalOrangBaris(r))}</td>
       <td>${fmtNum(r.totalOrder)}</td><td>${fmtNum(r.totalQty)}</td><td>${fmtNum(r.sisaOrder)}</td></tr>`;
   }).join('');
@@ -480,7 +480,7 @@ function exportExcel() {
           <div class="lk-num"><b>{{ fmtNum(r.totalAdmin) }}</b><span>Admin</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalStaff) }}</b><span>Staff</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalPHL) }}</b><span>PHL</span></div>
-          <div class="lk-names">{{ r.perbantuanNames || '-' }}</div>
+          <div class="lk-num"><b>{{ fmtNum(r.perbantuan) }}</b><span>Org</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.pengurangan) }}</b><span>Org</span></div>
           <div class="lk-num lk-hijau"><b>{{ fmtNum(totalOrangBaris(r)) }}</b><span>Org</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalOrder) }}</b><span>PO {{ fmtNum(r.totalPO) }}</span></div>
@@ -583,7 +583,7 @@ function exportExcel() {
           </label>
 
           <label class="lk-f">
-            <span class="lk-bottom-label">ORANG (+)</span>
+            <span class="lk-bottom-label">DAFTAR ORANG PERBANTUAN</span>
             <a-textarea v-model:value="form.perbantuanNames" :rows="3" placeholder="Pisahkan dengan koma..." />
           </label>
 
