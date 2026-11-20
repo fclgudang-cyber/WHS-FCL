@@ -75,7 +75,9 @@ const fmtNum = (v: unknown, digits = 0) =>
 const totalOrangBaris = (r: any) =>
   Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0)
   + Number(r.totalPHL ?? 0) + Number(r.perbantuan ?? 0);
-const jamNormalBaris = (r: any) => totalOrangBaris(r) * 8;
+const crewJamNormalBaris = (r: any) =>
+  Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0);
+const jamNormalBaris = (r: any) => crewJamNormalBaris(r) * 8;
 const totalJamBaris = (r: any) => jamNormalBaris(r)
   + Number(r.jamLembur ?? 0) + Number(r.jamPerbantuan ?? 0)
   + Number(r.jamKerjaPHL ?? 0) - Number(r.jamPengurangan ?? 0);
@@ -249,8 +251,10 @@ const soreReload = ref(false);
 // Total orang = Leader + Staff + Admin + PHL + Orang Perbantuan.
 const totalCrew = computed(() => ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'perbantuan']
   .reduce((s, k) => s + num(form[k]), 0));
-// Jam normal = 8 jam × total orang.
-const jamKerjaNormal = computed(() => totalCrew.value * 8);
+// Jam normal = 8 jam × (Staff + TL + Admin). PHL & Perbantuan tidak dihitung di sini
+// (jamnya diinput terpisah lewat Jam PHL / Jam Perbantuan).
+const crewJamNormal = computed(() => num(form.totalTeamLeader) + num(form.totalStaff) + num(form.totalAdmin));
+const jamKerjaNormal = computed(() => crewJamNormal.value * 8);
 // Total jam = normal + lembur + perbantuan + jam PHL - pengurangan.
 const jamKerjaAuto = computed(() => jamKerjaNormal.value
   + num(form.jamLembur)
@@ -531,7 +535,7 @@ function exportExcel() {
           Total orang = Leader {{ fmtNum(form.totalTeamLeader) }} + Staff {{ fmtNum(form.totalStaff) }}
           + Admin {{ fmtNum(form.totalAdmin) }} + PHL {{ fmtNum(form.totalPHL) }}
           + Perbantuan {{ fmtNum(form.perbantuan) }} = <b>{{ fmtNum(totalCrew) }} orang</b>.<br/>
-          Jam Kerja Normal = 8 jam × {{ fmtNum(totalCrew) }} orang = {{ fmtNum(jamKerjaNormal) }} jam.
+          Jam Kerja Normal = 8 jam × {{ fmtNum(crewJamNormal) }} orang (staff+TL+admin) = {{ fmtNum(jamKerjaNormal) }} jam.
           + Lembur {{ fmtNum(form.jamLembur) }} + Perbantuan {{ fmtNum(form.jamPerbantuan) }}
           + Jam PHL {{ fmtNum(form.jamKerjaPHL) }} - Pengurangan {{ fmtNum(form.jamPengurangan) }}
           = <b>Total Jam Kerja {{ fmtNum(jamKerjaAuto) }} jam</b>.
@@ -584,7 +588,7 @@ function exportExcel() {
 
           <div class="lk-breakdown">
             <div class="lk-breakdown-row">
-              <span>📘 Jam Kerja Normal ({{ fmtNum(totalCrew) }} orang (staff+TL+admin) × 8 jam)</span>
+              <span>📘 Jam Kerja Normal ({{ fmtNum(crewJamNormal) }} orang (staff+TL+admin) × 8 jam)</span>
               <b>{{ fmtNum(jamKerjaNormal) }} jam</b>
             </div>
             <div class="lk-breakdown-row lk-breakdown-total">
