@@ -41,6 +41,8 @@ interface LaporanRow {
   jamKerjaPHL?: number | string | null;
   noKartuTanpaKartu?: string | null;
   namaTanpaKartu?: string | null;
+  namaTanpaSepatu?: string | null;
+  kendalaPekerjaan?: string | null;
   autoHitung?: string | null;
   soreReload?: string | null;
   semuaMalamKartu?: string | null;
@@ -155,7 +157,7 @@ const formFields: any[] = [
   { name: 'jamKerjaPHL', label: 'JAM KERJA PHL (DESKRIPSI)', type: 'number' },
   { name: 'perbantuan', label: 'ORANG PERBANTUAN', type: 'number' },
   { name: 'jamPerbantuan', label: 'JAM PERBANTUAN', type: 'number' },
-  { name: 'pengurangan', label: 'PENGURANGAN JAM KERJA', type: 'number' },
+  { name: 'pengurangan', label: 'ORANG PENGURANGAN', type: 'number' },
   { name: 'jamPengurangan', label: 'JAM PENGURANGAN', type: 'number' },
   { name: 'totalPekerjaLembur', label: 'TOTAL PEKERJA LEMBUR', type: 'number' },
   { name: 'jamLembur', label: 'LAMA LEMBUR (JAM)', type: 'number' },
@@ -164,6 +166,8 @@ const formFields: any[] = [
   { name: 'totalJamKerja', label: 'TOTAL JAM KERJA (MANUAL)', type: 'number' },
   { name: 'totalQty', label: 'QTY', type: 'number' },
   { name: 'sisaOrder', label: 'KPI', type: 'number' },
+  { name: 'namaTanpaSepatu', label: 'NAMA KARYAWAN YANG TIDAK MEMAKAI SEPATU', type: 'textarea' },
+  { name: 'kendalaPekerjaan', label: 'KENDALA PEKERJAAN', type: 'textarea' },
 ];
 
 const adalahMarketPlace = (divisi?: string | null) => /market[\s_]*place/i.test(String(divisi ?? ''));
@@ -561,12 +565,44 @@ function exportExcel() {
           </label>
         </div>
 
-        <div class="lk-summary">
-          <div><span>WPI (total Order / total jam Kerja)</span><b>{{ fmtNum(wpi, 3) }}</b></div>
-          <div><span>Jam Kerja Normal (8 jam × orang)</span><b class="lk-merah">{{ fmtNum(totalKecukupan) }}</b></div>
-          <div><span>TOTAL KESESUAIAN</span><b>{{ fmtNum(totalKesesuaian, 1) }}</b></div>
+        <div class="lk-bottom">
+          <label class="lk-f">
+            <span class="lk-bottom-label">NAMA KARYAWAN YANG TIDAK MEMAKAI SEPATU</span>
+            <a-textarea v-model:value="form.namaTanpaSepatu" :rows="3" placeholder="Pisahkan dengan koma..." />
+            <small>Wajib diisi jika tidak semua memakai Sepatu.</small>
+          </label>
+
+          <label class="lk-f">
+            <span class="lk-hijau-label">KPI (Total Output / Total Jam Kerja)</span>
+            <a-input v-model:value="form.sisaOrder" placeholder="0.000" />
+          </label>
+
+          <div class="lk-f">
+            <span class="lk-orange-label">Total Keseluruhan Jam Kerja</span>
+            <div class="lk-big-orange">{{ fmtNum(jamKerjaFinal, 0) }}</div>
+          </div>
+
+          <div class="lk-breakdown">
+            <div class="lk-breakdown-row">
+              <span>📘 Jam Kerja Normal ({{ fmtNum(totalCrew) }} orang (staff+TL+admin) × 8 jam)</span>
+              <b>{{ fmtNum(jamKerjaNormal) }} jam</b>
+            </div>
+            <div class="lk-breakdown-row lk-breakdown-total">
+              <span>TOTAL KESELURUHAN</span>
+              <b>{{ fmtNum(jamKerjaFinal, 0) }} jam</b>
+            </div>
+          </div>
+
+          <div class="lk-rumus">
+            *Rumus: Σ jam nyata roster (menghormati jam khusus; fallback (Utama + Admin) × 8) + (PHL × Jam)
+            + Jam Perbantuan - Jam Pengurangan + (Lembur × Jam)
+          </div>
+
+          <label class="lk-f">
+            <span>KENDALA PEKERJAAN</span>
+            <a-textarea v-model:value="form.kendalaPekerjaan" :rows="3" placeholder="Tuliskan kendala yang dihadapi (jika ada)..." />
+          </label>
         </div>
-        <div class="lk-catatan">* Jam Kerja Normal {{ fmtNum(totalCrew) }} orang ({{ fmtNum(jamKerjaFinal, 1) }} jam) &nbsp;•&nbsp; Total jam kerja dihitung {{ autoHitung ? 'otomatis' : 'manual' }}</div>
       </div>
     </a-modal>
 
@@ -655,6 +691,17 @@ function exportExcel() {
 .lk-summary b { font-size: 13px; }
 .lk-merah { color: #dc2626; }
 .lk-catatan { font-size: 10px; color: #16a34a; }
+.lk-bottom { display: flex; flex-direction: column; gap: 14px; }
+.lk-bottom-label { font-size: 10px !important; font-weight: 800 !important; }
+.lk-bottom small { font-size: 9px; color: hsl(var(--muted-foreground)); }
+.lk-hijau-label { color: #16a34a !important; font-size: 11px !important; font-weight: 800 !important; }
+.lk-orange-label { color: #f97316 !important; font-size: 12px !important; font-weight: 800 !important; }
+.lk-big-orange { font-size: 26px; font-weight: 800; color: #f97316; padding: 10px 0; }
+.lk-breakdown { border: 1px solid hsl(var(--border)); border-radius: 6px; overflow: hidden; }
+.lk-breakdown-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; font-size: 11px; }
+.lk-breakdown-row + .lk-breakdown-row { border-top: 1px solid hsl(var(--border)); }
+.lk-breakdown-total { color: #f97316; font-weight: 800; }
+.lk-rumus { font-size: 9px; line-height: 1.5; color: hsl(var(--muted-foreground)); }
 @media (max-width: 1400px) {
   .lk-row { grid-template-columns: 58px minmax(160px, 2fr) 96px 80px 76px minmax(120px, 1.2fr) 48px 48px 48px 48px 70px 76px 70px 48px 92px; }
 }
