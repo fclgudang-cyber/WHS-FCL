@@ -8,7 +8,7 @@
     viewBox="0 0 560 560"
     xmlns="http://www.w3.org/2000/svg"
     role="img"
-    aria-label="Ghost 幽灵"
+    aria-label="Warehouse FCL"
   >
     <defs>
       <linearGradient

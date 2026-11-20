@@ -12,7 +12,7 @@ defineOptions({
 });
 
 withDefaults(defineProps<Props>(), {
-  companyName: 'GhostWMS',
+  companyName: 'Warehouse FCL',
   companySiteLink: '',
   date: '2026',
   icp: '',

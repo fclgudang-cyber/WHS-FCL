@@ -30,7 +30,7 @@ const defaultPreferences: Preferences = {
     styleType: 'normal',
   },
   copyright: {
-    companyName: 'Ghost',
+    companyName: 'Warehouse FCL',
     companySiteLink: 'https://www.ghost.dev',
     date: '2026',
     enable: true,

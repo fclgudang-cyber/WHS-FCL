@@ -1,7 +1,7 @@
 import { createApp, watchEffect } from 'vue';
 
 import { registerAccessDirective } from '@vben/access';
-import { preferences } from '@vben/preferences';
+import { preferences, updatePreferences } from '@vben/preferences';
 import { initStores, useAccessStore } from '@vben/stores';
 import '@vben/styles';
 import '@vben/styles/antd';
@@ -36,6 +36,9 @@ async function bootstrap(namespace: string) {
 
   // 配置 pinia-store
   await initStores(app, { namespace });
+
+  // Nama aplikasi selalu mengikuti environment (abaikan preferensi lama yang tersimpan).
+  updatePreferences({ app: { name: import.meta.env.VITE_APP_TITLE || 'Warehouse FCL' } });
 
   // AUD9-M5: 注入 token 持久化加解密序列化器。
   // 必须在 useAccessStore() 首次实例化（下方）之前，否则首次 hydration 用明文默认序列化器。
