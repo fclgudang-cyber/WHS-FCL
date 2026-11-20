@@ -99,6 +99,33 @@ func invalidTable(table string) *pgError {
 	return &pgError{Status: 400, Msg: fmt.Sprintf("invalid table name: %s", table)}
 }
 
+func loadTableColumns(table string) (map[string]string, error) {
+	rows, err := db.Query(`select column_name, data_type from information_schema.columns where table_schema = 'public' and table_name = $1`, table)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	cols := map[string]string{}
+	for rows.Next() {
+		var name, dataType string
+		if err := rows.Scan(&name, &dataType); err != nil {
+			return nil, err
+		}
+		cols[name] = dataType
+	}
+	return cols, nil
+}
+
+// ensureFclTable membuat tabel FCL minimal bila benar-benar belum ada.
+// Dependency lain (ent core-service) tidak pernah disentuh.
+func ensureFclTable(table string) error {
+	_, err := db.Exec(fmt.Sprintf(`create table if not exists %s (
+		id bigserial primary key,
+		"createdAt" text
+	)`, quoteIdent(table)))
+	return err
+}
+
 func getTableColumns(table string) (map[string]string, error) {
 	if !tableNameRe.MatchString(table) {
 		return nil, invalidTable(table)
@@ -115,24 +142,67 @@ func getTableColumns(table string) (map[string]string, error) {
 	if c, ok := colCache[table]; ok {
 		return c, nil
 	}
-	rows, err := db.Query(`select column_name, data_type from information_schema.columns where table_schema = 'public' and table_name = $1`, table)
+	cols, err := loadTableColumns(table)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	cols := map[string]string{}
-	for rows.Next() {
-		var name, dataType string
-		if err := rows.Scan(&name, &dataType); err != nil {
+	if len(cols) == 0 {
+		// Self-healing: database produksi sering hanya punya tabel ent core-service.
+		// Buat tabel FCL otomatis agar fitur tidak gagal dengan "relation does not exist".
+		if err = ensureFclTable(table); err != nil {
 			return nil, err
 		}
-		cols[name] = dataType
-	}
-	if len(cols) == 0 {
-		return nil, missingTableError(table)
+		cols, err = loadTableColumns(table)
+		if err != nil {
+			return nil, err
+		}
 	}
 	colCache[table] = cols
 	return cols, nil
+}
+
+// addDynamicColumn menambahkan kolom yang dipakai frontend tetapi belum ada
+// di database (misal field baru dari hasil kustomisasi).
+func addDynamicColumn(table, col string) error {
+	if !tableNameRe.MatchString(table) || !tableNameRe.MatchString(col) {
+		return fmt.Errorf("invalid identifier: %s.%s", table, col)
+	}
+	_, err := db.Exec(fmt.Sprintf(`alter table %s add column if not exists %s text`, quoteIdent(table), quoteIdent(col)))
+	if err != nil {
+		return err
+	}
+	colMu.Lock()
+	delete(colCache, table)
+	colMu.Unlock()
+	cols, err := loadTableColumns(table)
+	if err != nil {
+		return err
+	}
+	colMu.Lock()
+	colCache[table] = cols
+	colMu.Unlock()
+	return nil
+}
+
+func resolveColumn(table, col string) (string, error) {
+	colMu.RLock()
+	cols, ok := colCache[table]
+	colMu.RUnlock()
+	if ok {
+		if dt, found := cols[col]; found {
+			return dt, nil
+		}
+	}
+	if err := addDynamicColumn(table, col); err != nil {
+		return "", err
+	}
+	colMu.RLock()
+	cols = colCache[table]
+	colMu.RUnlock()
+	if dt, found := cols[col]; found {
+		return dt, nil
+	}
+	return "", missingColumnError(col, table)
 }
 
 var filterOps = map[string]bool{
@@ -205,10 +275,6 @@ func categoryOf(dataType string) string {
 // buildWhere parses query params berprefix f_ → clause WHERE + args
 // (offset: placeholder awal saat digabung dengan SET params).
 func buildWhere(table string, query map[string][]string, startIndex int) (string, []any, error) {
-	cols, err := getTableColumns(table)
-	if err != nil {
-		return "", nil, err
-	}
 	var clauses []string
 	var params []any
 	for key, values := range query {
@@ -224,9 +290,9 @@ func buildWhere(table string, query map[string][]string, startIndex int) (string
 			op = body[sep+2:]
 		}
 		col = unquoteIdent(col)
-		dataType, ok := cols[col]
-		if !ok {
-			return "", nil, missingColumnError(col, table)
+		dataType, err := resolveColumn(table, col)
+		if err != nil {
+			return "", nil, err
 		}
 		quoted := quoteIdent(col)
 		paramBase := fmt.Sprintf("$%d", startIndex+len(params)+1)
@@ -301,10 +367,6 @@ func buildOrderBy(order string) string {
 }
 
 func prepareProjection(table string, selectParam string) (string, error) {
-	cols, err := getTableColumns(table)
-	if err != nil {
-		return "", err
-	}
 	if strings.TrimSpace(selectParam) == "" || selectParam == "*" {
 		return "*", nil
 	}
@@ -318,8 +380,8 @@ func prepareProjection(table string, selectParam string) (string, error) {
 		if col == "*" {
 			continue
 		}
-		if _, ok := cols[col]; !ok {
-			return "", missingColumnError(col, table)
+		if _, err := resolveColumn(table, col); err != nil {
+			return "", err
 		}
 	}
 	quoted := []string{}
@@ -339,7 +401,16 @@ func prepareRow(table string, row map[string]any) (map[string]any, error) {
 	for key, value := range row {
 		dataType, ok := cols[key]
 		if !ok {
-			return nil, missingColumnError(key, table)
+			if err := addDynamicColumn(table, key); err != nil {
+				return nil, err
+			}
+			colMu.RLock()
+			cols, ok = colCache[table]
+			colMu.RUnlock()
+			if !ok || cols[key] == "" {
+				return nil, missingColumnError(key, table)
+			}
+			dataType = cols[key]
 		}
 		out[key] = coerceValue(dataType, value)
 	}

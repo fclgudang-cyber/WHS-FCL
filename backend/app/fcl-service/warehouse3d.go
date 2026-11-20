@@ -17,6 +17,9 @@ import (
 //go:embed warehouse3d_schema.sql
 var h3dSchemaSQL string
 
+//go:embed fcl_bootstrap_schema.sql
+var fclBootstrapSQL string
+
 // h3dApplySchema menerapkan schema secara idempoten saat service start.
 // Bagian permission dibuat best-effort karena tabel RBAC core-service
 // mungkin belum termigrasi saat fcl-service pertama kali boot.
@@ -33,6 +36,11 @@ func h3dApplySchema() {
 		if _, err := db.Exec(marker + parts[1]); err != nil {
 			log.Printf("warehouse3d: permission seed dilewati: %v", err)
 		}
+	}
+	if _, err := db.Exec(fclBootstrapSQL); err != nil {
+		log.Printf("fcl bootstrap schema gagal: %v", err)
+	} else {
+		log.Printf("fcl bootstrap schema siap")
 	}
 	log.Printf("warehouse3d: schema siap")
 }
