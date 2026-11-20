@@ -19,6 +19,7 @@ interface LaporanRow {
   shift?: string | null;
   totalOrang?: number | string | null;
   perbantuan?: number | string | null;
+  perbantuanNames?: string | null;
   pengurangan?: number | string | null;
   jamLembur?: number | string | null;
   totalJamKerja?: number | string | null;
@@ -158,6 +159,7 @@ const formFields: any[] = [
   { name: 'totalPHL', label: 'TOTAL PHL', type: 'number' },
   { name: 'jamKerjaPHL', label: 'JAM KERJA PHL (DESKRIPSI)', type: 'number' },
   { name: 'perbantuan', label: 'ORANG PERBANTUAN', type: 'number' },
+  { name: 'perbantuanNames', label: 'DAFTAR ORANG PERBANTUAN', type: 'textarea' },
   { name: 'jamPerbantuan', label: 'JAM PERBANTUAN', type: 'number' },
   { name: 'pengurangan', label: 'ORANG PENGURANGAN', type: 'number' },
   { name: 'jamPengurangan', label: 'JAM PENGURANGAN', type: 'number' },
@@ -401,7 +403,7 @@ async function saveKpi() {
 // ── export Excel ───────────────────────────────────────────────────────────────
 function exportExcel() {
   if (!filtered.value.length) { message.warning('Tidak ada data untuk diekspor'); return; }
-  const header = ['Tanggal', 'Divisi', 'PIC', 'Jam Kerja Normal', 'Total Jam Kerja', 'Lembur', 'Alasan', 'Leader', 'Admin', 'Staff', 'PHL', 'Total Masuk', 'Output', 'QTY', 'KPI'];
+  const header = ['Tanggal', 'Divisi', 'PIC', 'Jam Kerja Normal', 'Total Jam Kerja', 'Lembur', 'Alasan', 'Leader', 'Admin', 'Staff', 'PHL', 'Daftar Orang Perbantuan', 'Orang Pengurangan', 'Total Masuk', 'Output', 'QTY', 'KPI'];
   const esc = (s: unknown) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const head = header.map((h) => `<th>${h}</th>`).join('');
   const body = filtered.value.map((r) => {
@@ -411,6 +413,7 @@ function exportExcel() {
       <td>${fmtNum(jamNormalBaris(r))}</td><td>${fmtNum(totalJamBaris(r), 1)}</td><td>${fmtNum(r.jamLembur, 1)}</td>
       <td>${esc(alasanChips(r).join(', '))}</td><td>${fmtNum(r.totalTeamLeader)}</td>
       <td>${fmtNum(r.totalAdmin)}</td><td>${fmtNum(r.totalStaff)}</td><td>${fmtNum(r.totalPHL)}</td>
+      <td>${esc(r.perbantuanNames || '')}</td><td>${fmtNum(r.pengurangan)}</td>
       <td>${fmtNum(totalOrangBaris(r))}</td>
       <td>${fmtNum(r.totalOrder)}</td><td>${fmtNum(r.totalQty)}</td><td>${fmtNum(r.sisaOrder)}</td></tr>`;
   }).join('');
@@ -450,6 +453,7 @@ function exportExcel() {
         <div class="lk-row lk-row-head">
           <div>TANGGAL</div><div>DIVISI/PIC</div><div>JAM KERJA NORMAL</div><div>TOTAL JAM KERJA</div><div>LEMBUR</div>
           <div>ALASAN</div><div>Leader</div><div>Admin</div><div>STAFF</div><div>PHL</div>
+          <div>DAFTAR ORANG PERBANTUAN</div><div>ORANG PENGURANGAN</div>
           <div>TOTAL MASUK</div><div>OUTPUT</div><div>QTY</div><div>KPI</div><div>AKSI</div>
         </div>
         <div v-if="loading" class="lk-empty">Memuat data...</div>
@@ -476,6 +480,8 @@ function exportExcel() {
           <div class="lk-num"><b>{{ fmtNum(r.totalAdmin) }}</b><span>Admin</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalStaff) }}</b><span>Staff</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalPHL) }}</b><span>PHL</span></div>
+          <div class="lk-names">{{ r.perbantuanNames || '-' }}</div>
+          <div class="lk-num"><b>{{ fmtNum(r.pengurangan) }}</b><span>Org</span></div>
           <div class="lk-num lk-hijau"><b>{{ fmtNum(totalOrangBaris(r)) }}</b><span>Org</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalOrder) }}</b><span>PO {{ fmtNum(r.totalPO) }}</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalQty) }}</b></div>
@@ -577,6 +583,11 @@ function exportExcel() {
           </label>
 
           <label class="lk-f">
+            <span class="lk-bottom-label">DAFTAR ORANG PERBANTUAN</span>
+            <a-textarea v-model:value="form.perbantuanNames" :rows="3" placeholder="Pisahkan dengan koma..." />
+          </label>
+
+          <label class="lk-f">
             <span class="lk-hijau-label">KPI (Total Output / Total Jam Kerja)</span>
             <div class="lk-kpi-readonly">{{ fmtNum(form.sisaOrder, 3) }}</div>
           </label>
@@ -649,7 +660,7 @@ function exportExcel() {
 .lk-btn-orange { background: #f59e0b; }
 .lk-btn-red { background: #dc2626; }
 .lk-table { border: 1px solid hsl(var(--border)); border-radius: 8px; overflow: hidden; background: hsl(var(--card)); }
-.lk-row { display: grid; grid-template-columns: 62px minmax(200px, 2fr) 110px 96px 88px minmax(150px, 1.4fr) 58px 58px 58px 58px 80px 88px 76px 58px 100px; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid hsl(var(--border)); font-size: 11px; color: hsl(var(--card-foreground)); }
+.lk-row { display: grid; grid-template-columns: 62px minmax(200px, 2fr) 110px 96px 88px minmax(150px, 1.4fr) 58px 58px 58px 58px minmax(150px, 1.2fr) 70px 80px 88px 76px 58px 100px; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid hsl(var(--border)); font-size: 11px; color: hsl(var(--card-foreground)); }
 .lk-row-alt { background: hsl(var(--muted) / 0.45); }
 .lk-row-head { background: hsl(var(--muted)); font-size: 10px; font-weight: 800; letter-spacing: .04em; color: hsl(var(--muted-foreground)); }
 .lk-row > div { min-width: 0; }
@@ -660,6 +671,7 @@ function exportExcel() {
 .lk-divisi-pic b { font-weight: 800; }
 .lk-divisi-pic span { font-size: 10px; color: hsl(var(--muted-foreground)); white-space: normal; }
 .lk-hijau b { color: #16a34a; }
+.lk-names { font-size: 10px; color: hsl(var(--muted-foreground)); white-space: normal; word-break: break-word; }
 .lk-total-jam { color: #0f766e; font-weight: 800; }
 .lk-lembur span { color: #f97316; }
 .lk-alasan { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -708,6 +720,6 @@ function exportExcel() {
 .lk-rumus { font-size: 9px; line-height: 1.5; color: hsl(var(--muted-foreground)); }
 .lk-kpi-readonly { width: 100%; height: 34px; display: flex; align-items: center; padding: 0 11px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: 13px; font-variant-numeric: tabular-nums; }
 @media (max-width: 1400px) {
-  .lk-row { grid-template-columns: 58px minmax(160px, 2fr) 96px 80px 76px minmax(120px, 1.2fr) 48px 48px 48px 48px 70px 76px 70px 48px 92px; }
+  .lk-row { grid-template-columns: 58px minmax(160px, 2fr) 96px 80px 76px minmax(120px, 1.2fr) 48px 48px 48px 48px minmax(120px, 1fr) 60px 70px 76px 70px 48px 92px; }
 }
 </style>
