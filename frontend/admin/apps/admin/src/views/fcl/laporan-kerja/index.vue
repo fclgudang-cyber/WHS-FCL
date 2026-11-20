@@ -71,8 +71,12 @@ const num = (v: unknown) => {
 const fmtNum = (v: unknown, digits = 0) =>
   num(v).toLocaleString('id-ID', { minimumFractionDigits: digits, maximumFractionDigits: digits });
 const totalOrangBaris = (r: any) =>
-  Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0) + Number(r.totalPHL ?? 0);
+  Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0)
+  + Number(r.totalPHL ?? 0) + Number(r.perbantuan ?? 0);
 const jamNormalBaris = (r: any) => totalOrangBaris(r) * 8;
+const totalJamBaris = (r: any) => jamNormalBaris(r)
+  + Number(r.jamLembur ?? 0) + Number(r.jamPerbantuan ?? 0)
+  + Number(r.jamKerjaPHL ?? 0) - Number(r.jamPengurangan ?? 0);
 const tanggalDuaBaris = (v?: string | null): [string, string] => {
   const d = dayjs(v);
   return d.isValid() ? [d.format('DD MMM'), d.format('YYYY')] : ['-', ''];
@@ -223,7 +227,7 @@ async function syncFromJadwalShift() {
     form.totalPekerjaLembur = lemburRows.length;
     form.jamLembur = totalJamLembur;
     // Total orang = jumlah Crew Leader/Admin/Staff/PHL (bukan semua baris roster).
-    form.totalOrang = jml('team leader') + jml('admin') + jml('staff') + jml('phl');
+    form.totalOrang = totalCrew.value;
     notification.success({
       message: 'Sync Jadwal Shift',
       description: `${aktif.length} karyawan aktif dari ${list.length} data roster`,
@@ -238,11 +242,17 @@ async function syncFromJadwalShift() {
 const autoHitung = ref(true);
 const soreReload = ref(false);
 
-const totalCrew = computed(() => ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL']
+// Total orang = Leader + Staff + Admin + PHL + Orang Perbantuan.
+const totalCrew = computed(() => ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'perbantuan']
   .reduce((s, k) => s + num(form[k]), 0));
-// Jam kerja = (jam normal 8 × total orang) + total jam lembur.
-const jamKerjaNormal = computed(() => num(form.totalOrang) * 8);
-const jamKerjaAuto = computed(() => jamKerjaNormal.value + num(form.jamLembur));
+// Jam normal = 8 jam × total orang.
+const jamKerjaNormal = computed(() => totalCrew.value * 8);
+// Total jam = normal + lembur + perbantuan + jam PHL - pengurangan.
+const jamKerjaAuto = computed(() => jamKerjaNormal.value
+  + num(form.jamLembur)
+  + num(form.jamPerbantuan)
+  + num(form.jamKerjaPHL)
+  - num(form.jamPengurangan));
 const jamKerjaFinal = computed(() => (autoHitung.value ? jamKerjaAuto.value : num(form.totalJamKerja)));
 const wpi = computed(() => (jamKerjaFinal.value > 0 ? num(form.totalOrder) / jamKerjaFinal.value : 0));
 const kpiOtomatis = computed(() => {
@@ -390,10 +400,10 @@ function exportExcel() {
     const [d1, d2] = tanggalDuaBaris(r.tanggal);
     return `<tr>
       <td>${esc(d1)} ${esc(d2)}</td><td>${esc(r.divisi)}</td><td>${esc(r.pic)}</td>
-      <td>${fmtNum(jamNormalBaris(r))}</td><td>${fmtNum(jamNormalBaris(r) + Number(r.jamLembur ?? 0), 1)}</td><td>${fmtNum(r.jamLembur, 1)}</td>
+      <td>${fmtNum(jamNormalBaris(r))}</td><td>${fmtNum(totalJamBaris(r), 1)}</td><td>${fmtNum(r.jamLembur, 1)}</td>
       <td>${esc(alasanChips(r).join(', '))}</td><td>${fmtNum(r.totalTeamLeader)}</td>
       <td>${fmtNum(r.totalAdmin)}</td><td>${fmtNum(r.totalStaff)}</td><td>${fmtNum(r.totalPHL)}</td>
-      <td>${fmtNum(Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0) + Number(r.totalPHL ?? 0))}</td>
+      <td>${fmtNum(totalOrangBaris(r))}</td>
       <td>${fmtNum(r.totalOrder)}</td><td>${fmtNum(r.totalQty)}</td><td>${fmtNum(r.sisaOrder)}</td></tr>`;
   }).join('');
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -448,7 +458,7 @@ function exportExcel() {
             <span>{{ r.pic || '-' }}</span>
           </div>
           <div class="lk-num">{{ fmtNum(jamNormalBaris(r)) }}</div>
-          <div class="lk-num lk-total-jam">{{ fmtNum(jamNormalBaris(r) + Number(r.jamLembur ?? 0), 1) }}</div>
+          <div class="lk-num lk-total-jam">{{ fmtNum(totalJamBaris(r), 1) }}</div>
           <div class="lk-lembur"><b>{{ fmtNum(r.jamLembur, 1) }}</b><span>({{ fmtNum(r.totalPekerjaLembur ?? r.perbantuan) }} orang)</span></div>
           <div class="lk-alasan">
             <span v-for="(a, ai) in alasanChips(r)" :key="ai" class="lk-chip">{{ a }}</span>
@@ -458,7 +468,7 @@ function exportExcel() {
           <div class="lk-num"><b>{{ fmtNum(r.totalAdmin) }}</b><span>Admin</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalStaff) }}</b><span>Staff</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalPHL) }}</b><span>PHL</span></div>
-          <div class="lk-num lk-hijau"><b>{{ fmtNum(Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0) + Number(r.totalPHL ?? 0)) }}</b><span>Org</span></div>
+          <div class="lk-num lk-hijau"><b>{{ fmtNum(totalOrangBaris(r)) }}</b><span>Org</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalOrder) }}</b><span>PO {{ fmtNum(r.totalPO) }}</span></div>
           <div class="lk-num"><b>{{ fmtNum(r.totalQty) }}</b></div>
           <div><span class="lk-kpi">{{ fmtNum(r.sisaOrder) }}</span></div>
@@ -514,10 +524,13 @@ function exportExcel() {
         </div>
 
         <div class="lk-info">
-          Jam Kerja Normal = 8 jam × {{ fmtNum(form.totalOrang) }} orang = {{ fmtNum(jamKerjaNormal) }} jam.
-          Di tambah Total Jam Lembur {{ fmtNum(form.jamLembur) }} jam
+          Total orang = Leader {{ fmtNum(form.totalTeamLeader) }} + Staff {{ fmtNum(form.totalStaff) }}
+          + Admin {{ fmtNum(form.totalAdmin) }} + PHL {{ fmtNum(form.totalPHL) }}
+          + Perbantuan {{ fmtNum(form.perbantuan) }} = <b>{{ fmtNum(totalCrew) }} orang</b>.<br/>
+          Jam Kerja Normal = 8 jam × {{ fmtNum(totalCrew) }} orang = {{ fmtNum(jamKerjaNormal) }} jam.
+          + Lembur {{ fmtNum(form.jamLembur) }} + Perbantuan {{ fmtNum(form.jamPerbantuan) }}
+          + Jam PHL {{ fmtNum(form.jamKerjaPHL) }} - Pengurangan {{ fmtNum(form.jamPengurangan) }}
           = <b>Total Jam Kerja {{ fmtNum(jamKerjaAuto) }} jam</b>.
-          Total crew = {{ fmtNum(totalCrew) }} orang.
         </div>
 
         <div class="lk-grid2">
