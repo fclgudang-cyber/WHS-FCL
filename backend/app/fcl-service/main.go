@@ -41,6 +41,14 @@ func router(w http.ResponseWriter, r *http.Request) {
 		handleLogin(w, r)
 	case p == "/api/auth/change-password" && r.Method == "POST":
 		handleChangePassword(w, r)
+	case p == "/api/auth/account" && r.Method == http.MethodPost:
+		handleCreateAccount(w, r)
+	case p == "/api/auth/accounts/import" && r.Method == http.MethodPost:
+		handleImportAccounts(w, r)
+	case p == "/api/auth/accounts/template":
+		handleAccountTemplate(w, r)
+	case strings.HasPrefix(p, "/api/auth/account/") && strings.HasSuffix(p, "/reset-password") && r.Method == http.MethodPost:
+		handleResetAccountPassword(w, r)
 	case strings.HasPrefix(p, "/api/warehouse3d/"):
 		handleWarehouse3D(w, r)
 	case strings.HasPrefix(p, "/api/tables/"):

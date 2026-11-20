@@ -216,6 +216,12 @@ const routes: RouteRecordRaw[] = [
         meta: { icon: 'lucide:id-card', order: 1, title: 'Karyawan', authority: ['fcl:karyawan', 'sys:platform_admin'] },
       },
       {
+        path: 'akun',
+        name: 'FCLAkun',
+        component: () => import('#/views/fcl/akun/index.vue'),
+        meta: { icon: 'lucide:users', order: 2, title: 'Kelola Akun', authority: ['fcl:akun', 'sys:platform_admin'] },
+      },
+      {
         path: 'absensiKaryawan',
         name: 'FCLAbsensiKaryawan',
         component: () => import('#/views/fcl/absensi-karyawan/index.vue'),

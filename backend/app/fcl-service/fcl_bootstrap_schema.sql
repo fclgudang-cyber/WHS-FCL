@@ -964,3 +964,34 @@ exception when others then null; end $$;
 do $$ begin
   alter table stock alter column "expDate" type text using "expDate"::text;
 exception when others then null; end $$;
+
+-- Permission & menu Kelola Akun FCL
+do $$
+declare gid bigint; parent bigint;
+begin
+  select id into gid from sys_permission_groups
+   where name = 'FCL - Fitur Gudang' and deleted_at is null limit 1;
+
+  if gid is not null then
+    insert into sys_permissions (name, code, group_id, status, description)
+    values ('Kelola Akun', 'fcl:akun', gid, 'ON', 'FCL: Kelola akun login')
+    where not exists (select 1 from sys_permissions where code = 'fcl:akun');
+
+    insert into sys_role_permissions (role_id, permission_id, status, effect)
+    select r.id, p.id, 'ON', 'ALLOW'
+      from sys_roles r join sys_permissions p on p.code = 'fcl:akun'
+     where r.deleted_at is null
+       and not exists (select 1 from sys_role_permissions rp
+                       where rp.role_id = r.id and rp.permission_id = p.id);
+
+    select id into parent from sys_menus
+     where parent_id is null and path = '/fcl/sdm' limit 1;
+    if parent is not null then
+      insert into sys_menus (name, path, type, status, parent_id, meta)
+      select 'Kelola Akun', '/fcl/sdm/akun', 'MENU', 'ON', parent,
+             '{"title":"Kelola Akun","icon":"lucide:users","order":2}'::jsonb
+      where not exists (select 1 from sys_menus
+                        where parent_id = parent and path = '/fcl/sdm/akun');
+    end if;
+  end if;
+end $$;
