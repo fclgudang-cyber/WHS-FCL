@@ -79,9 +79,15 @@ const totalOrangBaris = (r: any) =>
 const crewJamNormalBaris = (r: any) =>
   Number(r.totalTeamLeader ?? 0) + Number(r.totalAdmin ?? 0) + Number(r.totalStaff ?? 0);
 const jamNormalBaris = (r: any) => crewJamNormalBaris(r) * 8;
-const totalJamBaris = (r: any) => jamNormalBaris(r)
-  + Number(r.jamLembur ?? 0) + Number(r.jamPerbantuan ?? 0)
-  + Number(r.jamKerjaPHL ?? 0) - Number(r.jamPengurangan ?? 0);
+const totalJamBaris = (r: any) => {
+  // Mode manual memakai nilai yang disimpan form; mode auto memakai rumus komponen.
+  if (String(r.autoHitung ?? 'Ya') === 'Tidak' && r.totalJamKerja !== null && r.totalJamKerja !== undefined && r.totalJamKerja !== '') {
+    return Number(r.totalJamKerja);
+  }
+  return jamNormalBaris(r)
+    + Number(r.jamLembur ?? 0) + Number(r.jamPerbantuan ?? 0)
+    + Number(r.jamKerjaPHL ?? 0) - Number(r.jamPengurangan ?? 0);
+};
 const tanggalDuaBaris = (v?: string | null): [string, string] => {
   const d = dayjs(v);
   return d.isValid() ? [d.format('DD MMM'), d.format('YYYY')] : ['-', ''];
@@ -547,7 +553,7 @@ function exportExcel() {
           Jam Kerja Normal = 8 jam × {{ fmtNum(crewJamNormal) }} orang (staff+TL+admin) = {{ fmtNum(jamKerjaNormal) }} jam.
           + Lembur {{ fmtNum(form.jamLembur) }} + Perbantuan {{ fmtNum(form.jamPerbantuan) }}
           + Jam PHL {{ fmtNum(form.jamKerjaPHL) }} - Pengurangan {{ fmtNum(form.jamPengurangan) }}
-          = <b>Total Jam Kerja {{ fmtNum(jamKerjaAuto) }} jam</b>.
+          = <b>Total Jam Kerja {{ fmtNum(jamKerjaFinal, 1) }} jam</b>.
         </div>
 
         <div class="lk-grid2">
@@ -597,7 +603,7 @@ function exportExcel() {
 
           <div class="lk-f">
             <span class="lk-orange-label">Total Keseluruhan Jam Kerja</span>
-            <div class="lk-big-orange">{{ fmtNum(jamKerjaFinal, 0) }}</div>
+            <div class="lk-big-orange">{{ fmtNum(jamKerjaFinal, 1) }}</div>
           </div>
 
           <div class="lk-breakdown">
@@ -607,7 +613,7 @@ function exportExcel() {
             </div>
             <div class="lk-breakdown-row lk-breakdown-total">
               <span>TOTAL KESELURUHAN</span>
-              <b>{{ fmtNum(jamKerjaFinal, 0) }} jam</b>
+              <b>{{ fmtNum(jamKerjaFinal, 1) }} jam</b>
             </div>
           </div>
 
