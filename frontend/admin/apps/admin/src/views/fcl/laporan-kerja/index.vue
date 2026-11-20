@@ -150,6 +150,7 @@ const formFields: any[] = [
   { name: 'totalPHL', label: 'TOTAL PHL', type: 'number' },
   { name: 'jamKerjaPHL', label: 'JAM KERJA PHL (DESKRIPSI)', type: 'number' },
   { name: 'perbantuan', label: 'ORANG PERBANTUAN', type: 'number' },
+  { name: 'jamPerbantuan', label: 'JAM PERBANTUAN', type: 'number' },
   { name: 'pengurangan', label: 'PENGURANGAN JAM KERJA', type: 'number' },
   { name: 'jamPengurangan', label: 'JAM PENGURANGAN', type: 'number' },
   { name: 'totalPekerjaLembur', label: 'TOTAL PEKERJA LEMBUR', type: 'number' },
@@ -167,7 +168,7 @@ const tampilQtyUntuk = (divisi?: string | null) => !adalahMarketPlace(divisi);
 const tampilQty = computed(() => tampilQtyUntuk(form.divisi));
 const tampilTotalOrder = computed(() => !adalahDistributor(form.divisi));
 const fieldLabel = (name: string) => formFields.find((f) => f.name === name)?.label ?? name;
-const groupAngka = ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'jamKerjaPHL', 'perbantuan', 'pengurangan', 'jamPengurangan', 'totalPekerjaLembur', 'jamLembur'];
+const groupAngka = ['totalTeamLeader', 'totalStaff', 'totalAdmin', 'totalPHL', 'jamKerjaPHL', 'perbantuan', 'jamPerbantuan', 'pengurangan', 'jamPengurangan', 'totalPekerjaLembur', 'jamLembur'];
 const groupOrder = ['totalOrder', 'totalQty', 'sisaOrder'];
 
 // Ambil data PIC, shift, jumlah peran & lembur dari roster Jadwal Shift.

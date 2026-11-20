@@ -14,4 +14,5 @@ alter table laporankerja
   add column if not exists "semuaMemakaiSemuaKartu" text,
   add column if not exists "wpi" numeric,
   add column if not exists "totalKecukupanJamKerja" numeric,
-  add column if not exists "totalKesesuaian" numeric;
+  add column if not exists "totalKesesuaian" numeric,
+  add column if not exists "jamPerbantuan" numeric;
