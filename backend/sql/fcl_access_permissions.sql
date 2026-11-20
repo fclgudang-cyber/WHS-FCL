@@ -81,20 +81,20 @@ begin
   select id into root from sys_menus where path = '/fcl' and parent_id is null limit 1;
   if root is null then
     insert into sys_menus (name, path, type, status, meta)
-    values ('FCL Warehouse', '/fcl', 'DIR', 'ON', '{"title":"FCL","icon":"lucide:boxes"}'::jsonb)
+    values ('FCL Warehouse', '/fcl', 'CATALOG', 'ON', '{"title":"FCL","icon":"lucide:boxes","authority":["fcl:dashboard","sys:platform_admin"]}'::jsonb)
     returning id into root;
   end if;
 
   -- Direktori utama
   insert into sys_menus (name, path, type, status, parent_id, meta)
-  select v.name, v.path, 'DIR', 'ON', root, v.meta::jsonb
+  select v.name, v.path, 'CATALOG', 'ON', root, v.meta::jsonb
   from (values
-    ('Inventaris & Logistik', '/fcl/warehouse', '{"title":"Inventaris & Logistik","icon":"lucide:warehouse","order":1000}'),
-    ('Keuangan', '/fcl/keuangan', '{"title":"Keuangan","icon":"lucide:wallet","order":1100}'),
-    ('Operasional', '/fcl/operasional', '{"title":"Operasional","icon":"lucide:settings-2","order":1200}'),
-    ('SDM', '/fcl/sdm', '{"title":"SDM","icon":"lucide:users-round","order":1300}'),
-    ('Dokumentasi', '/fcl/dokumentasi', '{"title":"Dokumentasi","icon":"lucide:file-text","order":1400}'),
-    ('Dashboard', '/fcl/dashboard', '{"title":"Dashboard","icon":"lucide:layout-dashboard","order":-3}')
+    ('Inventaris & Logistik', '/fcl/warehouse', '{"title":"Inventaris & Logistik","icon":"lucide:warehouse","order":1000,"authority":["fcl:warehouse","sys:platform_admin"]}'),
+    ('Keuangan', '/fcl/keuangan', '{"title":"Keuangan","icon":"lucide:wallet","order":1100,"authority":["fcl:keuangan","sys:platform_admin"]}'),
+    ('Operasional', '/fcl/operasional', '{"title":"Operasional","icon":"lucide:settings-2","order":1200,"authority":["fcl:operasional","sys:platform_admin"]}'),
+    ('SDM', '/fcl/sdm', '{"title":"SDM","icon":"lucide:users-round","order":1300,"authority":["fcl:sdm","sys:platform_admin"]}'),
+    ('Dokumentasi', '/fcl/dokumentasi', '{"title":"Dokumentasi","icon":"lucide:file-text","order":1400,"authority":["fcl:dokumentasi","sys:platform_admin"]}'),
+    ('Dashboard', '/fcl/dashboard', '{"title":"Dashboard","icon":"lucide:layout-dashboard","order":-3,"authority":["fcl:dashboard","sys:platform_admin"]}')
   ) as v(name, path, meta)
   where not exists (select 1 from sys_menus m where m.parent_id = root and m.path = v.path);
 
