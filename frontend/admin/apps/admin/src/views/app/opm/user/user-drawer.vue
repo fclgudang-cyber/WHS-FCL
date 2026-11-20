@@ -19,6 +19,7 @@ import {
   type identityservicev1_Position as Position,
   userStatusList,
 } from '#/api';
+import { fclQuery } from '#/api/fcl';
 import { useUserViewStore } from '#/views/app/opm/user/user-view.state';
 
 const userViewStore = useUserViewStore();
@@ -27,6 +28,22 @@ const data = ref();
 
 const orgUnitList = ref<OrgUnit[]>([]);
 const positionList = ref<Position[]>([]);
+const karyawanOptions = ref<Array<{ label: string; value: string }>>([]);
+
+async function loadKaryawan() {
+  try {
+    const rows = await fclQuery<{ nama?: string | null }>('karyawan', {
+      select: 'nama',
+      order: 'nama.asc',
+      limit: 2000,
+    });
+    karyawanOptions.value = [...new Set(rows
+      .map((k) => String(k.nama ?? '').trim())
+      .filter(Boolean))].map((n) => ({ label: n, value: n }));
+  } catch {
+    karyawanOptions.value = [];
+  }
+}
 
 const getTitle = computed(() =>
   data.value?.create
@@ -198,23 +215,17 @@ const [BaseForm, baseFormApi] = useVbenForm({
       rules: 'required',
     },
     {
-      component: 'Input',
+      component: 'Select',
       fieldName: 'realname',
       label: $t('page.user.table.realname'),
       componentProps: {
-        placeholder: $t('ui.placeholder.input'),
+        options: karyawanOptions,
+        placeholder: $t('ui.placeholder.select'),
         allowClear: true,
+        showSearch: true,
+        filterOption: (input: string, option: any) =>
+          String(option?.label ?? '').toLowerCase().includes(input.toLowerCase()),
       },
-    },
-    {
-      component: 'Input',
-      fieldName: 'email',
-      label: $t('page.user.table.email'),
-      componentProps: {
-        placeholder: $t('ui.placeholder.input'),
-        allowClear: true,
-      },
-      rules: 'required',
     },
     {
       component: 'Input',
@@ -307,6 +318,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
+      void loadKaryawan();
       // 获取传入的数据
       data.value = drawerApi.getData<Record<string, any>>();
 

@@ -27,10 +27,20 @@ RUN CGO_ENABLED=0 \
     -o /src/bin/${SERVICE_NAME}-server ./app/${SERVICE_NAME}/service/cmd/server/
 
 # 复制配置文件到统一目录
+# Config deploy juga ditanamkan ke image agar tidak bergantung pada bind mount host
+# (Coolify sering tidak menyalin file YAML tersebut ke direktori aplikasi).
 RUN mkdir -p /src/bin/configs && \
     if [ -d "/src/app/${SERVICE_NAME}/service/configs" ]; then \
       cp -r /src/app/${SERVICE_NAME}/service/configs/* /src/bin/configs/ 2>/dev/null || true; \
-    fi
+    fi && \
+    if [ -f "/src/deploy/compose/${SERVICE_NAME}-data.yaml" ]; then \
+      cp "/src/deploy/compose/${SERVICE_NAME}-data.yaml" /src/bin/configs/data.yaml; \
+    fi && \
+    for f in registry oss trace; do \
+      if [ -f "/src/deploy/compose/${f}.yaml" ]; then \
+        cp "/src/deploy/compose/${f}.yaml" "/src/bin/configs/${f}.yaml"; \
+      fi; \
+    done
 
 ##################################
 # 第二阶段：创建最终的运行时镜像

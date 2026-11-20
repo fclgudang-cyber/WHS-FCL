@@ -122,11 +122,6 @@ services:
     restart: always
     networks:
       - app-tier
-    volumes:
-      - ./backend/deploy/compose/core-data.yaml:/app/configs/data.yaml:ro
-      - ./backend/deploy/compose/registry.yaml:/app/configs/registry.yaml:ro
-      - ./backend/deploy/compose/oss.yaml:/app/configs/oss.yaml:ro
-      - ./backend/deploy/compose/trace.yaml:/app/configs/trace.yaml:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -151,11 +146,6 @@ services:
     ports:
       - "127.0.0.1:6900:6900"
       - "127.0.0.1:6901:6901"
-    volumes:
-      - ./backend/deploy/compose/admin-data.yaml:/app/configs/data.yaml:ro
-      - ./backend/deploy/compose/registry.yaml:/app/configs/registry.yaml:ro
-      - ./backend/deploy/compose/oss.yaml:/app/configs/oss.yaml:ro
-      - ./backend/deploy/compose/trace.yaml:/app/configs/trace.yaml:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -182,11 +172,6 @@ services:
     ports:
       - "127.0.0.1:6700:6700"
       - "127.0.0.1:6701:6701"
-    volumes:
-      - ./backend/deploy/compose/app-data.yaml:/app/configs/data.yaml:ro
-      - ./backend/deploy/compose/registry.yaml:/app/configs/registry.yaml:ro
-      - ./backend/deploy/compose/oss.yaml:/app/configs/oss.yaml:ro
-      - ./backend/deploy/compose/trace.yaml:/app/configs/trace.yaml:ro
     depends_on:
       postgres:
         condition: service_healthy
