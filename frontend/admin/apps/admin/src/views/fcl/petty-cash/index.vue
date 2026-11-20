@@ -26,6 +26,7 @@ import {
   LucidePencil,
   LucidePlus,
   LucidePrinter,
+  LucideRefreshCw,
   LucideTrash2,
   LucideWallet,
 } from '@vben/icons';
@@ -466,6 +467,42 @@ async function markLunas(t: TxRow) {
   await fclPatch('pettycash', t.id, { statusBayar: 'Lunas' });
   notification.success({ message: 'Transaksi ditandai Lunas' });
   await loadAll(true);
+}
+
+// Pindahkan transaksi ke periode lain.
+const pindahOpen = ref(false);
+const pindahTarget = ref<TxRow | null>(null);
+const pindahPeriodId = ref('');
+const pindahSaving = ref(false);
+
+function openPindah(t: TxRow) {
+  pindahTarget.value = t;
+  pindahPeriodId.value = String(t.periodId ?? '');
+  pindahOpen.value = true;
+}
+
+async function savePindah() {
+  if (!pindahTarget.value) return;
+  if (!pindahPeriodId.value) { message.warning('Pilih periode tujuan'); return; }
+  if (String(pindahPeriodId.value) === String(pindahTarget.value.periodId ?? '')) {
+    message.warning('Transaksi sudah berada di periode ini');
+    return;
+  }
+  pindahSaving.value = true;
+  try {
+    await fclPatch('pettycash', pindahTarget.value.id, { periodId: pindahPeriodId.value });
+    const tujuan = periods.value.find((p) => String(p.id) === String(pindahPeriodId.value));
+    notification.success({
+      message: 'Transaksi dipindahkan',
+      description: `Sekarang berada di periode ${tujuan?.nama ?? '-'}`,
+    });
+    pindahOpen.value = false;
+    await loadAll(true);
+  } catch (err: any) {
+    notification.error({ message: 'Pindah Transaksi', description: err?.message || 'Gagal memindahkan' });
+  } finally {
+    pindahSaving.value = false;
+  }
 }
 
 // ── bukti & cetak ─────────────────────────────────────────────────────────────
@@ -1198,6 +1235,7 @@ onMounted(loadAll);
                     <button v-if="!row._lunas" class="fcl-pc-btn fcl-pc-btn-orange fcl-pc-btn-xs" @click="markLunas(row)">
                       <LucideCheck :size="12" /> Selesai Bayar
                     </button>
+                    <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-xs" @click="openPindah(row)"><LucideRefreshCw :size="12" /> Pindah</button>
                     <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-xs" @click="openTrxModal(row)"><LucidePencil :size="12" /> Edit</button>
                     <button class="fcl-pc-btn fcl-pc-btn-red fcl-pc-btn-xs" @click="deleteTrx(row)"><LucideTrash2 :size="12" /> Hapus</button>
                   </div>
@@ -1344,6 +1382,31 @@ onMounted(loadAll);
         <div v-if="buktiPreview" class="fcl-pc-bukti-preview"><img :src="buktiPreview" alt="Pratinjau bukti" /></div>
         <p v-if="buktiTarget?.buktiUrl && !buktiFile" class="fcl-pc-bukti-hint">Biarkan kosong untuk menggunakan file yang sudah tersimpan.</p>
       </template>
+    </a-modal>
+
+    <!-- ══════════ Modal: Pindah Transaksi ke Periode Lain ══════════ -->
+    <a-modal
+      v-model:open="pindahOpen"
+      title="Pindah Transaksi ke Periode Lain"
+      ok-text="Pindahkan"
+      cancel-text="Batal"
+      :confirm-loading="pindahSaving"
+      width="460px"
+      @ok="savePindah"
+    >
+      <p class="fcl-pc-bukti-hint">
+        Transaksi: <b>{{ pindahTarget?.keterangan || pindahTarget?.kategori || '-' }}</b>
+        &nbsp;•&nbsp; {{ fmtRp(toNum(pindahTarget?.nominal)) }}
+      </p>
+      <a-select
+        v-model:value="pindahPeriodId"
+        :options="periods.map((p) => ({ label: p.nama, value: String(p.id) }))"
+        placeholder="Pilih periode tujuan..."
+        style="width: 100%"
+        show-search
+        option-filter-prop="label"
+      />
+      <p class="fcl-pc-bukti-hint">Saldo periode akan dihitung ulang otomatis setelah transaksi dipindahkan.</p>
     </a-modal>
 
     <!-- ══════════ Modal: Pratinjau Foto Bukti (inline) ══════════ -->
