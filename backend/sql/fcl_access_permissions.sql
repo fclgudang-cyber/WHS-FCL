@@ -71,23 +71,15 @@ where p.code like 'fcl:%'
 -- Daftar menu FCL di Menu Management.
 do $$
 declare
-  root bigint;
   g_warehouse bigint;
   g_keuangan bigint;
   g_operasional bigint;
   g_sdm bigint;
   g_dokumentasi bigint;
 begin
-  select id into root from sys_menus where path = '/fcl' and parent_id is null limit 1;
-  if root is null then
-    insert into sys_menus (name, path, type, status, meta)
-    values ('FCL Warehouse', '/fcl', 'CATALOG', 'ON', '{"title":"FCL","icon":"lucide:boxes","authority":["fcl:dashboard","sys:platform_admin"]}'::jsonb)
-    returning id into root;
-  end if;
-
-  -- Direktori utama
+  -- Modul FCL berada di level teratas (tanpa katalog induk "/fcl").
   insert into sys_menus (name, path, type, status, parent_id, meta)
-  select v.name, v.path, 'CATALOG', 'ON', root, v.meta::jsonb
+  select v.name, v.path, 'CATALOG', 'ON', null::bigint, v.meta::jsonb
   from (values
     ('Inventaris & Logistik', '/fcl/warehouse', '{"title":"Inventaris & Logistik","icon":"lucide:warehouse","order":1000,"authority":["fcl:warehouse","sys:platform_admin"]}'),
     ('Keuangan', '/fcl/keuangan', '{"title":"Keuangan","icon":"lucide:wallet","order":1100,"authority":["fcl:keuangan","sys:platform_admin"]}'),
@@ -96,13 +88,13 @@ begin
     ('Dokumentasi', '/fcl/dokumentasi', '{"title":"Dokumentasi","icon":"lucide:file-text","order":1400,"authority":["fcl:dokumentasi","sys:platform_admin"]}'),
     ('Dashboard', '/fcl/dashboard', '{"title":"Dashboard","icon":"lucide:layout-dashboard","order":-3,"authority":["fcl:dashboard","sys:platform_admin"]}')
   ) as v(name, path, meta)
-  where not exists (select 1 from sys_menus m where m.parent_id = root and m.path = v.path);
+  where not exists (select 1 from sys_menus m where m.parent_id is null and m.path = v.path);
 
-  select id into g_warehouse from sys_menus where parent_id = root and path = '/fcl/warehouse' limit 1;
-  select id into g_keuangan from sys_menus where parent_id = root and path = '/fcl/keuangan' limit 1;
-  select id into g_operasional from sys_menus where parent_id = root and path = '/fcl/operasional' limit 1;
-  select id into g_sdm from sys_menus where parent_id = root and path = '/fcl/sdm' limit 1;
-  select id into g_dokumentasi from sys_menus where parent_id = root and path = '/fcl/dokumentasi' limit 1;
+  select id into g_warehouse from sys_menus where parent_id is null and path = '/fcl/warehouse' limit 1;
+  select id into g_keuangan from sys_menus where parent_id is null and path = '/fcl/keuangan' limit 1;
+  select id into g_operasional from sys_menus where parent_id is null and path = '/fcl/operasional' limit 1;
+  select id into g_sdm from sys_menus where parent_id is null and path = '/fcl/sdm' limit 1;
+  select id into g_dokumentasi from sys_menus where parent_id is null and path = '/fcl/dokumentasi' limit 1;
 
   insert into sys_menus (name, path, type, status, parent_id, meta)
   select v.name, v.path, 'MENU', 'ON', v.parent, v.meta::jsonb
