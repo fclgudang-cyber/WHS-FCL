@@ -668,11 +668,17 @@ function exportExcel() {
 .lk-btn { display: inline-flex; align-items: center; gap: 5px; border: 0; border-radius: 5px; padding: 6px 12px; color: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
 .lk-btn-orange { background: #f59e0b; }
 .lk-btn-red { background: #dc2626; }
-.lk-table { border: 1px solid hsl(var(--border)); border-radius: 8px; overflow: hidden; background: hsl(var(--card)); }
-.lk-row { display: grid; grid-template-columns: 62px minmax(200px, 2fr) 110px 96px 88px minmax(150px, 1.4fr) 58px 58px 58px 58px minmax(150px, 1.2fr) 70px 60px 60px 80px 88px 76px 58px 100px; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid hsl(var(--border)); font-size: 11px; color: hsl(var(--card-foreground)); }
+.lk-table { border: 1px solid hsl(var(--border)); border-radius: 8px; overflow-x: auto; background: hsl(var(--card)); }
+.lk-row { display: grid; min-width: 1780px; grid-template-columns: 62px minmax(200px, 2fr) 110px 96px 88px minmax(150px, 1.4fr) 58px 58px 58px 58px minmax(150px, 1.2fr) 70px 60px 60px 80px 88px 76px 58px 100px; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid hsl(var(--border)); font-size: 11px; color: hsl(var(--card-foreground)); }
 .lk-row-alt { background: hsl(var(--muted) / 0.45); }
 .lk-row-head { background: hsl(var(--muted)); font-size: 10px; font-weight: 800; letter-spacing: .04em; color: hsl(var(--muted-foreground)); }
 .lk-row > div { min-width: 0; }
+/* KPI & AKSI selalu terlihat walau tabel di-scroll horizontal */
+.lk-row > div:nth-last-child(-n + 2) { position: sticky; z-index: 3; background: hsl(var(--card)); }
+.lk-row > div:nth-last-child(2) { right: 108px; }
+.lk-row > div:last-child { right: 0; box-shadow: -3px 0 8px rgba(0, 0, 0, .12); }
+.lk-row-head > div:nth-last-child(-n + 2) { background: hsl(var(--muted)); }
+.lk-row-head > div:last-child { box-shadow: -3px 0 8px rgba(0, 0, 0, .12); }
 .lk-tanggal, .lk-num, .lk-lembur { display: flex; flex-direction: column; line-height: 1.35; }
 .lk-tanggal b, .lk-num b, .lk-lembur b { font-weight: 800; }
 .lk-tanggal span, .lk-num span, .lk-lembur span { font-size: 10px; color: hsl(var(--muted-foreground)); }
