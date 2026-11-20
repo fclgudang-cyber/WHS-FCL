@@ -6,6 +6,7 @@
  * - Transaksi tetap dijalankan modul WMS/FCL yang sudah ada.
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
 import {
@@ -21,6 +22,7 @@ import {
 } from '@vben/icons';
 import { message, Modal, notification } from 'ant-design-vue';
 
+import { fclCount, fclInsert, fclPatch, fclQuery, fclUpsert } from '#/api/fcl';
 import {
   fmt,
   num,
@@ -642,7 +644,6 @@ function openInfo() {
 }
 async function saveInfo() {
   if (!data.value) return;
-  const { fclUpsert } = await import('#/api/fcl');
   await fclUpsert('wh3d_warehouse', [{
     id: data.value.warehouseId, code: infoForm.code, name: infoForm.name,
     description: infoForm.description, address: infoForm.address,
@@ -659,6 +660,68 @@ const properties = computed(() => {
   const o: any = selectedObject.value ?? selectedArea.value ?? selectedEquipment.value ?? selectedEmployee.value;
   return o ?? null;
 });
+
+// ---------------------------------------------------------------- action bar (backend nyata)
+const router = useRouter();
+const moduleRoutes: Record<string, string> = {
+  Orders: '/fcl/warehouse/order',
+  Inventory: '/fcl/warehouse/stock',
+  Locations: '/fcl/warehouse/warehouse3d',
+  Analytics: '/fcl/warehouse/analisis',
+  Workers: '/fcl/sdm/karyawan',
+};
+
+async function openModule(name: string) {
+  if (name === 'Tasks') {
+    const n = await fclCount('wh3d_task', [{ col: 'status', op: 'neq', value: 'DONE' }]);
+    notification.info({ message: 'Tasks', description: `${n} task aktif di Warehouse 3D` });
+    await warehouse3dApi.bootstrap().then((d) => { activities.value = d.activities ?? []; });
+    rightTab.value = 'activity';
+    return;
+  }
+  if (name === 'Equipment') {
+    const rows = await fclQuery('wh3d_equipment', { select: 'equipment_uid,code,name,status', limit: 100 });
+    notification.info({ message: 'Equipment', description: `${rows.length} unit terdaftar` });
+    return;
+  }
+  if (name === 'Locations') {
+    const n = await fclCount('wh3d_bin');
+    notification.info({ message: 'Locations', description: `${n} bin terdaftar di layout` });
+    return;
+  }
+  const path = moduleRoutes[name];
+  if (path) await router.push(path);
+}
+
+async function pickForSale() {
+  try {
+    const orders = await fclQuery('order', { select: 'id,noresi,keterangan', order: 'createdAt.desc', limit: 1 });
+    const order = orders[0];
+    await fclInsert('wh3d_task', [{
+      task_uid: `PICK-${Date.now()}`,
+      task_type: 'PICKING',
+      reference_no: String(order?.noresi ?? order?.id ?? '-'),
+      location: selectedObject.value?.locationCode ?? null,
+      status: 'PENDING',
+      priority: 'NORMAL',
+      created_at: new Date().toISOString(),
+    }]);
+    notification.success({ message: 'Pick for Sale', description: `Task picking dibuat untuk ${order?.noresi ?? 'order terbaru'}` });
+  } catch (e: any) { notification.error({ message: 'Gagal membuat task', description: e?.message }); }
+}
+
+async function setLatestTaskStatus(status: string) {
+  try {
+    const tasks = await fclQuery('wh3d_task', { select: 'id,task_uid', order: 'created_at.desc', limit: 1 });
+    const t = tasks[0];
+    if (!t) { message.warning('Belum ada task'); return; }
+    await fclPatch('wh3d_task', t.id, {
+      status,
+      ...(status === 'DONE' ? { finished_at: new Date().toISOString() } : {}),
+    });
+    notification.success({ message: 'Task diperbarui', description: `${t.task_uid} → ${status}` });
+  } catch (e: any) { notification.error({ message: 'Gagal memperbarui task', description: e?.message }); }
+}
 
 onMounted(async () => {
   await load();
@@ -933,14 +996,14 @@ onBeforeUnmount(() => {
     <!-- ================= BOTTOM ================= -->
     <div class="wh3d-bottom">
       <div class="bottom-nav">
-        <a-button v-for="n in ['Orders','Tasks','Inventory','Locations','Equipment','Workers','Analytics']" :key="n" size="small">{{ n }}</a-button>
+        <a-button v-for="n in ['Orders','Tasks','Inventory','Locations','Equipment','Workers','Analytics']" :key="n" size="small" @click="openModule(n)">{{ n }}</a-button>
       </div>
       <div class="bottom-actions">
-        <a-button size="small" type="primary">Pick for Sale</a-button>
-        <a-button size="small" @click="message.info('Task dibatalkan')">Cancel Task</a-button>
-        <a-button size="small" @click="message.success('Ditandai selesai')">Mark Complete</a-button>
-        <a-button size="small" @click="message.info('More actions')">More Actions</a-button>
-        <a-button size="small" @click="message.info('Watch mode')">Watch</a-button>
+        <a-button size="small" type="primary" @click="pickForSale">Pick for Sale</a-button>
+        <a-button size="small" @click="setLatestTaskStatus('CANCELLED')">Cancel Task</a-button>
+        <a-button size="small" @click="setLatestTaskStatus('DONE')">Mark Complete</a-button>
+        <a-button size="small" @click="rightTab = 'properties'">More Actions</a-button>
+        <a-button size="small" @click="rightTab = 'activity'">Watch</a-button>
       </div>
     </div>
 
