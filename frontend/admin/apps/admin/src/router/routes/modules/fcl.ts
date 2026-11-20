@@ -43,6 +43,12 @@ const routes: RouteRecordRaw[] = [
     },
     children: [
       {
+        path: 'warehouse3d',
+        name: 'FCLWarehouse3D',
+        component: () => import('#/views/fcl/warehouse-3d/index.vue'),
+        meta: { icon: 'lucide:box', order: 3, title: 'Warehouse 3D', authority: ['fcl:warehouse3d', 'sys:platform_admin'] },
+      },
+      {
         path: 'stock',
         name: 'FCLStock',
         component: () => import('#/views/fcl/stock/index.vue'),

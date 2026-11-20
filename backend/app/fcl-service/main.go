@@ -41,6 +41,8 @@ func router(w http.ResponseWriter, r *http.Request) {
 		handleLogin(w, r)
 	case p == "/api/auth/change-password" && r.Method == "POST":
 		handleChangePassword(w, r)
+	case strings.HasPrefix(p, "/api/warehouse3d/"):
+		handleWarehouse3D(w, r)
 	case strings.HasPrefix(p, "/api/tables/"):
 		table := tableName(r)
 		switch r.Method {
@@ -70,6 +72,7 @@ func main() {
 	if err := openDB(dsn); err != nil {
 		log.Fatal("fcl-service: koneksi database gagal:", err)
 	}
+	h3dApplySchema()
 	addr := os.Getenv("FCL_ADDR")
 	if addr == "" {
 		addr = ":6905"
