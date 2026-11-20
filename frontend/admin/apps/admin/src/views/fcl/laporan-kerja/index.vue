@@ -565,7 +565,7 @@ function exportExcel() {
             class="lk-f"
           >
             <span>{{ fieldLabel(name) }}</span>
-            <a-input-number v-model:value="form[name]" :min="0" style="width: 100%" />
+            <a-input-number v-model:value="form[name]" :min="0" :disabled="name === 'sisaOrder'" style="width: 100%" />
           </label>
         </div>
 
@@ -578,7 +578,7 @@ function exportExcel() {
 
           <label class="lk-f">
             <span class="lk-hijau-label">KPI (Total Output / Total Jam Kerja)</span>
-            <a-input v-model:value="form.sisaOrder" placeholder="0.000" />
+            <div class="lk-kpi-readonly">{{ fmtNum(form.sisaOrder, 3) }}</div>
           </label>
 
           <div class="lk-f">
@@ -706,6 +706,7 @@ function exportExcel() {
 .lk-breakdown-row + .lk-breakdown-row { border-top: 1px solid hsl(var(--border)); }
 .lk-breakdown-total { color: #f97316; font-weight: 800; }
 .lk-rumus { font-size: 9px; line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.lk-kpi-readonly { width: 100%; height: 34px; display: flex; align-items: center; padding: 0 11px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: 13px; font-variant-numeric: tabular-nums; }
 @media (max-width: 1400px) {
   .lk-row { grid-template-columns: 58px minmax(160px, 2fr) 96px 80px 76px minmax(120px, 1.2fr) 48px 48px 48px 48px 70px 76px 70px 48px 92px; }
 }
