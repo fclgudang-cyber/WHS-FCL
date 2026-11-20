@@ -260,13 +260,18 @@ function resetForm(row?: LaporanRow | null) {
   soreReload.value = row ? String((row as any).soreReload ?? 'Tidak') === 'Ya' : false;
 }
 
+// Setiap kali tanggal dipilih/ubah, ambil data otomatis dari Jadwal Shift.
+watch(() => form.tanggal, (baru, lama) => {
+  if (!baru || String(baru) === String(lama) || !formOpen.value) return;
+  void syncFromJadwalShift();
+});
+
 function openCreate() {
   editingId.value = null;
   resetForm();
-  form.tanggal = dayjs();
   form.pic = namaAkun();
   formOpen.value = true;
-  void syncFromJadwalShift();
+  form.tanggal = dayjs();
 }
 function openEdit(r: LaporanRow) {
   editingId.value = r.id;
