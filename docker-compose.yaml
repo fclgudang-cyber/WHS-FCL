@@ -122,6 +122,22 @@ services:
     restart: always
     networks:
       - app-tier
+    environment:
+      # 与 postgres/redis/minio 服务共用同一组密码；在 Coolify 里只改这几个变量即可
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-*Abcd123456}
+      DB_NAME: ghost_wms
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-*Abcd123456}
+      ETCD_ENDPOINT: etcd:2379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: root
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-*Abcd123456}
+      TRACE_ENDPOINT: jaeger:4317
+      jwt_signing_key: ${JWT_SIGNING_KEY:-dev_only_change_me_in_prod}
+      aes_key: ${AES_KEY:-f51d66a73d8a0927}
     depends_on:
       postgres:
         condition: service_healthy
@@ -146,6 +162,16 @@ services:
     ports:
       - "127.0.0.1:6900:6900"
       - "127.0.0.1:6901:6901"
+    environment:
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-*Abcd123456}
+      ETCD_ENDPOINT: etcd:2379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: root
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-*Abcd123456}
+      TRACE_ENDPOINT: jaeger:4317
+      jwt_signing_key: ${JWT_SIGNING_KEY:-dev_only_change_me_in_prod}
+      aes_key: ${AES_KEY:-f51d66a73d8a0927}
     depends_on:
       postgres:
         condition: service_healthy
@@ -172,6 +198,16 @@ services:
     ports:
       - "127.0.0.1:6700:6700"
       - "127.0.0.1:6701:6701"
+    environment:
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-*Abcd123456}
+      ETCD_ENDPOINT: etcd:2379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: root
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-*Abcd123456}
+      TRACE_ENDPOINT: jaeger:4317
+      jwt_signing_key: ${JWT_SIGNING_KEY:-dev_only_change_me_in_prod}
+      aes_key: ${AES_KEY:-f51d66a73d8a0927}
     depends_on:
       postgres:
         condition: service_healthy
@@ -191,7 +227,7 @@ services:
       - path: ./backend/deploy/fcl-drive.env
         required: false
     environment:
-      DATABASE_URL: postgres://postgres:*Abcd123456@postgres:5432/ghost_wms?sslmode=disable
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-*Abcd123456}@postgres:5432/ghost_wms?sslmode=disable
       FCL_ADDR: ":6905"
     volumes:
       - ./backend/deploy/uploads:/app/uploads

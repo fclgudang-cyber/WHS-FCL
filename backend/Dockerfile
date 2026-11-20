@@ -63,8 +63,13 @@ COPY --from=builder /src/bin/${SERVICE_NAME}-server /app/bin/server
 # 拷贝配置文件
 COPY --from=builder /src/bin/configs/ /app/configs/
 
-# 创建一个名为 appuser 的非 root 用户
-RUN adduser -D appuser
+# 启动前根据环境变量渲染配置占位符（Kratos 自带 resolver 不读环境变量）
+COPY deploy/entrypoint.sh /app/bin/entrypoint.sh
+
+# 创建一个名为 appuser 的非 root 用户，并授予渲染配置所需的写权限
+RUN adduser -D appuser && \
+    chmod +x /app/bin/entrypoint.sh && \
+    chown -R appuser:appuser /app/bin /app/configs
 
 # 切换到非特权用户
 USER appuser:appuser
@@ -72,4 +77,5 @@ USER appuser:appuser
 # 暴露服务端口，根据你的实际服务端口进行修改
 
 # 设置容器启动时执行的命令
+ENTRYPOINT ["/app/bin/entrypoint.sh"]
 CMD ["/app/bin/server", "-c", "/app/configs"]

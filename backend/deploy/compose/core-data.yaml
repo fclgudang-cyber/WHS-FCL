@@ -1,20 +1,20 @@
-# 容器网络专用的数据配置（挂载覆盖到 /app/configs/data.yaml）。
-# 宿主机运行时用仓库默认的 127.0.0.1 配置即可。
-# 若在 Coolify/Compose 中修改了 POSTGRES_PASSWORD / REDIS_PASSWORD，这里的密码必须同步修改。
-# 注意：opensearch 当前代码未使用，保留为默认值。
+# 容器网络专用的数据配置（在镜像启动时由 entrypoint.sh 渲染占位符）。
+# 占位符格式 ${ENV:默认值}，未设置环境变量时使用这里的默认值，行为与旧版静态配置完全一致。
+# Coolify 上只需在 Environment 里设置 POSTGRES_PASSWORD / REDIS_PASSWORD，无需改 YAML、无需重新提交代码。
 data:
   database:
     driver: "postgres"
-    source: "host=postgres port=5432 user=postgres password=*Abcd123456 dbname=ghost_wms sslmode=disable"
-    migrate: false
+    source: "host=${DB_HOST:postgres} port=${DB_PORT:5432} user=${DB_USER:postgres} password=${DB_PASSWORD:*Abcd123456} dbname=${DB_NAME:ghost_wms} sslmode=disable"
+    # 首次启动自动建表（ent schema 即迁移源）。关掉会导致全新数据库没有表，登录时报 db error。
+    migrate: true
     debug: false
     max_idle_connections: 25
     max_open_connections: 25
     connection_max_lifetime: 300s
 
   redis:
-    addr: "redis:6379"
-    password: "*Abcd123456"
+    addr: "${REDIS_ADDR:redis:6379}"
+    password: "${REDIS_PASSWORD:*Abcd123456}"
     dial_timeout: 10s
     read_timeout: 0.4s
     write_timeout: 0.6s

@@ -1,8 +1,7 @@
 # 容器网络专用的服务注册配置。
-# docker compose 会把本文件挂载覆盖到 /app/configs/registry.yaml，
-# 使各服务在 compose 网络内通过服务名访问 etcd；宿主机运行时用仓库默认配置即可。
+# 在镜像启动时由 entrypoint.sh 渲染：未设置 ETCD_ENDPOINT 时默认走 compose 服务名 etcd:2379。
 registry:
   type: "etcd"
   etcd:
     endpoints:
-      - "etcd:2379"
+      - "${ETCD_ENDPOINT:etcd:2379}"
