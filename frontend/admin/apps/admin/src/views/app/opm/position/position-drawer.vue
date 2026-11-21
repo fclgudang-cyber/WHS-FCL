@@ -10,9 +10,7 @@ import { notification } from 'ant-design-vue';
 import { useVbenForm } from '#/adapter/form';
 import {
   apiClient,
-  fetchListOrgUnits,
   makeUpdateMask,
-  PaginationQuery,
   positionTypeList,
   statusList,
 } from '#/api';
@@ -69,31 +67,6 @@ const [BaseForm, baseFormApi] = useVbenForm({
           option.label.toLowerCase().includes(input.toLowerCase()),
         allowClear: true,
         showSearch: true,
-      },
-    },
-    {
-      component: 'ApiTreeSelect',
-      fieldName: 'orgUnitId',
-      label: $t('page.position.orgUnit'),
-      rules: 'selectRequired',
-      componentProps: {
-        placeholder: $t('ui.placeholder.select'),
-        numberToString: true,
-        showSearch: true,
-        treeDefaultExpandAll: true,
-        allowClear: false,
-        childrenField: 'children',
-        labelField: 'name',
-        valueField: 'id',
-        treeNodeFilterProp: 'label',
-        api: async () => {
-          const result = await fetchListOrgUnits(
-            new PaginationQuery({
-              formValues: { status: 'ON' },
-            }),
-          );
-          return result.items;
-        },
       },
     },
     {

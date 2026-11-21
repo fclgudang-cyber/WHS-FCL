@@ -9,12 +9,10 @@ import { notification } from 'ant-design-vue';
 import { useVbenForm, z } from '#/adapter/form';
 import {
   apiClient,
-  fetchListOrgUnits,
   fetchListPositions,
   fetchListRoles,
   genderList,
   makeUpdateMask,
-  type identityservicev1_OrgUnit as OrgUnit,
   PaginationQuery,
   type identityservicev1_Position as Position,
   userStatusList,
@@ -26,7 +24,6 @@ const userViewStore = useUserViewStore();
 
 const data = ref();
 
-const orgUnitList = ref<OrgUnit[]>([]);
 const positionList = ref<Position[]>([]);
 const karyawanOptions = ref<Array<{ label: string; value: string }>>([]);
 
@@ -117,47 +114,6 @@ const [BaseForm, baseFormApi] = useVbenForm({
           );
 
           return result.items;
-        },
-      },
-    },
-    {
-      component: 'ApiTreeSelect',
-      fieldName: 'orgUnitIds',
-      label: $t('page.user.form.orgUnit'),
-      rules: 'selectRequired',
-      componentProps: {
-        placeholder: $t('ui.placeholder.select'),
-        numberToString: true,
-        showSearch: true,
-        multiple: true,
-        treeDefaultExpandAll: true,
-        allowClear: false,
-        childrenField: 'children',
-        labelField: 'name',
-        valueField: 'id',
-        treeNodeFilterProp: 'label',
-        api: async () => {
-          const result = await fetchListOrgUnits(
-            new PaginationQuery({
-              formValues: {
-                status: 'ON',
-                tenant_id: userViewStore.currentTenantId ?? 0,
-              },
-            }),
-          );
-          orgUnitList.value = result.items ?? [];
-          return result.items;
-        },
-        onChange: async (orgUnitId: any) => {
-          if (!orgUnitId) {
-            await baseFormApi.setValues(
-              {
-                orgUnitId: undefined,
-                positionId: undefined,
-              },
-              false,
-            );
-          }
         },
       },
     },
@@ -325,9 +281,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
       // 为表单赋值
       if (data.value.row !== undefined) {
-        if (data.value?.row?.orgUnitId !== undefined) {
-          data.value.row.orgUnitId = data.value?.row?.orgUnitId.toString();
-        }
         baseFormApi.setValues(data.value?.row);
       }
 

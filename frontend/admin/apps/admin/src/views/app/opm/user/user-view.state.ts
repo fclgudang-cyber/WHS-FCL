@@ -3,10 +3,8 @@ import { useUserStore } from '@vben/stores';
 import { defineStore } from 'pinia';
 
 import {
-  fetchListOrgUnits,
   fetchListTenants,
   fetchListUsers,
-  type identityservicev1_ListOrgUnitResponse as ListOrgUnitResponse,
   type identityservicev1_ListTenantResponse as ListTenantResponse,
   type identityservicev1_ListUserResponse as ListUserResponse,
   PaginationQuery,
@@ -15,42 +13,27 @@ import {
 const userStore = useUserStore();
 
 interface UserViewState {
-  loading: boolean; // 加载状态
-
-  currentTenantId: number | undefined; // 当前选中的租户ID
-  currentOrgUnitId: number | undefined; // 当前选中的组织ID
-
-  userList: ListUserResponse; // 用户列表
-  tenantList: ListTenantResponse; // 租户列表
-  orgUnitList: ListOrgUnitResponse; // 组织列表
+  loading: boolean;
+  currentTenantId: number | undefined;
+  userList: ListUserResponse;
+  tenantList: ListTenantResponse;
 }
 
-/**
- * 用户视图状态管理
- */
 export const useUserViewStore = defineStore('user-view', {
   state: (): UserViewState => ({
     currentTenantId: undefined,
-    currentOrgUnitId: undefined,
     loading: false,
-    userList: { items: [], total: 0 },
-    tenantList: { items: [], total: 0 },
-    orgUnitList: { items: [], total: 0 },
+    userList: { items: [], total: 0 } as unknown as ListUserResponse,
+    tenantList: { items: [], total: 0 } as unknown as ListTenantResponse,
   }),
 
   actions: {
-    /**
-     * 获取租户列表
-     */
     async fetchTenantList(formValues?: any): Promise<ListTenantResponse> {
       this.loading = true;
       try {
         this.tenantList = await fetchListTenants(
           new PaginationQuery({
-            formValues: {
-              ...formValues,
-              status: 'ON',
-            },
+            formValues: { ...formValues, status: 'ON' },
           }),
         );
         return this.tenantList;
@@ -60,38 +43,9 @@ export const useUserViewStore = defineStore('user-view', {
       } finally {
         this.loading = false;
       }
-
       return this.tenantList;
     },
 
-    /**
-     * 根据租户获取组织列表
-     */
-    async fetchOrgUnitList(formValues?: any): Promise<ListOrgUnitResponse> {
-      this.loading = true;
-      try {
-        this.orgUnitList = await fetchListOrgUnits(
-          new PaginationQuery({
-            formValues: {
-              ...formValues,
-              tenant_id: this.currentTenantId ?? 0,
-              status: 'ON',
-            },
-          }),
-        );
-      } catch (error) {
-        console.error(`获取租户[${this.currentTenantId}]的组织失败:`, error);
-        this.resetOrgUnitList();
-      } finally {
-        this.loading = false;
-      }
-
-      return this.orgUnitList;
-    },
-
-    /**
-     * 根据租户以及组织获取用户列表
-     */
     async fetchUserList(
       currentPage: number,
       pageSize: number,
@@ -99,13 +53,10 @@ export const useUserViewStore = defineStore('user-view', {
     ): Promise<ListUserResponse> {
       this.loading = true;
       try {
-        // Tanpa panel Tenant/Organisasi, jangan membatasi daftar ke tenant 0.
+        // Tidak ada filter organisasi: daftar pengguna diambil langsung.
         const values: Record<string, any> = { ...formValues };
         if (this.currentTenantId !== undefined) {
           values.tenant_id = this.currentTenantId;
-        }
-        if (this.currentOrgUnitId !== undefined) {
-          values.org_unit_id = this.currentOrgUnitId;
         }
         this.userList = await fetchListUsers(
           new PaginationQuery({
@@ -114,37 +65,24 @@ export const useUserViewStore = defineStore('user-view', {
           }),
         );
       } catch (error) {
-        console.error(
-          `获取租户[${this.currentTenantId}]组织[${this.currentOrgUnitId}]的用户失败:`,
-          error,
-        );
+        console.error(`获取租户[${this.currentTenantId}]的用户失败:`, error);
         this.resetUserList();
       } finally {
         this.loading = false;
       }
-
       return this.userList;
     },
 
     resetTenantList() {
-      this.tenantList = { items: [], total: 0 };
-    },
-
-    resetOrgUnitList() {
-      this.orgUnitList = { items: [], total: 0 };
+      this.tenantList = { items: [], total: 0 } as unknown as ListTenantResponse;
     },
 
     resetUserList() {
-      this.userList = { items: [], total: 0 };
+      this.userList = { items: [], total: 0 } as unknown as ListUserResponse;
     },
 
     setCurrentTenantId(tenantId: number | undefined) {
       this.currentTenantId = tenantId;
-      this.currentOrgUnitId = undefined;
-    },
-
-    setCurrentOrgUnitId(orgUnitId: number | undefined) {
-      this.currentOrgUnitId = orgUnitId;
     },
 
     getCurrentTenantId(): number {
@@ -154,9 +92,6 @@ export const useUserViewStore = defineStore('user-view', {
       return this.currentTenantId ?? 0;
     },
 
-    /**
-     * 当前用户是否为租户用户
-     */
     isTenantUser(): boolean {
       return userStore.isTenantUser();
     },

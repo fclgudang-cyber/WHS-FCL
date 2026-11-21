@@ -107,20 +107,6 @@ reload();
         <DescriptionsItem :label="$t('page.user.detail.desc.tenantName')">
           {{ data?.tenantName }}
         </DescriptionsItem>
-        <DescriptionsItem :label="$t('page.user.detail.desc.orgUnitName')">
-          <a-tag
-            v-for="orgUnit in data?.orgUnitNames"
-            :key="orgUnit"
-            class="mb-1 mr-1"
-            :style="{
-              backgroundColor: getRandomColor(orgUnit), // 随机背景色
-              color: '#333', // 深色文字（适配浅色背景）
-              border: 'none', // 可选：去掉边框更美观
-            }"
-          >
-            {{ orgUnit }}
-          </a-tag>
-        </DescriptionsItem>
         <DescriptionsItem :label="$t('page.user.detail.desc.positionName')">
           <a-tag
             v-for="position in data?.positionNames"

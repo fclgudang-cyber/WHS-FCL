@@ -1,19 +1,16 @@
 <script lang="ts" setup>
 import type { VxeGridListeners, VxeGridProps } from '#/adapter/vxe-table';
 
-import { h, ref, watch } from 'vue';
+import { h, ref } from 'vue';
 
 import { useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
 import { LucideFilePenLine, LucideInfo, LucideTrash2 } from '@vben/icons';
-import { isEqual } from '@vben/utils';
-
 import { message, Modal, notification } from 'ant-design-vue';
 import * as XLSX from 'xlsx';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   apiClient,
-  fetchListOrgUnits,
   fetchListPositions,
   fetchListRoles,
   genderToColor,
@@ -134,7 +131,6 @@ const formOptions: VbenFormProps = {
             new PaginationQuery({
               formValues: {
                 status: 'ON',
-                org_unit_id: userViewStore.currentOrgUnitId,
                 tenant_id: userViewStore.currentTenantId ?? 0,
               },
             }),
@@ -197,12 +193,6 @@ const gridOptions: VxeGridProps<User> = {
     { title: $t('page.user.table.nickname'), field: 'nickname', width: 100 },
     { title: $t('page.user.table.email'), field: 'email', width: 160 },
     { title: $t('page.user.table.mobile'), field: 'mobile', width: 130 },
-    {
-      title: $t('page.user.table.orgUnitId'),
-      field: 'orgUnitNames',
-      slots: { default: 'orgUnit' },
-      width: 130,
-    },
     {
       title: $t('page.user.table.positionId'),
       field: 'positionNames',
@@ -287,13 +277,13 @@ const importing = ref(false);
 const importRows = ref<Record<string, string>[]>([]);
 const importFileName = ref('');
 const importColumns = [
-  'username', 'password', 'organization', 'realname', 'nickname', 'email', 'mobile', 'status',
+  'username', 'password', 'realname', 'nickname', 'email', 'mobile', 'status',
 ];
 
 function downloadTemplate() {
   const ws = XLSX.utils.aoa_to_sheet([
     importColumns,
-    ['operator1', 'rahasia123', 'Nama Organisasi', 'Operator Gudang', 'Operator', 'operator@fcl.local', '08123456789', 'ON'],
+    ['operator1', 'rahasia123', 'Operator Gudang', 'Operator', 'operator@fcl.local', '08123456789', 'ON'],
   ]);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Users');
@@ -336,32 +326,17 @@ async function submitImport() {
   const rows = importRows.value.filter((r) => {
     const username = String(r.username ?? '').trim();
     const password = String(r.password ?? '').trim();
-    const organization = String(r.organization ?? '').trim();
-    return username.length > 0 && password.length > 0 && organization.length > 0;
+    return username.length > 0 && password.length > 0;
   });
   if (!rows.length) {
-    message.warning('Tidak ada baris valid (username, password & organization wajib)');
+    message.warning('Tidak ada baris valid (username & password wajib)');
     return;
   }
   importing.value = true;
   let ok = 0;
   const failed: string[] = [];
   try {
-    const orgRes = await fetchListOrgUnits(
-      new PaginationQuery({ formValues: { status: 'ON' } }),
-    );
-    const orgs = (orgRes.items ?? []) as any[];
     for (const r of rows) {
-      const orgName = String(r.organization).trim();
-      const org = orgs.find(
-        (o) =>
-          String(o.name ?? '').toLowerCase() === orgName.toLowerCase() ||
-          String(o.code ?? '').toLowerCase() === orgName.toLowerCase(),
-      );
-      if (!org) {
-        failed.push(`${r.username}: organisasi "${orgName}" tidak ditemukan`);
-        continue;
-      }
       try {
         await apiClient.userService.Create({
           data: {
@@ -371,7 +346,6 @@ async function submitImport() {
             email: String(r.email ?? '').trim(),
             mobile: String(r.mobile ?? '').trim(),
             status: String(r.status ?? 'ON').trim() || 'ON',
-            orgUnitIds: [Number(org.id)],
             tenantId: userViewStore.getCurrentTenantId(),
           } as any,
           password: String(r.password).trim(),
@@ -434,16 +408,7 @@ function handleDetail(row: any) {
   router.push(`/opm/users/detail/${row.id}`);
 }
 
-watch(
-  () => [userViewStore.currentOrgUnitId, userViewStore.currentTenantId],
-  (newValues, oldValue) => {
-    if (isEqual(newValues, oldValue)) {
-      return;
-    }
-    console.log(newValues, oldValue);
-    gridApi.reload();
-  },
-);
+
 </script>
 
 <template>
@@ -478,22 +443,6 @@ watch(
           }"
         >
           {{ role }}
-        </a-tag>
-      </div>
-    </template>
-    <template #orgUnit="{ row }">
-      <div>
-        <a-tag
-          v-for="orgUnit in row.orgUnitNames"
-          :key="orgUnit"
-          class="mb-1 mr-1"
-          :style="{
-            backgroundColor: getRandomColor(orgUnit), // 随机背景色
-            color: '#333', // 深色文字（适配浅色背景）
-            border: 'none', // 可选：去掉边框更美观
-          }"
-        >
-          {{ orgUnit }}
         </a-tag>
       </div>
     </template>
@@ -552,10 +501,9 @@ watch(
   >
     <div class="import-info">
       <p>
-        Kolom: <b>username</b>, <b>password</b>, <b>organization</b>,
-        <b>realname</b>, <b>nickname</b>, <b>email</b>, <b>mobile</b>,
-        <b>status</b> (ON/OFF). Username, password &amp; organization wajib diisi
-        (organization = nama atau kode organisasi yang sudah terdaftar).
+        Kolom: <b>username</b>, <b>password</b>, <b>realname</b>,
+        <b>nickname</b>, <b>email</b>, <b>mobile</b>, <b>status</b> (ON/OFF).
+        Username &amp; password wajib diisi.
       </p>
       <a-button size="small" @click="downloadTemplate">Download Template</a-button>
     </div>

@@ -11,7 +11,6 @@ import { notification } from 'ant-design-vue';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   apiClient,
-  fetchListOrgUnits,
   fetchListPositions,
   PaginationQuery,
   type identityservicev1_Position as Position,
@@ -82,30 +81,6 @@ const formOptions: VbenFormProps = {
         showSearch: true,
       },
     },
-    {
-      component: 'ApiTreeSelect',
-      fieldName: 'orgUnitId',
-      label: $t('page.position.orgUnit'),
-      componentProps: {
-        placeholder: $t('ui.placeholder.select'),
-        numberToString: true,
-        showSearch: true,
-        treeDefaultExpandAll: true,
-        allowClear: true,
-        childrenField: 'children',
-        labelField: 'name',
-        valueField: 'id',
-        treeNodeFilterProp: 'label',
-        api: async () => {
-          const result = await fetchListOrgUnits(
-            new PaginationQuery({
-              formValues: { status: 'ON' },
-            }),
-          );
-          return result.items;
-        },
-      },
-    },
   ],
 };
 
@@ -150,11 +125,6 @@ const gridOptions: VxeGridProps<Position> = {
       width: 95,
     },
     { title: $t('page.position.description'), field: 'description' },
-    {
-      title: $t('page.position.orgUnitName'),
-      field: 'orgUnitName',
-      width: 150,
-    },
     { title: $t('page.position.headcount'), field: 'headcount', width: 80 },
     {
       title: $t('ui.table.status'),
