@@ -35,6 +35,64 @@ function saveDomain() {
   try { localStorage.setItem('fcl_webhook_domain', domain.value.trim()); } catch { /* abaikan */ }
   message.success('Domain webhook disimpan');
 }
+const webhookBase = computed(() => domain.value.trim().replace(/\/+$/, ''));
+const admsUrl = computed(() => `${webhookBase.value}/iclock/cdata?SN=<SERIAL_NUMBER>`);
+const jsonUrl = computed(() => `${webhookBase.value}/fp`);
+const apiUrl = computed(() => `${webhookBase.value}/api/fingerprint-webhook`);
+const port80Url = computed(() => {
+  try {
+    const u = new URL(webhookBase.value);
+    return `${u.protocol}//${u.hostname}:80/fp`;
+  } catch {
+    return 'http://<IP-SERVER>:80/fp';
+  }
+});
+
+const payloadExample = `{
+  "records": [
+    {
+      "fingerprintId": "FP-001",
+      "nama": "Ahmad Fauzi",
+      "tanggal": "2026-11-21",
+      "jam": "08:00:00",
+      "tipe": "IN"
+    }
+  ]
+}`;
+
+const steps = [
+  { title: 'Set domain / IP server', desc: 'Isi alamat server yang bisa dijangkau mesin, lalu klik Simpan. Contoh: http://192.168.1.10' },
+  { title: 'Buka port 80', desc: 'Webhook & ADMS berjalan di port 80. Pastikan firewall/server mengizinkan TCP 80 dari jaringan mesin fingerprint.' },
+  { title: 'Setting mesin Solution X900', desc: 'Masuk menu Network/ADMS → isi Server URL/IP, Port 80, endpoint /iclock/cdata, lalu aktifkan ADMS. Serial number (SN) akan otomatis terdaftar di tabel mesin.' },
+  { title: 'Kirim data absensi', desc: 'Mesin mengirim GET/POST ke /iclock/cdata?SN=<serial>. Untuk integrasi manual/JSON, POST ke /fp atau /api/fingerprint-webhook dengan format di bawah.' },
+  { title: 'Cek status & sinyal', desc: 'Klik Cek Sinyal untuk memastikan mesin online. Data absensi akan masuk ke Daftar Karyawan → Absensi Karyawan.' },
+];
+
+async function copyText(text: string, label = 'Teks') {
+  try {
+    await navigator.clipboard.writeText(text);
+    message.success(`${label} disalin`);
+  } catch {
+    window.prompt(`Salin ${label}:`, text);
+  }
+}
+
+async function testWebhook() {
+  try {
+    const res = await fetch('/fp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: [{ fingerprintId: 'TEST', nama: 'Tes Webhook', tanggal: dayjs().format('YYYY-MM-DD'), jam: dayjs().format('HH:mm:ss'), tipe: 'IN' }] }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body?.message || `HTTP ${res.status}`);
+    notification.success({ message: 'Tes Webhook', description: body?.message || 'Payload berhasil diterima' });
+    await load(true);
+  } catch (err: any) {
+    notification.error({ message: 'Tes Webhook gagal', description: err?.message });
+  }
+}
+
 const devices = ref<Device[]>([]);
 interface Signal { online: boolean; latencyMs: number; port: number }
 const signals = ref<Record<string, Signal>>({});
@@ -48,6 +106,10 @@ const editing = ref<Device | null>(null);
 const form = ref({ nama: '', merk: 'Solution X900', ipaddress: '', serialnumber: '', aktif: 'Ya', keterangan: '' });
 
 const paged = computed(() => devices.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value));
+
+function signalOf(ip?: string): Signal | undefined {
+  return ip ? signals.value[ip] : undefined;
+}
 
 function barLevel(s?: Signal): number {
   if (!s) return 0;
@@ -133,13 +195,56 @@ onMounted(() => load());
 <template>
   <Page auto-content-height>
     <div class="api-root">
-      <!-- Webhook: hanya domain/alamat server -->
+      <!-- Webhook + panduan penggunaan -->
       <div class="api-card api-hero">
-        <div class="api-title">Webhook Fingerprint Solution X900 (ADMS)</div>
+        <div class="api-hero-head">
+          <div>
+            <div class="api-title">Webhook Fingerprint Solution X900 (ADMS)</div>
+            <div class="api-subtitle">Terima absensi mesin langsung ke Master Karyawan · berjalan pada <b>port 80</b></div>
+          </div>
+          <span class="api-port-badge">PORT 80</span>
+        </div>
+
         <div class="api-domain-row">
           <label>Domain / alamat server</label>
-          <input v-model="domain" class="api-input" placeholder="http://192.168.3.100:8082" @change="saveDomain" />
+          <input v-model="domain" class="api-input" placeholder="http://192.168.3.100" @change="saveDomain" />
+          <button class="api-btn api-btn-ghost" @click="saveDomain">Simpan</button>
+          <button class="api-btn api-btn-accent" :loading="checking" @click="testWebhook">Tes Webhook</button>
         </div>
+
+        <div class="api-url-grid">
+          <div class="api-url-item">
+            <span>ADMS / auto-register mesin (GET/POST)</span>
+            <div><code>{{ admsUrl }}</code><button class="api-copy" @click="copyText(admsUrl, 'URL ADMS')">Salin</button></div>
+          </div>
+          <div class="api-url-item">
+            <span>Webhook JSON (POST) — direkomendasikan</span>
+            <div><code>{{ jsonUrl }}</code><button class="api-copy" @click="copyText(jsonUrl, 'URL webhook')">Salin</button></div>
+          </div>
+          <div class="api-url-item">
+            <span>Endpoint alternatif</span>
+            <div><code>{{ apiUrl }}</code><button class="api-copy" @click="copyText(apiUrl, 'Endpoint')">Salin</button></div>
+          </div>
+          <div class="api-url-item">
+            <span>Akses langsung via port 80</span>
+            <div><code>{{ port80Url }}</code><button class="api-copy" @click="copyText(port80Url, 'URL port 80')">Salin</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="api-card api-guide">
+        <div class="api-title">Tata Cara Penggunaan</div>
+        <div class="api-steps">
+          <div v-for="(step, i) in steps" :key="i" class="api-step">
+            <span class="api-step-no">{{ i + 1 }}</span>
+            <div><b>{{ step.title }}</b><p>{{ step.desc }}</p></div>
+          </div>
+        </div>
+        <div class="api-payload-head">
+          <b>Format payload JSON untuk <code>/fp</code></b>
+          <button class="api-copy" @click="copyText(payloadExample, 'Contoh payload')">Salin</button>
+        </div>
+        <pre class="api-code">{{ payloadExample }}</pre>
       </div>
 
       <!-- Daftar mesin -->
@@ -157,10 +262,10 @@ onMounted(() => load());
                 <td class="api-name">{{ d.nama }}</td><td>{{ d.merk || '-' }}</td><td><code>{{ d.ipaddress || '-' }}</code></td>
                 <td><code>{{ d.serialnumber || '-' }}</code></td>
                 <td>
-                  <span class="api-signal" :title="signals[d.ipaddress] ? (signals[d.ipaddress].online ? `Terhubung · ${signals[d.ipaddress].latencyMs} ms (port ${signals[d.ipaddress].port})` : 'Tidak terhubung') : 'Belum dicek'">
-                    <i v-for="n in 4" :key="n" :class="{ 'on': n <= barLevel(signals[d.ipaddress]), 'off': n > barLevel(signals[d.ipaddress]) }" :style="{ height: 4 + n * 3 + 'px' }"></i>
+                  <span class="api-signal" :title="signalOf(d.ipaddress) ? (signalOf(d.ipaddress)?.online ? `Terhubung · ${signalOf(d.ipaddress)?.latencyMs} ms (port ${signalOf(d.ipaddress)?.port})` : 'Tidak terhubung') : 'Belum dicek'">
+                    <i v-for="n in 4" :key="n" :class="{ 'on': n <= barLevel(signalOf(d.ipaddress)), 'off': n > barLevel(signalOf(d.ipaddress)) }" :style="{ height: 4 + n * 3 + 'px' }"></i>
                   </span>
-                  <span class="api-signal-text" :class="signals[d.ipaddress]?.online ? 'api-ok' : 'api-off'">{{ signals[d.ipaddress] ? (signals[d.ipaddress].online ? signals[d.ipaddress].latencyMs + ' ms' : 'Offline') : '-' }}</span>
+                  <span class="api-signal-text" :class="signalOf(d.ipaddress)?.online ? 'api-ok' : 'api-off'">{{ signalOf(d.ipaddress) ? (signalOf(d.ipaddress)?.online ? signalOf(d.ipaddress)?.latencyMs + ' ms' : 'Offline') : '-' }}</span>
                 </td>
                 <td><span class="api-status" :class="String(d.aktif).toLowerCase() === 'ya' ? 'api-ok' : 'api-off'">{{ d.aktif }}</span></td>
                 <td>{{ d.keterangan || '-' }}</td>
@@ -232,4 +337,29 @@ onMounted(() => load());
 .api-signal i.on { background: hsl(var(--success)); }
 .api-signal i.off { opacity: 0.35; }
 .api-signal-text { font-size: 10px; font-weight: 800; margin-left: 6px; white-space: nowrap; }
+
+.api-hero-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.api-subtitle { font-size: 11px; color: hsl(var(--muted-foreground)); margin-top: 3px; }
+.api-port-badge { flex-shrink: 0; background: hsl(var(--success) / 0.14); color: hsl(var(--success)); border: 1px solid hsl(var(--success) / 0.4); border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 800; }
+.api-url-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.api-url-item { background: hsl(var(--muted) / 0.55); border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+.api-url-item > span { display: block; font-size: 10px; font-weight: 700; color: hsl(var(--muted-foreground)); }
+.api-url-item > div { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+.api-url-item code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; font-size: 11px; color: hsl(var(--foreground)); }
+.api-copy { flex-shrink: 0; border: 1px solid hsl(var(--border)); background: hsl(var(--card)); color: hsl(var(--primary)); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-weight: 800; cursor: pointer; }
+.api-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 10px 0 12px; }
+.api-step { display: flex; gap: 9px; align-items: flex-start; }
+.api-step-no { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: hsl(var(--primary) / 0.12); color: hsl(var(--primary)); display: grid; place-items: center; font-size: 11px; font-weight: 800; }
+.api-step b { font-size: 11px; }
+.api-step p { margin: 2px 0 0; font-size: 10px; line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.api-payload-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 5px; }
+.api-code { background: hsl(var(--muted) / 0.65); border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 10px; font-size: 11px; line-height: 1.5; overflow-x: auto; margin: 0; }
+
+@media (max-width: 900px) {
+  .api-hero-head, .api-domain-row { flex-wrap: wrap; }
+  .api-domain-row .api-input { max-width: none; flex: 1 1 100%; }
+  .api-url-grid, .api-steps { grid-template-columns: 1fr; }
+  .api-head { flex-wrap: wrap; }
+  .api-table { min-width: 760px; }
+}
 </style>

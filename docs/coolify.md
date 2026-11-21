@@ -131,3 +131,13 @@ dengan request axios (`Authorization: Bearer <token>`), dan backend FCL di
 - Endpoint lama `/api/auth/login` dan `/api/auth/change-password` sudah dihapus.
 - Jika Anda mengganti kunci JWT, set `JWT_SIGNING_KEY` di Environment Coolify
   (dan samakan dengan konfigurasi authenticator core-service).
+
+### Webhook Fingerprint di port 80
+
+Backend FCL membuka listener khusus di **port 80** (`FCL_WEBHOOK_ADDR`, default `:80`) untuk:
+`/iclock/cdata`, `/fp`, `/api/fingerprint-webhook`, `/api/fingerprint-check`, `/api/health`.
+Endpoint lain tetap di `FCL_ADDR` (6905) dan memakai JWT utama.
+
+- Image `admin-service` diberi capability `cap_net_bind_service` agar user non-root bisa bind port 80.
+- Di Compose, port host dapat diubah lewat `FCL_WEBHOOK_PORT` (default `80:80`).
+- Nginx mem-proxy `/iclock/` dan `/fp` ke `admin-service:80`.

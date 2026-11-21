@@ -163,6 +163,7 @@ services:
       - "127.0.0.1:6900:6900"
       - "127.0.0.1:6901:6901"
       - "127.0.0.1:6905:6905"
+      - "${FCL_WEBHOOK_PORT:-80}:80"
     # Backend FCL kini sudah termasuk di dalam admin-service.
     env_file:
       - path: ./backend/deploy/fcl-drive.env
@@ -170,6 +171,7 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-*Abcd123456}@postgres:5432/ghost_wms?sslmode=disable
       FCL_ADDR: ":6905"
+      FCL_WEBHOOK_ADDR: ":80"
       JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-dev_only_change_me_in_prod}
       REDIS_ADDR: redis:6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-*Abcd123456}

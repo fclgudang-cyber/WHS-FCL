@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/go-kratos/kratos/v2"
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/tx7do/kratos-bootstrap/bootstrap"
 	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/data"
 	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/fcl"
 	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/server"
 	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/service"
 	"github.com/Mikdad-Force/Ghost/pkg/middleware/auth"
+	"github.com/go-kratos/kratos/v2"
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/tx7do/kratos-bootstrap/bootstrap"
 )
 
 // initApp 手写装配整个应用,是本服务的依赖注入点(替代原 google/wire 生成)。
@@ -56,10 +56,10 @@ func initApp(ctx *bootstrap.Context) (*kratos.App, func(), error) {
 
 	// Backend FCL berjalan di dalam admin-service (tanpa service terpisah).
 	// Kegagalan koneksi DB FCL tidak boleh menghentikan service utama.
-	if fclHTTP, ferr := fcl.Start(); ferr != nil {
+	if fclServers, ferr := fcl.Start(); ferr != nil {
 		log.Errorf("fcl backend disabled: %v", ferr)
 	} else {
-		cleanups = append(cleanups, func() { fcl.Stop(fclHTTP) })
+		cleanups = append(cleanups, func() { fcl.Stop(fclServers) })
 	}
 
 	captcha := data.NewCaptcha(redisClient)

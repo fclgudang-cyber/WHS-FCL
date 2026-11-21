@@ -52,7 +52,7 @@ FROM docker.io/library/alpine:3.22
 ARG SERVICE_NAME=app
 
 # 安装必要的证书（如果应用程序需要进行 HTTPS 请求）
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates libcap
 
 # 设置工作目录
 WORKDIR /app
@@ -67,7 +67,8 @@ COPY --from=builder /src/bin/configs/ /app/configs/
 COPY deploy/entrypoint.sh /app/bin/entrypoint.sh
 
 # 创建一个名为 appuser 的非 root 用户，并授予渲染配置所需的写权限
-RUN adduser -D appuser && \
+RUN setcap cap_net_bind_service=+ep /app/bin/server && \
+    adduser -D appuser && \
     mkdir -p /app/uploads && \
     chmod +x /app/bin/entrypoint.sh && \
     chown -R appuser:appuser /app/bin /app/configs /app/uploads

@@ -76,6 +76,27 @@ func Handler() http.Handler {
 	return withCORS(requireJWT(router))
 }
 
+// webhookRouter hanya membuka endpoint mesin fingerprint (tanpa JWT).
+func webhookRouter(w http.ResponseWriter, r *http.Request) {
+	p := r.URL.Path
+	switch {
+	case p == "/api/health":
+		handleHealth(w, r)
+	case p == "/fp", p == "/api/fingerprint-webhook":
+		handleFingerprintWebhook(w, r)
+	case p == "/api/fingerprint-check":
+		handleFingerprintSignal(w, r)
+	case p == "/iclock/cdata":
+		handleADMS(w, r)
+	default:
+		writeJSON(w, 404, map[string]any{"message": "endpoint webhook tidak ditemukan"})
+	}
+}
+
+func WebhookHandler() http.Handler {
+	return withCORS(webhookRouter)
+}
+
 // Init menyiapkan koneksi DB dan menerapkan seluruh schema FCL.
 func Init(dsn string) error {
 	if dsn == "" {
@@ -88,35 +109,55 @@ func Init(dsn string) error {
 	return nil
 }
 
-// Start menjalankan HTTP server FCL di dalam proses admin-service.
-func Start() (*http.Server, error) {
+// Start menjalankan dua listener:
+//   - FCL_ADDR (default :6905): seluruh API FCL dengan JWT utama.
+//   - FCL_WEBHOOK_ADDR (default :80): khusus webhook/ADMS fingerprint tanpa JWT.
+func Start() ([]*http.Server, error) {
 	if err := Init(os.Getenv("DATABASE_URL")); err != nil {
 		return nil, err
 	}
-	addr := os.Getenv("FCL_ADDR")
-	if addr == "" {
-		addr = ":6905"
+	type listener struct {
+		name    string
+		addr    string
+		handler http.Handler
 	}
-	srv := &http.Server{
-		Addr:              addr,
-		Handler:           Handler(),
-		ReadHeaderTimeout: 10 * time.Second,
+	fclAddr := os.Getenv("FCL_ADDR")
+	if fclAddr == "" {
+		fclAddr = ":6905"
 	}
-	go func() {
-		log.Printf("fcl (admin-service) listening on %s", addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Printf("fcl http server: %v", err)
+	webhookAddr := os.Getenv("FCL_WEBHOOK_ADDR")
+	if webhookAddr == "" {
+		webhookAddr = ":80"
+	}
+	listeners := []listener{
+		{"fcl", fclAddr, Handler()},
+		{"fingerprint-webhook", webhookAddr, WebhookHandler()},
+	}
+	servers := make([]*http.Server, 0, len(listeners))
+	for _, l := range listeners {
+		srv := &http.Server{
+			Addr:              l.addr,
+			Handler:           l.handler,
+			ReadHeaderTimeout: 10 * time.Second,
 		}
-	}()
-	return srv, nil
+		servers = append(servers, srv)
+		go func(name, addr string, srv *http.Server) {
+			log.Printf("fcl %s listening on %s", name, addr)
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Printf("fcl %s (%s) berhenti: %v", name, addr, err)
+			}
+		}(l.name, l.addr, srv)
+	}
+	return servers, nil
 }
 
-// Stop menghentikan server FCL secara graceful.
-func Stop(srv *http.Server) {
-	if srv == nil {
-		return
-	}
+// Stop menghentikan semua listener FCL secara graceful.
+func Stop(servers []*http.Server) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	_ = srv.Shutdown(ctx)
+	for _, srv := range servers {
+		if srv != nil {
+			_ = srv.Shutdown(ctx)
+		}
+	}
 }
