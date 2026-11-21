@@ -1,7 +1,8 @@
+import { useAccessStore } from '@vben/stores';
+
 /**
  * Klien REST untuk backend FCL (tertanam di admin-service, /api).
- * Nonaktifkan axios ghost agar tidak kena interceptor auth/refresh ghost —
- * FCL punya otentikasi sendiri (localStorage `fcl_user`).
+ * Memakai token JWT utama (sama seperti request axios) — tanpa login terpisah.
  *
  * Kontrak respons backend FCL (lihat backend/app/admin/service/internal/fcl):
  *  - GET /api/tables/{t}          → array baris (bare array)
@@ -40,8 +41,14 @@ function buildQuery(spec: FclQuerySpec): string {
 }
 
 async function fclFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const accessStore = useAccessStore();
+  const token = accessStore.accessToken;
   const res = await fetch(path, {
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
     ...init,
   });
   const text = await res.text();
@@ -109,43 +116,6 @@ export function formatRp(n: number | string | undefined | null): string {
     maximumFractionDigits: 0,
   }).format(Number.isFinite(v) ? v : 0);
 }
-
-const FCL_USER_KEY = 'fcl_user';
-
-export interface FclUser {
-  id?: number | string;
-  username?: string;
-  nama?: string;
-  role?: string;
-  divisi?: string;
-  [key: string]: any;
-}
-
-export function getFclUser(): FclUser | null {
-  try {
-    const raw = localStorage.getItem(FCL_USER_KEY);
-    return raw ? (JSON.parse(raw) as FclUser) : null;
-  } catch {
-    return null;
-  }
-}
-
-export async function fclLogin(username: string, password: string): Promise<FclUser> {
-  const res = await fclFetch<{ success: boolean; user?: FclUser; message?: string }>('/api/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ username, password }),
-  });
-  if (!res?.success || !res.user) {
-    throw new Error(res?.message || 'Login FCL gagal');
-  }
-  localStorage.setItem(FCL_USER_KEY, JSON.stringify(res.user));
-  return res.user;
-}
-
-export function fclLogout() {
-  localStorage.removeItem(FCL_USER_KEY);
-}
-
 
 export async function fclDeleteWhere(table: string, filters: FclFilter[]): Promise<void> {
   const params = new URLSearchParams();

@@ -1,7 +1,10 @@
 /**
  * Warehouse 3D — klien API ke backend FCL di dalam admin-service (/api/warehouse3d).
  * Semua data berasal dari backend; tidak ada data dummy di frontend.
+ * Memakai JWT utama (satu login dengan sistem ERP/WMS).
  */
+
+import { useAccessStore } from '@vben/stores';
 
 export interface Wh3dObject {
   id?: number;
@@ -208,8 +211,14 @@ export interface Wh3dSavePayload {
 }
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const accessStore = useAccessStore();
+  const token = accessStore.accessToken;
   const res = await fetch(`/api/warehouse3d${path}`, {
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
     ...init,
   });
   const text = await res.text();
@@ -256,8 +265,14 @@ export const warehouse3dApi = {
       `/validate?layoutId=${layoutId}&warehouseId=${warehouseId}`,
     ),
   search: (q: string) => api<any[]>(`/search?q=${encodeURIComponent(q)}`),
-  streamUrl: (warehouseId?: number) =>
-    `/api/warehouse3d/activity/stream${warehouseId ? `?warehouseId=${warehouseId}` : ''}`,
+  streamUrl: (warehouseId?: number) => {
+    const token = useAccessStore().accessToken ?? '';
+    const params = new URLSearchParams();
+    if (warehouseId) params.set('warehouseId', String(warehouseId));
+    if (token) params.set('access_token', token);
+    const qs = params.toString();
+    return `/api/warehouse3d/activity/stream${qs ? `?${qs}` : ''}`;
+  },
 };
 
 export function num(v: unknown): number {

@@ -40,10 +40,6 @@ func router(w http.ResponseWriter, r *http.Request) {
 		handleFileDownload(w, r)
 	case p == "/iclock/cdata":
 		handleADMS(w, r)
-	case p == "/api/auth/login" && r.Method == http.MethodPost:
-		handleLogin(w, r)
-	case p == "/api/auth/change-password" && r.Method == http.MethodPost:
-		handleChangePassword(w, r)
 	case strings.HasPrefix(p, "/api/warehouse3d/"):
 		handleWarehouse3D(w, r)
 	case strings.HasPrefix(p, "/api/tables/"):
@@ -67,9 +63,17 @@ func router(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Handler mengembalikan HTTP handler FCL (bisa dipasang ke server HTTP mana pun).
+func handleHealth(w http.ResponseWriter, _ *http.Request) {
+	if _, err := db.Exec("select 1"); err != nil {
+		writeJSON(w, 500, map[string]any{"ok": false, "db": "down", "message": err.Error()})
+		return
+	}
+	writeJSON(w, 200, map[string]any{"ok": true, "db": "up"})
+}
+
+// Handler mengembalikan HTTP handler FCL dengan JWT utama + CORS.
 func Handler() http.Handler {
-	return withCORS(router)
+	return withCORS(requireJWT(router))
 }
 
 // Init menyiapkan koneksi DB dan menerapkan seluruh schema FCL.

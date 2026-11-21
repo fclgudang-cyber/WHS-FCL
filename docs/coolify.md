@@ -117,3 +117,17 @@ Backend FCL sekarang **berjalan di dalam `admin-service`** (port internal `6905`
   ```
 - Kredensial Google Drive tetap dibaca dari `backend/deploy/fcl-drive.env` (opsional).
 - Jika DB FCL gagal dibuka, `admin-service` tetap berjalan; hanya endpoint FCL yang tidak aktif (log: `fcl backend disabled`).
+
+### Autentikasi FCL = login utama
+
+Modul FCL tidak punya login sendiri. Frontend mengirim access token JWT yang sama
+dengan request axios (`Authorization: Bearer <token>`), dan backend FCL di
+`admin-service` memverifikasi token tersebut (HS256, kunci `JWT_SIGNING_KEY`).
+
+- Endpoint mesin (`/iclock/cdata`, `/fp`, `/api/fingerprint-webhook`,
+  `/api/fingerprint-check`, `/api/health`) tetap tanpa token.
+- SSE Warehouse 3D mengirim token lewat query `access_token` karena `EventSource`
+  tidak bisa mengirim header.
+- Endpoint lama `/api/auth/login` dan `/api/auth/change-password` sudah dihapus.
+- Jika Anda mengganti kunci JWT, set `JWT_SIGNING_KEY` di Environment Coolify
+  (dan samakan dengan konfigurasi authenticator core-service).

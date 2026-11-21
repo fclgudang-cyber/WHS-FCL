@@ -170,6 +170,7 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-*Abcd123456}@postgres:5432/ghost_wms?sslmode=disable
       FCL_ADDR: ":6905"
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-dev_only_change_me_in_prod}
       REDIS_ADDR: redis:6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-*Abcd123456}
       ETCD_ENDPOINT: etcd:2379

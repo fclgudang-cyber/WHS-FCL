@@ -9,6 +9,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
+import { useAccessStore } from '@vben/stores';
 import {
   LucideBuilding,
   LucideCheck,
@@ -71,6 +72,11 @@ const issues = ref<Wh3dIssue[]>([]);
 const history = ref<string[]>([]);
 const historyIndex = ref(-1);
 let restoreHistory = false;
+
+const accessStore = useAccessStore();
+watch(() => accessStore.accessToken, (token) => {
+  if (token) startStream();
+});
 
 const sceneEl = ref<HTMLDivElement | null>(null);
 const canvas2d = ref<HTMLCanvasElement | null>(null);
