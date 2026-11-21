@@ -21,10 +21,10 @@ import {
 
 import dayjs from 'dayjs';
 
-import { fclDelete, fclDeleteWhere, fclInsert, fclPatch, fclQuery, formatRp } from '#/api/fcl';
-import FclCrud from '#/components/fcl/fcl-crud.vue';
-import type { FclDisplayColumn, FclField } from '#/components/fcl/fcl-crud-types';
-import FclPagination from './fcl-pagination.vue';
+import { fclDelete, fclDeleteWhere, fclInsert, fclPatch, fclQuery, formatRp } from '#/api/warehouse';
+import FclCrud from '#/components/warehouse/warehouse-crud.vue';
+import type { FclDisplayColumn, FclField } from '#/components/warehouse/warehouse-crud-types';
+import FclPagination from './warehouse-pagination.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -122,7 +122,7 @@ async function load() {
   try {
     rows.value = await fclQuery(props.table, { select: '*', order: props.order, limit: props.masterLimit });
   } catch (err: any) {
-    console.error('[fcl-header-detail] load gagal', err);
+    console.error('[wh-header-detail] load gagal', err);
     notification.error({ message: props.title, description: String(err?.message || err) });
   } finally {
     loading.value = false;
@@ -255,7 +255,7 @@ load();
 <template>
   <Page auto-content-height>
     <template #extra>
-      <input v-model="search" type="text" class="fcl-search" :placeholder="searchPlaceholder" />
+      <input v-model="search" type="text" class="wh-search" :placeholder="searchPlaceholder" />
       <a-button @click="load" :loading="loading">
         <template #icon><LucideRefreshCw :size="14" /></template>
         Refresh
@@ -280,7 +280,7 @@ load();
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === '_action'">
-            <div class="fcl-actions">
+            <div class="wh-actions">
               <a-button type="link" size="small" @click="openEdit(record)">Edit</a-button>
               <a-button danger type="link" size="small" @click="confirmDelete(record)">Hapus</a-button>
             </div>
@@ -299,7 +299,7 @@ load();
         </template>
 
         <template #expandedRowRender="{ record }">
-          <div class="fcl-child-wrap">
+          <div class="wh-child-wrap">
             <FclCrud
               embedded
               :title="childTitle + ' — ' + (record.noSJ || record.noOrder || record.noRetur || record.noReturn || record.id)"
@@ -331,7 +331,7 @@ load();
       cancel-text="Batal"
       @ok="submit"
     >
-      <a-form layout="vertical" class="fcl-form">
+      <a-form layout="vertical" class="wh-form">
         <a-form-item v-for="f in fields" :key="f.name" :label="f.label + (f.required ? ' *' : '')">
           <a-input v-if="(f.type ?? 'input') === 'input'" v-model:value="formState[f.name]" :placeholder="f.placeholder" />
           <a-textarea v-else-if="f.type === 'textarea'" v-model:value="formState[f.name]" :placeholder="f.placeholder" :rows="f.rows ?? 3" />
@@ -348,7 +348,7 @@ load();
 </template>
 
 <style scoped>
-.fcl-search {
+.wh-search {
   width: 240px;
   height: 32px;
   padding: 0 12px;
@@ -357,7 +357,7 @@ load();
   background: transparent;
   color: inherit;
 }
-.fcl-actions { display: flex; gap: 4px; justify-content: flex-end; }
-.fcl-child-wrap { padding: 10px 12px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; }
-.fcl-form :deep(.ant-form-item) { margin-bottom: 12px; }
+.wh-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.wh-child-wrap { padding: 10px 12px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; }
+.wh-form :deep(.ant-form-item) { margin-bottom: 12px; }
 </style>

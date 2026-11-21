@@ -8,8 +8,8 @@ import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 
 import { Card, Table, Tag, notification } from 'ant-design-vue';
 
-import { fclQuery } from '#/api/fcl';
-import { groupStockBySku, type StockGroup, type StockRow } from '#/utils/fcl-stock';
+import { fclQuery } from '#/api/warehouse';
+import { groupStockBySku, type StockGroup, type StockRow } from '#/utils/warehouse-stock';
 
 const chartRef = shallowRef<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
@@ -41,7 +41,7 @@ async function load() {
     });
     groups.value = groupStockBySku(rows.filter((d) => Number(d.stok) > 0));
   } catch (err: any) {
-    console.error('[fcl/analisis] load gagal', err);
+    console.error('[warehouse/analisis] load gagal', err);
     notification.error({ message: 'Analisis Stock', description: String(err?.message || err) });
   } finally {
     loading.value = false;

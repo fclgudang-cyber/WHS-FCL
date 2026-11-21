@@ -26,9 +26,9 @@ import {
 import { Modal, message, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/fcl';
-import FclPagination from '#/components/fcl/fcl-pagination.vue';
-import type { StockRow } from '#/utils/fcl-stock';
+import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/warehouse';
+import FclPagination from '#/components/warehouse/warehouse-pagination.vue';
+import type { StockRow } from '#/utils/warehouse-stock';
 
 interface OrderRow {
   id: string;
@@ -167,7 +167,7 @@ async function loadAll(silent = false) {
     details.value = d;
     stockRows.value = st;
   } catch (err: any) {
-    console.error('[fcl/order] load gagal', err);
+    console.error('[warehouse/order] load gagal', err);
     notification.error({ message: 'Manajemen Order', description: err?.message || 'Gagal memuat data order' });
   } finally {
     if (!silent) loading.value = false;

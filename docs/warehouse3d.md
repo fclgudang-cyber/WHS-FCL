@@ -7,8 +7,8 @@ Fitur ini menambahkan **Warehouse 3D** ke modul FCL tanpa mengganti WMS yang sud
 | Lapisan | Implementasi |
 |---|---|
 | Database | `backend/sql/warehouse3d_schema.sql` — auto-apply saat `admin-service` start (`go:embed`) |
-| Backend | `backend/app/admin/service/internal/fcl/warehouse3d.go` — REST di `/api/warehouse3d/*` |
-| Frontend | `frontend/admin/apps/admin/src/views/fcl/warehouse-3d/` — Vue 3 + Three.js |
+| Backend | `backend/app/admin/service/internal/warehouse3d.go` — REST di `/api/warehouse3d/*` |
+| Frontend | `frontend/admin/apps/admin/src/views/app/warehouse-3d/` — Vue 3 + Three.js |
 | Widget 3D | `three` + `OrbitControls`, kamera isometric, raycasting, animasi worker/forklift |
 | Editor 2D | Canvas 2D sinkron dengan scene 3D (grid, snap, zoom, pan, move, resize) |
 | Real-time | SSE `/api/warehouse3d/activity/stream` (3 detik) |

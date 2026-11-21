@@ -9,7 +9,7 @@ import { LucideDownload, LucidePlus, LucideRefreshCw } from '@vben/icons';
 import { Modal, message, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/fcl';
+import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/warehouse';
 
 interface LaporanRow {
   id: string;

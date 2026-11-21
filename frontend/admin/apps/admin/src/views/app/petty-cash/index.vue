@@ -34,7 +34,7 @@ import {
 import { Form, Input, Modal, message, notification, Select, Textarea } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { fclDelete, fclInsert, fclPatch, fclQuery, formatRp } from '#/api/fcl';
+import { fclDelete, fclInsert, fclPatch, fclQuery, formatRp } from '#/api/warehouse';
 
 // ── tipe & konstanta ──────────────────────────────────────────────────────────
 interface PeriodRow {
@@ -763,12 +763,12 @@ function openPrintWindow(title: string, bodyHtml: string) {
   .total-row td { font-weight: 700; background:#fafafa; }
   @media print { @page { size: A4; margin: 14mm; } }
 
-.fcl-pc-bukti-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
-.fcl-pc-bukti-tabs button { border: 1px solid hsl(var(--border)); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
-.fcl-pc-bukti-tabs button.active { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
-.fcl-pc-file { font-size: 11px; width: 100%; color: hsl(var(--muted-foreground)); }
-.fcl-pc-bukti-preview { margin-top: 10px; max-height: 240px; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 6px; }
-.fcl-pc-bukti-preview img { max-width: 100%; max-height: 240px; object-fit: contain; display: block; }
+.wh-pc-bukti-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.wh-pc-bukti-tabs button { border: 1px solid hsl(var(--border)); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+.wh-pc-bukti-tabs button.active { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.wh-pc-file { font-size: 11px; width: 100%; color: hsl(var(--muted-foreground)); }
+.wh-pc-bukti-preview { margin-top: 10px; max-height: 240px; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 6px; }
+.wh-pc-bukti-preview img { max-width: 100%; max-height: 240px; object-fit: contain; display: block; }
 </style></head><body>${bodyHtml}</body></html>`);
   w.document.close();
   w.focus();
@@ -1037,65 +1037,65 @@ onMounted(loadAll);
       :disabled="!!directUploadingId"
       @change="onDirectFileChange"
     />
-    <div v-if="directUploadingId" class="fcl-pc-upload-status">
-      <span class="fcl-pc-spin"></span> Mengunggah foto ke Google Drive...
+    <div v-if="directUploadingId" class="wh-pc-upload-status">
+      <span class="wh-pc-spin"></span> Mengunggah foto ke Google Drive...
     </div>
     <!-- ══════════ BELUM ADA PERIODE → hero create-first ══════════ -->
-    <div v-if="!loading && periods.length === 0" class="fcl-pc-hero">
-      <div class="fcl-pc-hero-icon"><LucideWallet :size="44" /></div>
-      <div class="fcl-pc-hero-title">Belum ada Periode Petty Cash</div>
-      <div class="fcl-pc-hero-desc">
+    <div v-if="!loading && periods.length === 0" class="wh-pc-hero">
+      <div class="wh-pc-hero-icon"><LucideWallet :size="44" /></div>
+      <div class="wh-pc-hero-title">Belum ada Periode Petty Cash</div>
+      <div class="wh-pc-hero-desc">
         Alur kerja petty cash: <b>buat periode dulu</b> (mis. “16 November–22 November 2026” dengan saldo awal),
         baru setelah itu <b>tambah transaksi</b> ke periode tersebut.
       </div>
-      <button class="fcl-pc-btn fcl-pc-btn-primary fcl-pc-btn-lg" @click="openPeriodModal()">
+      <button class="wh-pc-btn wh-pc-btn-primary wh-pc-btn-lg" @click="openPeriodModal()">
         <LucidePlus :size="16" /> Buat Periode Baru
       </button>
     </div>
 
     <!-- ══════════ DASHBOARD PETTY CASH ══════════ -->
-    <div v-else class="fcl-pc">
+    <div v-else class="wh-pc">
       <!-- ── Bar statistik ── -->
-      <div class="fcl-pc-stats">
-        <div class="fcl-pc-stat fcl-pc-stat-green">
-          <div class="fcl-pc-stat-label">SALDO AWAL</div>
-          <div class="fcl-pc-stat-value fcl-pc-tone-green">{{ fmtRp(saldoAwal) }}</div>
+      <div class="wh-pc-stats">
+        <div class="wh-pc-stat wh-pc-stat-green">
+          <div class="wh-pc-stat-label">SALDO AWAL</div>
+          <div class="wh-pc-stat-value wh-pc-tone-green">{{ fmtRp(saldoAwal) }}</div>
         </div>
-        <div class="fcl-pc-stat fcl-pc-stat-red">
-          <div class="fcl-pc-stat-label">PENGELUARAN</div>
-          <div class="fcl-pc-stat-value fcl-pc-tone-red">{{ fmtRp(totalOut) }}</div>
+        <div class="wh-pc-stat wh-pc-stat-red">
+          <div class="wh-pc-stat-label">PENGELUARAN</div>
+          <div class="wh-pc-stat-value wh-pc-tone-red">{{ fmtRp(totalOut) }}</div>
         </div>
-        <div class="fcl-pc-stat fcl-pc-stat-teal">
-          <div class="fcl-pc-stat-label">PEMASUKAN</div>
-          <div class="fcl-pc-stat-value fcl-pc-tone-teal">{{ fmtRp(totalIn) }}</div>
+        <div class="wh-pc-stat wh-pc-stat-teal">
+          <div class="wh-pc-stat-label">PEMASUKAN</div>
+          <div class="wh-pc-stat-value wh-pc-tone-teal">{{ fmtRp(totalIn) }}</div>
         </div>
-        <div class="fcl-pc-stat fcl-pc-stat-amber">
-          <div class="fcl-pc-stat-label">SISA SALDO</div>
-          <div class="fcl-pc-stat-value fcl-pc-tone-amber">{{ fmtRp(sisaSaldo) }}</div>
+        <div class="wh-pc-stat wh-pc-stat-amber">
+          <div class="wh-pc-stat-label">SISA SALDO</div>
+          <div class="wh-pc-stat-value wh-pc-tone-amber">{{ fmtRp(sisaSaldo) }}</div>
         </div>
       </div>
 
       <!-- ── Seksi Periode ── -->
-      <div class="fcl-pc-card">
-        <div class="fcl-pc-card-head">
-          <div class="fcl-pc-card-title">Periode</div>
-          <div class="fcl-pc-card-actions">
-            <button class="fcl-pc-btn fcl-pc-btn-ghost" @click="openPeriodModal()">
+      <div class="wh-pc-card">
+        <div class="wh-pc-card-head">
+          <div class="wh-pc-card-title">Periode</div>
+          <div class="wh-pc-card-actions">
+            <button class="wh-pc-btn wh-pc-btn-ghost" @click="openPeriodModal()">
               <LucidePlus :size="13" /> Periode
             </button>
-            <button class="fcl-pc-btn fcl-pc-btn-primary" @click="openTrxModal()">
+            <button class="wh-pc-btn wh-pc-btn-primary" @click="openTrxModal()">
               <LucidePlus :size="13" /> Transaksi
             </button>
           </div>
         </div>
 
         <!-- Tab filter -->
-        <div class="fcl-pc-tabs">
+        <div class="wh-pc-tabs">
           <button
             v-for="tab in (['Semua', 'Aktif', 'Selesai'] as const)"
             :key="tab"
-            class="fcl-pc-tab"
-            :class="{ 'fcl-pc-tab-active': periodFilter === tab }"
+            class="wh-pc-tab"
+            :class="{ 'wh-pc-tab-active': periodFilter === tab }"
             @click="periodFilter = tab"
           >
             {{ tab }}
@@ -1103,73 +1103,73 @@ onMounted(loadAll);
         </div>
 
         <!-- Kartu periode -->
-        <div class="fcl-pc-period-list">
+        <div class="wh-pc-period-list">
           <div
             v-for="p in filteredPeriods"
             :key="p.id"
-            class="fcl-pc-period-card"
-            :class="{ 'fcl-pc-period-card-active': String(p.id) === String(activePeriodId) }"
+            class="wh-pc-period-card"
+            :class="{ 'wh-pc-period-card-active': String(p.id) === String(activePeriodId) }"
             @click="selectPeriod(p.id)"
           >
-            <div class="fcl-pc-period-card-top">
-              <div class="fcl-pc-period-nama">{{ p.nama }}</div>
-              <span class="fcl-pc-badge" :class="isPeriodAktif(p) ? 'fcl-pc-badge-green' : 'fcl-pc-badge-gray'">
+            <div class="wh-pc-period-card-top">
+              <div class="wh-pc-period-nama">{{ p.nama }}</div>
+              <span class="wh-pc-badge" :class="isPeriodAktif(p) ? 'wh-pc-badge-green' : 'wh-pc-badge-gray'">
                 {{ isPeriodAktif(p) ? 'Aktif' : 'Selesai' }}
               </span>
             </div>
-            <div class="fcl-pc-period-date">
+            <div class="wh-pc-period-date">
               {{ fmtTanggalPendek(p.tanggalMulai) }} — {{ fmtTanggalPendek(p.tanggalSelesai) }}
             </div>
-            <div class="fcl-pc-period-saldo">Saldo Awal: <b>{{ fmtRp(toNum(p.saldoAwal)) }}</b></div>
-            <div class="fcl-pc-period-actions">
-              <button class="fcl-pc-mini-btn" @click.stop="openPeriodModal(p)"><LucidePencil :size="11" /> Edit</button>
-              <button v-if="isPeriodAktif(p)" class="fcl-pc-mini-btn" @click.stop="closePeriod(p)">
+            <div class="wh-pc-period-saldo">Saldo Awal: <b>{{ fmtRp(toNum(p.saldoAwal)) }}</b></div>
+            <div class="wh-pc-period-actions">
+              <button class="wh-pc-mini-btn" @click.stop="openPeriodModal(p)"><LucidePencil :size="11" /> Edit</button>
+              <button v-if="isPeriodAktif(p)" class="wh-pc-mini-btn" @click.stop="closePeriod(p)">
                 <LucideCircleStop :size="11" /> Tutup
               </button>
-              <button v-else class="fcl-pc-mini-btn fcl-pc-mini-btn-green" @click.stop="reopenPeriod(p)">
+              <button v-else class="wh-pc-mini-btn wh-pc-mini-btn-green" @click.stop="reopenPeriod(p)">
                 <LucideCirclePlay :size="11" /> Buka
               </button>
-              <button class="fcl-pc-mini-btn fcl-pc-mini-btn-red" @click.stop="deletePeriod(p)"><LucideTrash2 :size="11" /> Hapus</button>
+              <button class="wh-pc-mini-btn wh-pc-mini-btn-red" @click.stop="deletePeriod(p)"><LucideTrash2 :size="11" /> Hapus</button>
             </div>
           </div>
-          <div v-if="!filteredPeriods.length" class="fcl-pc-empty-line">
+          <div v-if="!filteredPeriods.length" class="wh-pc-empty-line">
             Tidak ada periode {{ periodFilter === 'Semua' ? '' : periodFilter === 'Aktif' ? 'aktif ' : 'selesai ' }}di filter ini.
           </div>
         </div>
       </div>
 
       <!-- ── Panel Transaksi ── -->
-      <div class="fcl-pc-card fcl-pc-trx-card">
-        <div class="fcl-pc-card-head fcl-pc-trx-head">
-          <div class="fcl-pc-trx-heading">
-            <div class="fcl-pc-card-title">Transaksi: {{ activePeriod?.nama ?? '-' }}</div>
-            <div v-if="activePeriod" class="fcl-pc-trx-sub">
+      <div class="wh-pc-card wh-pc-trx-card">
+        <div class="wh-pc-card-head wh-pc-trx-head">
+          <div class="wh-pc-trx-heading">
+            <div class="wh-pc-card-title">Transaksi: {{ activePeriod?.nama ?? '-' }}</div>
+            <div v-if="activePeriod" class="wh-pc-trx-sub">
               {{ fmtTanggalPendek(activePeriod.tanggalMulai) }} s/d {{ fmtTanggalPendek(activePeriod.tanggalSelesai) }}
               &nbsp;|&nbsp; Saldo Awal: <b>{{ fmtRp(saldoAwal) }}</b>
             </div>
           </div>
-          <div class="fcl-pc-trx-actions">
-            <div class="fcl-pc-search">
+          <div class="wh-pc-trx-actions">
+            <div class="wh-pc-search">
               
-              <input v-model="search" type="text" placeholder="Cari..." class="fcl-pc-search-input" />
+              <input v-model="search" type="text" placeholder="Cari..." class="wh-pc-search-input" />
             </div>
             <button
-              class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-sm"
-              :class="{ 'fcl-pc-btn-toggled': onlyBelum }"
+              class="wh-pc-btn wh-pc-btn-ghost wh-pc-btn-sm"
+              :class="{ 'wh-pc-btn-toggled': onlyBelum }"
               @click="onlyBelum = !onlyBelum"
             >
               {{ onlyBelum ? 'Menampilkan: Belum Bayar' : 'Belum Bayar' }}
             </button>
-            <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-sm" @click="router.push('/fcl/keuangan/pettyCashKategori')"><LucideList :size="13" /> Kategori</button>
-            <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-sm" @click="exportExcel"><LucideDownload :size="13" /> Export</button>
-            <button class="fcl-pc-btn fcl-pc-btn-info fcl-pc-btn-sm" @click="openInvoice"><LucideFilePenLine :size="13" /> Invoice</button>
-            <button class="fcl-pc-btn fcl-pc-btn-teal fcl-pc-btn-sm" @click="printDokumen"><LucideNotebookPen :size="13" /> Dokumen</button>
-            <button class="fcl-pc-btn fcl-pc-btn-orange fcl-pc-btn-sm" @click="printFoto"><LucidePrinter :size="13" /> Foto</button>
+            <button class="wh-pc-btn wh-pc-btn-ghost wh-pc-btn-sm" @click="router.push('/fcl/keuangan/pettyCashKategori')"><LucideList :size="13" /> Kategori</button>
+            <button class="wh-pc-btn wh-pc-btn-ghost wh-pc-btn-sm" @click="exportExcel"><LucideDownload :size="13" /> Export</button>
+            <button class="wh-pc-btn wh-pc-btn-info wh-pc-btn-sm" @click="openInvoice"><LucideFilePenLine :size="13" /> Invoice</button>
+            <button class="wh-pc-btn wh-pc-btn-teal wh-pc-btn-sm" @click="printDokumen"><LucideNotebookPen :size="13" /> Dokumen</button>
+            <button class="wh-pc-btn wh-pc-btn-orange wh-pc-btn-sm" @click="printFoto"><LucidePrinter :size="13" /> Foto</button>
           </div>
         </div>
 
-        <div class="fcl-pc-table-wrap">
-          <table class="fcl-pc-table">
+        <div class="wh-pc-table-wrap">
+          <table class="wh-pc-table">
             <thead>
               <tr>
                 <th class="c-no">NO</th>
@@ -1189,72 +1189,72 @@ onMounted(loadAll);
               <tr v-for="row in txRows" :key="row.id">
                 <td class="c-no">{{ row._no }}</td>
                 <td>
-                  <div class="fcl-pc-tanggal">
+                  <div class="wh-pc-tanggal">
                     <span>{{ fmtTanggalDuaBaris(row.tanggal)[0] }}</span>
-                    <span class="fcl-pc-tanggal-year">{{ fmtTanggalDuaBaris(row.tanggal)[1] }}</span>
+                    <span class="wh-pc-tanggal-year">{{ fmtTanggalDuaBaris(row.tanggal)[1] }}</span>
                   </div>
                 </td>
                 <td>
-                  <span class="fcl-pc-tipe" :class="row._tipe === 'Masuk' ? 'fcl-pc-tipe-in' : 'fcl-pc-tipe-out'">{{ row._tipe }}</span>
+                  <span class="wh-pc-tipe" :class="row._tipe === 'Masuk' ? 'wh-pc-tipe-in' : 'wh-pc-tipe-out'">{{ row._tipe }}</span>
                 </td>
                 <td>
-                  <span class="fcl-pc-kat-chip" :style="{ '--chip': catColor(row.kategori) }">{{ (row.kategori || 'LAINNYA').toUpperCase() }}</span>
+                  <span class="wh-pc-kat-chip" :style="{ '--chip': catColor(row.kategori) }">{{ (row.kategori || 'LAINNYA').toUpperCase() }}</span>
                 </td>
-                <td class="fcl-pc-ket">{{ row.keterangan || '-' }}</td>
+                <td class="wh-pc-ket">{{ row.keterangan || '-' }}</td>
                 <td class="r">
-                  <span class="fcl-pc-nominal" :class="row._tipe === 'Masuk' ? 'fcl-pc-tone-green' : 'fcl-pc-tone-red'">
+                  <span class="wh-pc-nominal" :class="row._tipe === 'Masuk' ? 'wh-pc-tone-green' : 'wh-pc-tone-red'">
                     {{ fmtSignedRp(row._nomSigned) }}
                   </span>
                 </td>
-                <td class="r"><span class="fcl-pc-saldo">{{ fmtRp(row._saldo) }}</span></td>
+                <td class="r"><span class="wh-pc-saldo">{{ fmtRp(row._saldo) }}</span></td>
                 <td class="c">
-                  <span class="fcl-pc-statuspill" :class="row._lunas ? 'fcl-pc-pill-lunas' : 'fcl-pc-pill-belum'">
+                  <span class="wh-pc-statuspill" :class="row._lunas ? 'wh-pc-pill-lunas' : 'wh-pc-pill-belum'">
                     {{ row._lunas ? 'LUNAS' : 'BELUM BAYAR' }}
                   </span>
                 </td>
                 <td>
-                  <div class="fcl-pc-bukti">
+                  <div class="wh-pc-bukti">
                     <template v-if="row.buktiUrl">
-                      <button class="fcl-pc-bukti-link" @click="viewBukti(row)"><LucideEye :size="12" /> Lihat Foto</button>
-                      <button class="fcl-pc-mini-btn" :disabled="isDirectUploading(row)" @click="directUpload(row)">
-                        <span v-if="isDirectUploading(row)" class="fcl-pc-spin"></span>
+                      <button class="wh-pc-bukti-link" @click="viewBukti(row)"><LucideEye :size="12" /> Lihat Foto</button>
+                      <button class="wh-pc-mini-btn" :disabled="isDirectUploading(row)" @click="directUpload(row)">
+                        <span v-if="isDirectUploading(row)" class="wh-pc-spin"></span>
                         {{ isDirectUploading(row) ? 'Mengunggah...' : 'Ganti Foto' }}
                       </button>
-                      <button class="fcl-pc-mini-btn" :disabled="isDirectUploading(row)" @click="openBuktiModal(row)">Link</button>
+                      <button class="wh-pc-mini-btn" :disabled="isDirectUploading(row)" @click="openBuktiModal(row)">Link</button>
                     </template>
-                    <button v-else class="fcl-pc-bukti-upload" :disabled="isDirectUploading(row)" @click="directUpload(row)">
-                      <span v-if="isDirectUploading(row)" class="fcl-pc-spin"></span>
+                    <button v-else class="wh-pc-bukti-upload" :disabled="isDirectUploading(row)" @click="directUpload(row)">
+                      <span v-if="isDirectUploading(row)" class="wh-pc-spin"></span>
                       <LucidePlus v-else :size="12" />
                       {{ isDirectUploading(row) ? 'Mengunggah...' : 'Upload Langsung' }}
                     </button>
                   </div>
                 </td>
-                <td class="fcl-pc-by">{{ row.createdBy || '-' }}</td>
+                <td class="wh-pc-by">{{ row.createdBy || '-' }}</td>
                 <td class="c">
-                  <div class="fcl-pc-aksi">
-                    <button v-if="!row._lunas" class="fcl-pc-btn fcl-pc-btn-orange fcl-pc-btn-xs" @click="markLunas(row)">
+                  <div class="wh-pc-aksi">
+                    <button v-if="!row._lunas" class="wh-pc-btn wh-pc-btn-orange wh-pc-btn-xs" @click="markLunas(row)">
                       <LucideCheck :size="12" /> Selesai Bayar
                     </button>
-                    <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-xs" @click="openPindah(row)"><LucideRefreshCw :size="12" /> Pindah</button>
-                    <button class="fcl-pc-btn fcl-pc-btn-ghost fcl-pc-btn-xs" @click="openTrxModal(row)"><LucidePencil :size="12" /> Edit</button>
-                    <button class="fcl-pc-btn fcl-pc-btn-red fcl-pc-btn-xs" @click="deleteTrx(row)"><LucideTrash2 :size="12" /> Hapus</button>
+                    <button class="wh-pc-btn wh-pc-btn-ghost wh-pc-btn-xs" @click="openPindah(row)"><LucideRefreshCw :size="12" /> Pindah</button>
+                    <button class="wh-pc-btn wh-pc-btn-ghost wh-pc-btn-xs" @click="openTrxModal(row)"><LucidePencil :size="12" /> Edit</button>
+                    <button class="wh-pc-btn wh-pc-btn-red wh-pc-btn-xs" @click="deleteTrx(row)"><LucideTrash2 :size="12" /> Hapus</button>
                   </div>
                 </td>
               </tr>
               <tr v-if="!txRows.length">
-                <td colspan="11" class="fcl-pc-empty-cell">
+                <td colspan="11" class="wh-pc-empty-cell">
                   {{ search || onlyBelum ? 'Tidak ada transaksi cocok dengan filter.' : 'Belum ada transaksi di periode ini — klik “+ Transaksi”.' }}
                 </td>
               </tr>
             </tbody>
             <tfoot>
-              <tr class="fcl-pc-total-row">
+              <tr class="wh-pc-total-row">
                 <td colspan="5" class="r">TOTAL</td>
                 <td class="r">
-                  <div class="fcl-pc-foot-line fcl-pc-tone-red">OUT: {{ fmtRp(totalOut) }}</div>
-                  <div class="fcl-pc-foot-line fcl-pc-tone-green">IN: {{ fmtRp(totalIn) }}</div>
+                  <div class="wh-pc-foot-line wh-pc-tone-red">OUT: {{ fmtRp(totalOut) }}</div>
+                  <div class="wh-pc-foot-line wh-pc-tone-green">IN: {{ fmtRp(totalIn) }}</div>
                 </td>
-                <td class="r" colspan="4"><span class="fcl-pc-foot-sisa">Sisa: {{ fmtRp(sisaSaldo) }}</span></td>
+                <td class="r" colspan="4"><span class="wh-pc-foot-sisa">Sisa: {{ fmtRp(sisaSaldo) }}</span></td>
                 <td></td>
               </tr>
             </tfoot>
@@ -1273,19 +1273,19 @@ onMounted(loadAll);
       width="520px"
       @ok="savePeriod"
     >
-      <a-form layout="vertical" class="fcl-pc-form">
+      <a-form layout="vertical" class="wh-pc-form">
         <a-form-item label="Nama Periode *" required>
           <a-input v-model:value="periodForm.nama" placeholder="Contoh: 16 November–22 November 2026" />
         </a-form-item>
-        <div class="fcl-pc-form-row">
+        <div class="wh-pc-form-row">
           <a-form-item label="Tanggal Mulai">
-            <input v-model="periodForm.tanggalMulai" type="date" class="fcl-pc-input" />
+            <input v-model="periodForm.tanggalMulai" type="date" class="wh-pc-input" />
           </a-form-item>
           <a-form-item label="Tanggal Selesai">
-            <input v-model="periodForm.tanggalSelesai" type="date" class="fcl-pc-input" />
+            <input v-model="periodForm.tanggalSelesai" type="date" class="wh-pc-input" />
           </a-form-item>
         </div>
-        <div class="fcl-pc-form-row">
+        <div class="wh-pc-form-row">
           <a-form-item label="Saldo Awal (Rp) *" required>
             <a-input-number v-model:value="periodForm.saldoAwal" :min="0" :precision="0" style="width: 100%" placeholder="15000000" />
           </a-form-item>
@@ -1309,8 +1309,8 @@ onMounted(loadAll);
       width="560px"
       @ok="saveTrx"
     >
-      <a-form layout="vertical" class="fcl-pc-form">
-        <div class="fcl-pc-form-row">
+      <a-form layout="vertical" class="wh-pc-form">
+        <div class="wh-pc-form-row">
           <a-form-item label="Tanggal *" required>
             <a-date-picker v-model:value="trxTanggalModel" value-format="YYYY-MM-DD" style="width: 100%" />
           </a-form-item>
@@ -1322,7 +1322,7 @@ onMounted(loadAll);
             />
           </a-form-item>
         </div>
-        <div class="fcl-pc-form-row">
+        <div class="wh-pc-form-row">
           <a-form-item label="Tipe *" required>
             <a-select v-model:value="trxForm.tipe" :options="[{ label: 'Keluar (uang keluar)', value: 'Keluar' }, { label: 'Masuk (uang masuk)', value: 'Masuk' }]" />
           </a-form-item>
@@ -1368,19 +1368,19 @@ onMounted(loadAll);
       width="520px"
       @ok="saveBukti"
     >
-      <div class="fcl-pc-bukti-tabs">
+      <div class="wh-pc-bukti-tabs">
         <button :class="{ 'active': buktiMode === 'link' }" @click="buktiMode = 'link'">Link Google Drive</button>
         <button :class="{ 'active': buktiMode === 'upload' }" @click="buktiMode = 'upload'">Upload Langsung</button>
       </div>
       <template v-if="buktiMode === 'link'">
-        <p class="fcl-pc-bukti-hint">Masukkan link foto/struk dari Google Drive (kosongkan untuk menghapus).</p>
+        <p class="wh-pc-bukti-hint">Masukkan link foto/struk dari Google Drive (kosongkan untuk menghapus).</p>
         <a-input v-model:value="buktiInput" placeholder="https://drive.google.com/..." allow-clear />
       </template>
       <template v-else>
-        <p class="fcl-pc-bukti-hint">Pilih foto/struk dari perangkat (maks. 12 MB). File langsung tersimpan ke folder Google Drive sesuai nama periode ini.</p>
-        <input type="file" accept="image/*,application/pdf" class="fcl-pc-file" @change="pickBuktiFile" />
-        <div v-if="buktiPreview" class="fcl-pc-bukti-preview"><img :src="buktiPreview" alt="Pratinjau bukti" /></div>
-        <p v-if="buktiTarget?.buktiUrl && !buktiFile" class="fcl-pc-bukti-hint">Biarkan kosong untuk menggunakan file yang sudah tersimpan.</p>
+        <p class="wh-pc-bukti-hint">Pilih foto/struk dari perangkat (maks. 12 MB). File langsung tersimpan ke folder Google Drive sesuai nama periode ini.</p>
+        <input type="file" accept="image/*,application/pdf" class="wh-pc-file" @change="pickBuktiFile" />
+        <div v-if="buktiPreview" class="wh-pc-bukti-preview"><img :src="buktiPreview" alt="Pratinjau bukti" /></div>
+        <p v-if="buktiTarget?.buktiUrl && !buktiFile" class="wh-pc-bukti-hint">Biarkan kosong untuk menggunakan file yang sudah tersimpan.</p>
       </template>
     </a-modal>
 
@@ -1394,7 +1394,7 @@ onMounted(loadAll);
       width="460px"
       @ok="savePindah"
     >
-      <p class="fcl-pc-bukti-hint">
+      <p class="wh-pc-bukti-hint">
         Transaksi: <b>{{ pindahTarget?.keterangan || pindahTarget?.kategori || '-' }}</b>
         &nbsp;•&nbsp; {{ fmtRp(toNum(pindahTarget?.nominal)) }}
       </p>
@@ -1406,7 +1406,7 @@ onMounted(loadAll);
         show-search
         option-filter-prop="label"
       />
-      <p class="fcl-pc-bukti-hint">Saldo periode akan dihitung ulang otomatis setelah transaksi dipindahkan.</p>
+      <p class="wh-pc-bukti-hint">Saldo periode akan dihitung ulang otomatis setelah transaksi dipindahkan.</p>
     </a-modal>
 
     <!-- ══════════ Modal: Pratinjau Foto Bukti (inline) ══════════ -->
@@ -1417,23 +1417,23 @@ onMounted(loadAll);
       width="760px"
       centered
     >
-      <div class="fcl-pc-viewbukti">
+      <div class="wh-pc-viewbukti">
         <template v-if="!viewBuktiFailed">
           <img
             v-if="!viewBuktiIsPdf"
             :src="viewBuktiSrc"
             alt="Foto bukti transaksi"
-            class="fcl-pc-viewbukti-img"
+            class="wh-pc-viewbukti-img"
             @error="onViewBuktiError"
           />
           <iframe
             v-else
             :src="viewBuktiSrc"
-            class="fcl-pc-viewbukti-frame"
+            class="wh-pc-viewbukti-frame"
             title="Dokumen bukti transaksi"
           ></iframe>
         </template>
-        <div v-else class="fcl-pc-viewbukti-error">
+        <div v-else class="wh-pc-viewbukti-error">
           <LucideInbox :size="28" />
           <p>Foto tidak dapat ditampilkan langsung. Tautan asli tetap bisa dibuka jika diperlukan.</p>
           <a :href="viewBuktiOriginal" target="_blank" rel="noopener">Buka tautan asli ↗</a>
@@ -1450,27 +1450,27 @@ onMounted(loadAll);
       width="620px"
       @ok="generateInvoice"
     >
-      <a-form layout="vertical" class="fcl-pc-form">
+      <a-form layout="vertical" class="wh-pc-form">
         <a-form-item label="Judul Invoice">
           <a-input v-model:value="invoiceTitle" />
         </a-form-item>
         <a-form-item label="Catatan (opsional)">
           <a-input v-model:value="invoiceNotes" placeholder="Catatan untuk invoice" />
         </a-form-item>
-        <div class="fcl-pc-invoice-sel-row">
-          <span class="fcl-pc-invoice-sel-count">{{ invoiceTxs.length }} transaksi dipilih</span>
+        <div class="wh-pc-invoice-sel-row">
+          <span class="wh-pc-invoice-sel-count">{{ invoiceTxs.length }} transaksi dipilih</span>
           <div>
             <a-button size="small" @click="toggleInvoiceAll(true)">Pilih Semua</a-button>
             <a-button size="small" style="margin-left: 6px" @click="toggleInvoiceAll(false)">Kosongkan</a-button>
           </div>
         </div>
-        <div class="fcl-pc-invoice-list">
-          <label v-for="t in periodTxs" :key="t.id" class="fcl-pc-invoice-item">
+        <div class="wh-pc-invoice-list">
+          <label v-for="t in periodTxs" :key="t.id" class="wh-pc-invoice-item">
             <input type="checkbox" :checked="invoiceSelected.has(String(t.id))" @change="toggleInvoiceTx(String(t.id))" />
-            <span class="fcl-pc-invoice-item-body">
-              <span class="fcl-pc-invoice-item-title">{{ (t.tanggal ?? '').slice(0, 10) }} · {{ t.kategori }}</span>
-              <span class="fcl-pc-invoice-item-ket">{{ t.keterangan }}</span>
-              <span class="fcl-pc-invoice-item-nom">Rp {{ toNum(t.nominal).toLocaleString('id-ID') }}</span>
+            <span class="wh-pc-invoice-item-body">
+              <span class="wh-pc-invoice-item-title">{{ (t.tanggal ?? '').slice(0, 10) }} · {{ t.kategori }}</span>
+              <span class="wh-pc-invoice-item-ket">{{ t.keterangan }}</span>
+              <span class="wh-pc-invoice-item-nom">Rp {{ toNum(t.nominal).toLocaleString('id-ID') }}</span>
             </span>
           </label>
         </div>
@@ -1482,7 +1482,7 @@ onMounted(loadAll);
 <style scoped>
 /* Petty Cash — memakai token tema vben (hsl(var(--...))) supaya otomatis
    mengikuti tema terang/gelap aplikasi. Tanpa warna hard-coded. */
-.fcl-pc {
+.wh-pc {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1491,7 +1491,7 @@ onMounted(loadAll);
 }
 
 /* ── Hero (belum ada periode) ── */
-.fcl-pc-hero {
+.wh-pc-hero {
   background: hsl(var(--card));
   border: 1px dashed hsl(var(--border));
   border-radius: 10px;
@@ -1499,44 +1499,44 @@ onMounted(loadAll);
   text-align: center;
   color: hsl(var(--foreground));
 }
-.fcl-pc-hero-icon { color: hsl(var(--success)); display: flex; justify-content: center; margin-bottom: 12px; }
-.fcl-pc-hero-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
-.fcl-pc-hero-desc { color: hsl(var(--muted-foreground)); max-width: 520px; margin: 0 auto 18px; line-height: 1.7; }
+.wh-pc-hero-icon { color: hsl(var(--success)); display: flex; justify-content: center; margin-bottom: 12px; }
+.wh-pc-hero-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+.wh-pc-hero-desc { color: hsl(var(--muted-foreground)); max-width: 520px; margin: 0 auto 18px; line-height: 1.7; }
 
 /* ── Bar statistik ── */
-.fcl-pc-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.fcl-pc-stat {
+.wh-pc-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.wh-pc-stat {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-top: 3px solid hsl(var(--muted-foreground));
   border-radius: 8px;
   padding: 12px 14px;
 }
-.fcl-pc-stat-green { border-top-color: hsl(var(--success)); }
-.fcl-pc-stat-red { border-top-color: hsl(var(--destructive)); }
-.fcl-pc-stat-teal { border-top-color: hsl(var(--success)); }
-.fcl-pc-stat-amber { border-top-color: hsl(var(--warning)); }
-.fcl-pc-stat-label {
+.wh-pc-stat-green { border-top-color: hsl(var(--success)); }
+.wh-pc-stat-red { border-top-color: hsl(var(--destructive)); }
+.wh-pc-stat-teal { border-top-color: hsl(var(--success)); }
+.wh-pc-stat-amber { border-top-color: hsl(var(--warning)); }
+.wh-pc-stat-label {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: hsl(var(--muted-foreground));
   margin-bottom: 4px;
 }
-.fcl-pc-stat-value { font-size: 20px; font-weight: 800; color: hsl(var(--foreground)); }
-.fcl-pc-tone-green { color: hsl(var(--success)) !important; }
-.fcl-pc-tone-red { color: hsl(var(--destructive)) !important; }
-.fcl-pc-tone-teal { color: hsl(var(--success)) !important; }
-.fcl-pc-tone-amber { color: hsl(var(--warning)) !important; }
+.wh-pc-stat-value { font-size: 20px; font-weight: 800; color: hsl(var(--foreground)); }
+.wh-pc-tone-green { color: hsl(var(--success)) !important; }
+.wh-pc-tone-red { color: hsl(var(--destructive)) !important; }
+.wh-pc-tone-teal { color: hsl(var(--success)) !important; }
+.wh-pc-tone-amber { color: hsl(var(--warning)) !important; }
 
 /* ── Kartu / panel ── */
-.fcl-pc-card {
+.wh-pc-card {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
   padding: 12px;
 }
-.fcl-pc-card-head {
+.wh-pc-card-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -1544,11 +1544,11 @@ onMounted(loadAll);
   flex-wrap: wrap;
   padding: 0 0 10px;
 }
-.fcl-pc-card-title { font-size: 14px; font-weight: 800; color: hsl(var(--foreground)); }
-.fcl-pc-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.wh-pc-card-title { font-size: 14px; font-weight: 800; color: hsl(var(--foreground)); }
+.wh-pc-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
 /* ── Tombol ── */
-.fcl-pc-btn {
+.wh-pc-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1564,21 +1564,21 @@ onMounted(loadAll);
   white-space: nowrap;
   transition: filter 0.15s ease;
 }
-.fcl-pc-btn:hover { filter: brightness(0.96); }
-.fcl-pc-btn-lg { font-size: 14px; padding: 10px 20px; }
-.fcl-pc-btn-sm { padding: 4px 10px; font-size: 11px; }
-.fcl-pc-btn-xs { padding: 3px 8px; font-size: 11px; }
-.fcl-pc-btn-primary,
-.fcl-pc-btn-info,
-.fcl-pc-btn-orange { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
-.fcl-pc-btn-ghost { background: hsl(var(--muted)); border-color: hsl(var(--border)); }
-.fcl-pc-btn-teal { background: hsl(var(--success)); border-color: hsl(var(--success)); color: hsl(var(--success-foreground)); }
-.fcl-pc-btn-red { background: hsl(var(--destructive)); border-color: hsl(var(--destructive)); color: hsl(var(--destructive-foreground)); }
-.fcl-pc-btn-toggled { background: hsl(var(--warning) / 0.18); border-color: hsl(var(--warning)); color: hsl(var(--warning)); }
+.wh-pc-btn:hover { filter: brightness(0.96); }
+.wh-pc-btn-lg { font-size: 14px; padding: 10px 20px; }
+.wh-pc-btn-sm { padding: 4px 10px; font-size: 11px; }
+.wh-pc-btn-xs { padding: 3px 8px; font-size: 11px; }
+.wh-pc-btn-primary,
+.wh-pc-btn-info,
+.wh-pc-btn-orange { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.wh-pc-btn-ghost { background: hsl(var(--muted)); border-color: hsl(var(--border)); }
+.wh-pc-btn-teal { background: hsl(var(--success)); border-color: hsl(var(--success)); color: hsl(var(--success-foreground)); }
+.wh-pc-btn-red { background: hsl(var(--destructive)); border-color: hsl(var(--destructive)); color: hsl(var(--destructive-foreground)); }
+.wh-pc-btn-toggled { background: hsl(var(--warning) / 0.18); border-color: hsl(var(--warning)); color: hsl(var(--warning)); }
 
 /* ── Tab filter ── */
-.fcl-pc-tabs { display: flex; gap: 4px; padding: 0 0 10px; }
-.fcl-pc-tab {
+.wh-pc-tabs { display: flex; gap: 4px; padding: 0 0 10px; }
+.wh-pc-tab {
   border: 1px solid transparent;
   background: hsl(var(--muted));
   color: hsl(var(--muted-foreground));
@@ -1588,12 +1588,12 @@ onMounted(loadAll);
   border-radius: 6px;
   cursor: pointer;
 }
-.fcl-pc-tab:hover { color: hsl(var(--foreground)); }
-.fcl-pc-tab-active { background: hsl(var(--primary) / 0.12); border-color: hsl(var(--primary) / 0.4); color: hsl(var(--primary)); }
+.wh-pc-tab:hover { color: hsl(var(--foreground)); }
+.wh-pc-tab-active { background: hsl(var(--primary) / 0.12); border-color: hsl(var(--primary) / 0.4); color: hsl(var(--primary)); }
 
 /* ── Kartu periode ── */
-.fcl-pc-period-list { display: flex; flex-wrap: wrap; gap: 10px; }
-.fcl-pc-period-card {
+.wh-pc-period-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.wh-pc-period-card {
   flex: 1 1 230px;
   min-width: 220px;
   max-width: 300px;
@@ -1603,19 +1603,19 @@ onMounted(loadAll);
   padding: 10px 12px;
   cursor: pointer;
 }
-.fcl-pc-period-card:hover { border-color: hsl(var(--primary) / 0.5); }
-.fcl-pc-period-card-active { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.06); }
-.fcl-pc-period-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-.fcl-pc-period-nama { font-size: 12px; font-weight: 800; color: hsl(var(--foreground)); line-height: 1.4; }
-.fcl-pc-period-card-active .fcl-pc-period-nama { color: hsl(var(--primary)); }
-.fcl-pc-period-date { font-size: 11px; color: hsl(var(--muted-foreground)); margin-top: 4px; }
-.fcl-pc-period-saldo { font-size: 11px; color: hsl(var(--muted-foreground)); margin-top: 2px; }
-.fcl-pc-period-saldo b { color: hsl(var(--success)); }
-.fcl-pc-period-actions { display: flex; gap: 5px; margin-top: 10px; }
-.fcl-pc-badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
-.fcl-pc-badge-green { color: hsl(var(--success)); background: hsl(var(--success) / 0.14); }
-.fcl-pc-badge-gray { color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); }
-.fcl-pc-mini-btn {
+.wh-pc-period-card:hover { border-color: hsl(var(--primary) / 0.5); }
+.wh-pc-period-card-active { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.06); }
+.wh-pc-period-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.wh-pc-period-nama { font-size: 12px; font-weight: 800; color: hsl(var(--foreground)); line-height: 1.4; }
+.wh-pc-period-card-active .wh-pc-period-nama { color: hsl(var(--primary)); }
+.wh-pc-period-date { font-size: 11px; color: hsl(var(--muted-foreground)); margin-top: 4px; }
+.wh-pc-period-saldo { font-size: 11px; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+.wh-pc-period-saldo b { color: hsl(var(--success)); }
+.wh-pc-period-actions { display: flex; gap: 5px; margin-top: 10px; }
+.wh-pc-badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.wh-pc-badge-green { color: hsl(var(--success)); background: hsl(var(--success) / 0.14); }
+.wh-pc-badge-gray { color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); }
+.wh-pc-mini-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -1628,18 +1628,18 @@ onMounted(loadAll);
   color: hsl(var(--foreground));
   cursor: pointer;
 }
-.fcl-pc-mini-btn:hover { filter: brightness(0.96); }
-.fcl-pc-mini-btn-red { border-color: hsl(var(--destructive) / 0.5); color: hsl(var(--destructive)); }
-.fcl-pc-mini-btn-green { border-color: hsl(var(--success) / 0.5); color: hsl(var(--success)); }
-.fcl-pc-empty-line { color: hsl(var(--muted-foreground)); font-size: 12px; padding: 10px 0; }
+.wh-pc-mini-btn:hover { filter: brightness(0.96); }
+.wh-pc-mini-btn-red { border-color: hsl(var(--destructive) / 0.5); color: hsl(var(--destructive)); }
+.wh-pc-mini-btn-green { border-color: hsl(var(--success) / 0.5); color: hsl(var(--success)); }
+.wh-pc-empty-line { color: hsl(var(--muted-foreground)); font-size: 12px; padding: 10px 0; }
 
 /* ── Panel transaksi ── */
-.fcl-pc-trx-head { align-items: flex-start; }
-.fcl-pc-trx-heading { display: flex; flex-direction: column; gap: 2px; }
-.fcl-pc-trx-sub { font-size: 11px; color: hsl(var(--muted-foreground)); }
-.fcl-pc-trx-sub b { color: hsl(var(--success)); }
-.fcl-pc-trx-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.fcl-pc-search-input {
+.wh-pc-trx-head { align-items: flex-start; }
+.wh-pc-trx-heading { display: flex; flex-direction: column; gap: 2px; }
+.wh-pc-trx-sub { font-size: 11px; color: hsl(var(--muted-foreground)); }
+.wh-pc-trx-sub b { color: hsl(var(--success)); }
+.wh-pc-trx-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.wh-pc-search-input {
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: 6px;
@@ -1650,12 +1650,12 @@ onMounted(loadAll);
   width: 160px;
   outline: none;
 }
-.fcl-pc-search-input:focus { border-color: hsl(var(--primary)); }
+.wh-pc-search-input:focus { border-color: hsl(var(--primary)); }
 
 /* ── Tabel (header mengikuti tema, tidak hitam) ── */
-.fcl-pc-table-wrap { overflow-x: auto; border-top: 1px solid hsl(var(--border)); }
-.fcl-pc-table { width: 100%; min-width: 1060px; border-collapse: collapse; font-size: 12px; }
-.fcl-pc-table th {
+.wh-pc-table-wrap { overflow-x: auto; border-top: 1px solid hsl(var(--border)); }
+.wh-pc-table { width: 100%; min-width: 1060px; border-collapse: collapse; font-size: 12px; }
+.wh-pc-table th {
   background: hsl(var(--muted));
   color: hsl(var(--muted-foreground));
   font-size: 11px;
@@ -1666,24 +1666,24 @@ onMounted(loadAll);
   border-bottom: 1px solid hsl(var(--border));
   white-space: nowrap;
 }
-.fcl-pc-table th.r, .fcl-pc-table td.r { text-align: right; }
-.fcl-pc-table th.c, .fcl-pc-table td.c { text-align: center; }
-.fcl-pc-table th.c-no, .fcl-pc-table td.c-no { width: 36px; text-align: center; color: hsl(var(--muted-foreground)); }
-.fcl-pc-table td {
+.wh-pc-table th.r, .wh-pc-table td.r { text-align: right; }
+.wh-pc-table th.c, .wh-pc-table td.c { text-align: center; }
+.wh-pc-table th.c-no, .wh-pc-table td.c-no { width: 36px; text-align: center; color: hsl(var(--muted-foreground)); }
+.wh-pc-table td {
   padding: 7px 8px;
   border-bottom: 1px solid hsl(var(--border));
   vertical-align: middle;
   white-space: nowrap;
   color: hsl(var(--foreground));
 }
-.fcl-pc-table tbody tr:nth-child(even) { background: hsl(var(--muted) / 0.45); }
-.fcl-pc-table tbody tr:hover { background: hsl(var(--accent)); }
-.fcl-pc-tanggal { display: flex; flex-direction: column; line-height: 1.25; font-weight: 700; }
-.fcl-pc-tanggal-year { color: hsl(var(--muted-foreground)); font-weight: 500; font-size: 10px; }
-.fcl-pc-tipe { font-weight: 800; }
-.fcl-pc-tipe-out { color: hsl(var(--destructive)); }
-.fcl-pc-tipe-in { color: hsl(var(--success)); }
-.fcl-pc-kat-chip {
+.wh-pc-table tbody tr:nth-child(even) { background: hsl(var(--muted) / 0.45); }
+.wh-pc-table tbody tr:hover { background: hsl(var(--accent)); }
+.wh-pc-tanggal { display: flex; flex-direction: column; line-height: 1.25; font-weight: 700; }
+.wh-pc-tanggal-year { color: hsl(var(--muted-foreground)); font-weight: 500; font-size: 10px; }
+.wh-pc-tipe { font-weight: 800; }
+.wh-pc-tipe-out { color: hsl(var(--destructive)); }
+.wh-pc-tipe-in { color: hsl(var(--success)); }
+.wh-pc-kat-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1695,36 +1695,36 @@ onMounted(loadAll);
   padding: 3px 8px;
   color: hsl(var(--foreground));
 }
-.fcl-pc-kat-chip::before { content: ''; width: 6px; height: 6px; border-radius: 99px; background: var(--chip, hsl(var(--primary))); }
-.fcl-pc-ket { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
-.fcl-pc-nominal { font-weight: 800; }
-.fcl-pc-saldo { color: hsl(var(--success)); font-weight: 700; }
-.fcl-pc-statuspill { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; padding: 3px 10px; border-radius: 5px; white-space: nowrap; }
-.fcl-pc-pill-belum { background: hsl(var(--warning) / 0.14); color: hsl(var(--warning)); border: 1px solid hsl(var(--warning) / 0.4); }
-.fcl-pc-pill-lunas { background: hsl(var(--success) / 0.14); color: hsl(var(--success)); border: 1px solid hsl(var(--success) / 0.4); }
-.fcl-pc-bukti { display: flex; align-items: center; gap: 6px; }
-.fcl-pc-bukti-link { display: inline-flex; align-items: center; gap: 5px; color: hsl(var(--primary)); font-size: 11px; font-weight: 700; background: none; border: none; cursor: pointer; padding: 0; }
-.fcl-pc-bukti-upload { display: inline-flex; align-items: center; gap: 5px; border: 1px dashed hsl(var(--border)); background: transparent; color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 700; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
-.fcl-pc-bukti-upload:hover { color: hsl(var(--foreground)); border-color: hsl(var(--primary)); }
-.fcl-pc-bukti-hint { color: hsl(var(--muted-foreground)); font-size: 12px; margin-bottom: 10px; }
-.fcl-pc-viewbukti { display: flex; align-items: center; justify-content: center; min-height: 220px; background: hsl(var(--muted)); border: 1px solid hsl(var(--border)); border-radius: 8px; overflow: hidden; }
-.fcl-pc-viewbukti-img { display: block; max-width: 100%; max-height: 65vh; width: auto; height: auto; object-fit: contain; }
-.fcl-pc-viewbukti-frame { display: block; width: 100%; height: 65vh; border: 0; }
-.fcl-pc-viewbukti-error { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 32px 20px; text-align: center; color: hsl(var(--muted-foreground)); font-size: 13px; }
-.fcl-pc-viewbukti-error a { color: hsl(var(--primary)); font-weight: 700; }
-.fcl-pc-by { color: hsl(var(--muted-foreground)); max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
-.fcl-pc-aksi { display: flex; gap: 4px; align-items: center; justify-content: center; }
-.fcl-pc-empty-cell { text-align: center; color: hsl(var(--muted-foreground)); padding: 22px 8px; }
+.wh-pc-kat-chip::before { content: ''; width: 6px; height: 6px; border-radius: 99px; background: var(--chip, hsl(var(--primary))); }
+.wh-pc-ket { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+.wh-pc-nominal { font-weight: 800; }
+.wh-pc-saldo { color: hsl(var(--success)); font-weight: 700; }
+.wh-pc-statuspill { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; padding: 3px 10px; border-radius: 5px; white-space: nowrap; }
+.wh-pc-pill-belum { background: hsl(var(--warning) / 0.14); color: hsl(var(--warning)); border: 1px solid hsl(var(--warning) / 0.4); }
+.wh-pc-pill-lunas { background: hsl(var(--success) / 0.14); color: hsl(var(--success)); border: 1px solid hsl(var(--success) / 0.4); }
+.wh-pc-bukti { display: flex; align-items: center; gap: 6px; }
+.wh-pc-bukti-link { display: inline-flex; align-items: center; gap: 5px; color: hsl(var(--primary)); font-size: 11px; font-weight: 700; background: none; border: none; cursor: pointer; padding: 0; }
+.wh-pc-bukti-upload { display: inline-flex; align-items: center; gap: 5px; border: 1px dashed hsl(var(--border)); background: transparent; color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 700; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.wh-pc-bukti-upload:hover { color: hsl(var(--foreground)); border-color: hsl(var(--primary)); }
+.wh-pc-bukti-hint { color: hsl(var(--muted-foreground)); font-size: 12px; margin-bottom: 10px; }
+.wh-pc-viewbukti { display: flex; align-items: center; justify-content: center; min-height: 220px; background: hsl(var(--muted)); border: 1px solid hsl(var(--border)); border-radius: 8px; overflow: hidden; }
+.wh-pc-viewbukti-img { display: block; max-width: 100%; max-height: 65vh; width: auto; height: auto; object-fit: contain; }
+.wh-pc-viewbukti-frame { display: block; width: 100%; height: 65vh; border: 0; }
+.wh-pc-viewbukti-error { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 32px 20px; text-align: center; color: hsl(var(--muted-foreground)); font-size: 13px; }
+.wh-pc-viewbukti-error a { color: hsl(var(--primary)); font-weight: 700; }
+.wh-pc-by { color: hsl(var(--muted-foreground)); max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+.wh-pc-aksi { display: flex; gap: 4px; align-items: center; justify-content: center; }
+.wh-pc-empty-cell { text-align: center; color: hsl(var(--muted-foreground)); padding: 22px 8px; }
 
 /* ── Footer ── */
-.fcl-pc-total-row td { background: hsl(var(--muted)); border-top: 1px solid hsl(var(--border)); padding: 8px; }
-.fcl-pc-foot-line { font-size: 11px; font-weight: 800; line-height: 1.5; }
-.fcl-pc-foot-sisa { font-size: 11px; font-weight: 800; color: hsl(var(--warning)); }
+.wh-pc-total-row td { background: hsl(var(--muted)); border-top: 1px solid hsl(var(--border)); padding: 8px; }
+.wh-pc-foot-line { font-size: 11px; font-weight: 800; line-height: 1.5; }
+.wh-pc-foot-sisa { font-size: 11px; font-weight: 800; color: hsl(var(--warning)); }
 
 /* ── Form & invoice ── */
-.fcl-pc-form { padding-top: 6px; }
-.fcl-pc-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.fcl-pc-input {
+.wh-pc-form { padding-top: 6px; }
+.wh-pc-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.wh-pc-input {
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   color: hsl(var(--foreground));
@@ -1735,31 +1735,31 @@ onMounted(loadAll);
   width: 100%;
   outline: none;
 }
-.fcl-pc-input:focus { border-color: hsl(var(--primary)); }
-.fcl-pc-invoice-sel-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.fcl-pc-invoice-sel-count { font-size: 11px; color: hsl(var(--muted-foreground)); }
-.fcl-pc-invoice-list { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-.fcl-pc-invoice-item { display: flex; gap: 8px; align-items: flex-start; background: hsl(var(--muted)); border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
-.fcl-pc-invoice-item input { margin-top: 3px; }
-.fcl-pc-invoice-item-body { display: flex; flex-direction: column; }
-.fcl-pc-invoice-item-title { font-weight: 700; font-size: 12px; }
-.fcl-pc-invoice-item-ket { color: hsl(var(--muted-foreground)); font-size: 11px; }
-.fcl-pc-invoice-item-nom { font-size: 11px; margin-top: 2px; }
+.wh-pc-input:focus { border-color: hsl(var(--primary)); }
+.wh-pc-invoice-sel-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.wh-pc-invoice-sel-count { font-size: 11px; color: hsl(var(--muted-foreground)); }
+.wh-pc-invoice-list { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.wh-pc-invoice-item { display: flex; gap: 8px; align-items: flex-start; background: hsl(var(--muted)); border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+.wh-pc-invoice-item input { margin-top: 3px; }
+.wh-pc-invoice-item-body { display: flex; flex-direction: column; }
+.wh-pc-invoice-item-title { font-weight: 700; font-size: 12px; }
+.wh-pc-invoice-item-ket { color: hsl(var(--muted-foreground)); font-size: 11px; }
+.wh-pc-invoice-item-nom { font-size: 11px; margin-top: 2px; }
 
 @media (max-width: 1100px) {
-  .fcl-pc-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .fcl-pc-period-card { flex: 1 1 200px; }
+  .wh-pc-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wh-pc-period-card { flex: 1 1 200px; }
 }
 
-.fcl-pc-bukti-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
-.fcl-pc-bukti-tabs button { border: 1px solid hsl(var(--border)); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
-.fcl-pc-bukti-tabs button.active { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
-.fcl-pc-file { font-size: 11px; width: 100%; color: hsl(var(--muted-foreground)); }
-.fcl-pc-bukti-preview { margin-top: 10px; max-height: 240px; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 6px; }
-.fcl-pc-bukti-preview img { max-width: 100%; max-height: 240px; object-fit: contain; display: block; }
-.fcl-pc-spin { display: inline-block; width: 11px; height: 11px; flex: 0 0 auto; border: 2px solid hsl(var(--border)); border-top-color: hsl(var(--primary)); border-radius: 50%; animation: fcl-pc-spin 0.7s linear infinite; }
-@keyframes fcl-pc-spin { to { transform: rotate(360deg); } }
-.fcl-pc-upload-status { position: fixed; right: 22px; bottom: 22px; z-index: 2000; display: flex; align-items: center; gap: 9px; padding: 9px 15px; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--popover)); color: hsl(var(--popover-foreground)); box-shadow: 0 6px 20px rgba(0,0,0,.18); font-size: 12px; font-weight: 700; }
-.fcl-pc-upload-status .fcl-pc-spin { width: 14px; height: 14px; }
+.wh-pc-bukti-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.wh-pc-bukti-tabs button { border: 1px solid hsl(var(--border)); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+.wh-pc-bukti-tabs button.active { background: hsl(var(--primary)); border-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.wh-pc-file { font-size: 11px; width: 100%; color: hsl(var(--muted-foreground)); }
+.wh-pc-bukti-preview { margin-top: 10px; max-height: 240px; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 6px; }
+.wh-pc-bukti-preview img { max-width: 100%; max-height: 240px; object-fit: contain; display: block; }
+.wh-pc-spin { display: inline-block; width: 11px; height: 11px; flex: 0 0 auto; border: 2px solid hsl(var(--border)); border-top-color: hsl(var(--primary)); border-radius: 50%; animation: wh-pc-spin 0.7s linear infinite; }
+@keyframes wh-pc-spin { to { transform: rotate(360deg); } }
+.wh-pc-upload-status { position: fixed; right: 22px; bottom: 22px; z-index: 2000; display: flex; align-items: center; gap: 9px; padding: 9px 15px; border: 1px solid hsl(var(--border)); border-radius: 8px; background: hsl(var(--popover)); color: hsl(var(--popover-foreground)); box-shadow: 0 6px 20px rgba(0,0,0,.18); font-size: 12px; font-weight: 700; }
+.wh-pc-upload-status .wh-pc-spin { width: 14px; height: 14px; }
 button:disabled { opacity: 0.65; cursor: not-allowed; }
 </style>

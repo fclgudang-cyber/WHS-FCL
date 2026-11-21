@@ -17,10 +17,10 @@ import (
 //go:embed warehouse3d_schema.sql
 var h3dSchemaSQL string
 
-//go:embed fcl_bootstrap_schema.sql
+//go:embed warehouse_bootstrap_schema.sql
 var fclBootstrapSQL string
 
-//go:embed fcl_access_permissions.sql
+//go:embed warehouse_access_permissions.sql
 var fclAccessSQL string
 
 // h3dApplySchema menerapkan schema secara idempoten saat service start.

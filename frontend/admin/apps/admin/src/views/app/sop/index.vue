@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import FclCrud from '#/components/fcl/fcl-crud.vue';
+import FclCrud from '#/components/warehouse/warehouse-crud.vue';
 
 const columns: any[] = [
   { key: 'judul', title: 'Judul', ellipsis: true },

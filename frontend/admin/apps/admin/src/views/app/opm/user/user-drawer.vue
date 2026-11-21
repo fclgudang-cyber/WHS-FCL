@@ -17,7 +17,7 @@ import {
   type identityservicev1_Position as Position,
   userStatusList,
 } from '#/api';
-import { fclQuery } from '#/api/fcl';
+import { fclQuery } from '#/api/warehouse';
 import { useUserViewStore } from '#/views/app/opm/user/user-view.state';
 
 const userViewStore = useUserViewStore();

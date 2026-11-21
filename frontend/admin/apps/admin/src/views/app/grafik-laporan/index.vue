@@ -9,8 +9,8 @@ import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 import { Card, DatePicker, Table, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { fclQuery } from '#/api/fcl';
-import { matchRosterDivisiKeyword, ROSTER_DIVISI_KEYS } from '#/utils/fcl-roster';
+import { fclQuery } from '#/api/warehouse';
+import { matchRosterDivisiKeyword, ROSTER_DIVISI_KEYS } from '#/utils/warehouse-roster';
 
 const chartRef = shallowRef<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
@@ -65,7 +65,7 @@ async function load() {
     });
     rows.value = Object.values(map).sort((a, b) => b.total - a.total);
   } catch (err: any) {
-    console.error('[fcl/grafik-laporan] load gagal', err);
+    console.error('[warehouse/grafik-laporan] load gagal', err);
     notification.error({ message: 'Grafik Laporan', description: String(err?.message || err) });
   } finally {
     loading.value = false;
@@ -104,7 +104,7 @@ onMounted(load);
 
     <Card :bordered="false" title="Grafik Laporan per Divisi" :loading="loading">
       <EchartsUI ref="chartRef" height="360px" />
-      <div class="fcl-summary">Total laporan bulan ini: <b>{{ total }}</b> entri</div>
+      <div class="wh-summary">Total laporan bulan ini: <b>{{ total }}</b> entri</div>
     </Card>
 
     <Card :bordered="false" class="mt-3" title="Ringkasan per Divisi">
@@ -114,5 +114,5 @@ onMounted(load);
 </template>
 
 <style scoped>
-.fcl-summary { margin-top: 8px; font-size: 12px; color: hsl(var(--muted-foreground)); text-align: right; }
+.wh-summary { margin-top: 8px; font-size: 12px; color: hsl(var(--muted-foreground)); text-align: right; }
 </style>

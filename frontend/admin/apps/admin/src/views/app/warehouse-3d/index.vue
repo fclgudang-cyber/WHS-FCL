@@ -23,7 +23,7 @@ import {
 } from '@vben/icons';
 import { message, Modal, notification } from 'ant-design-vue';
 
-import { fclCount, fclInsert, fclPatch, fclQuery, fclUpsert } from '#/api/fcl';
+import { fclCount, fclInsert, fclPatch, fclQuery, fclUpsert } from '#/api/warehouse';
 import {
   fmt,
   num,
@@ -36,7 +36,7 @@ import {
   type Wh3dIssue,
   type Wh3dObject,
   type Wh3dRack,
-} from '#/api/fcl/warehouse3d';
+} from '#/api/warehouse/warehouse3d';
 
 import { Editor2D } from './editor2d';
 import { Warehouse3DScene, type EditorMode, type TransformMode } from './scene';

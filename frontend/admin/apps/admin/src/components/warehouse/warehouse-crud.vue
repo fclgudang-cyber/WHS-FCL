@@ -3,7 +3,7 @@
  * Komponen generik untuk halaman CRUD FCL di Ghost-main.
  * Setiap config halaman hanya berisi: columns (tampilan), fields (form drawer),
  * searchKeys, labels — sisanya (list, search, create, edit, delete, export CSV)
- * ditangani di sini, memakai backend FCL (fcl-service Go) via /api/tables/*.
+ * ditangani di sini, memakai backend FCL (wh-service Go) via /api/tables/*.
  */
 import type { Dayjs } from 'dayjs';
 
@@ -20,10 +20,10 @@ import {
 
 import dayjs from 'dayjs';
 
-import { fclDelete, fclInsert, fclPatch, fclQuery, formatRp, type FclFilter } from '#/api/fcl';
+import { fclDelete, fclInsert, fclPatch, fclQuery, formatRp, type FclFilter } from '#/api/warehouse';
 
-import type { FclDisplayColumn, FclField } from './fcl-crud-types';
-import FclPagination from './fcl-pagination.vue';
+import type { FclDisplayColumn, FclField } from './warehouse-crud-types';
+import FclPagination from './warehouse-pagination.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -137,7 +137,7 @@ async function load() {
       filters: [...props.baseFilters],
     });
   } catch (err: any) {
-    console.error('[fcl-crud] load gagal', err);
+    console.error('[wh-crud] load gagal', err);
     notification.error({
       message: props.title,
       description: err?.message || 'Gagal memuat data',
@@ -281,11 +281,11 @@ defineExpose({ openCreate });
 
 <template>
   <template v-if="embedded">
-    <div class="fcl-embedded">
-      <div class="fcl-embedded-bar">
-        <span class="fcl-chip-title">{{ title }}</span>
-        <div class="fcl-embedded-actions">
-          <input v-model="search" type="text" class="fcl-search" :placeholder="searchPlaceholder" />
+    <div class="wh-embedded">
+      <div class="wh-embedded-bar">
+        <span class="wh-chip-title">{{ title }}</span>
+        <div class="wh-embedded-actions">
+          <input v-model="search" type="text" class="wh-search" :placeholder="searchPlaceholder" />
           <a-button size="small" @click="load" :loading="loading">
             <template #icon><LucideRefreshCw :size="12" /></template>
           </a-button>
@@ -303,7 +303,7 @@ defineExpose({ openCreate });
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === '_action'">
-            <div class="fcl-actions">
+            <div class="wh-actions">
               <a-button v-if="actions !== 'delete' && actions !== 'none'" type="link" size="small" @click="openEdit(record)">Edit</a-button>
               <a-button v-if="actions !== 'edit' && actions !== 'none'" danger type="link" size="small" @click="confirmDelete(record)">Hapus</a-button>
             </div>
@@ -331,7 +331,7 @@ defineExpose({ openCreate });
       <input
         v-model="search"
         type="text"
-        class="fcl-search"
+        class="wh-search"
         :placeholder="searchPlaceholder"
       />
       <a-button @click="load" :loading="loading">
@@ -358,7 +358,7 @@ defineExpose({ openCreate });
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === '_action'">
-            <div class="fcl-actions">
+            <div class="wh-actions">
               <a-button v-if="actions !== 'delete' && actions !== 'none'" type="link" size="small" @click="openEdit(record)">Edit</a-button>
               <a-button v-if="actions !== 'edit' && actions !== 'none'" danger type="link" size="small" @click="confirmDelete(record)">Hapus</a-button>
             </div>
@@ -393,7 +393,7 @@ defineExpose({ openCreate });
       cancel-text="Batal"
       @ok="submit"
     >
-      <a-form layout="vertical" class="fcl-form">
+      <a-form layout="vertical" class="wh-form">
         <a-form-item
           v-for="f in fields.filter((x) => !(x.createOnly && editingId))"
           :key="f.name"
@@ -449,11 +449,11 @@ defineExpose({ openCreate });
 </template>
 
 <style scoped>
-.fcl-embedded { display: flex; flex-direction: column; gap: 12px; }
-.fcl-embedded-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.fcl-embedded-actions { display: flex; gap: 8px; align-items: center; }
-.fcl-chip-title { font-weight: 700; }
-.fcl-search {
+.wh-embedded { display: flex; flex-direction: column; gap: 12px; }
+.wh-embedded-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.wh-embedded-actions { display: flex; gap: 8px; align-items: center; }
+.wh-chip-title { font-weight: 700; }
+.wh-search {
   width: 240px;
   height: 32px;
   padding: 0 12px;
@@ -463,6 +463,6 @@ defineExpose({ openCreate });
   background: transparent;
   color: inherit;
 }
-.fcl-actions { display: flex; gap: 4px; justify-content: flex-end; }
-.fcl-form :deep(.ant-form-item) { margin-bottom: 12px; }
+.wh-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.wh-form :deep(.ant-form-item) { margin-bottom: 12px; }
 </style>

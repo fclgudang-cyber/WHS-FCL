@@ -30,21 +30,21 @@ function onSize(e: Event) {
 </script>
 
 <template>
-  <div class="fcl-pagination">
-    <span class="fcl-pg-total">
+  <div class="wh-pagination">
+    <span class="wh-pg-total">
       Total <b>{{ total }}</b> records
-      <span v-if="total" class="fcl-pg-range">({{ from }}–{{ to }})</span>
+      <span v-if="total" class="wh-pg-range">({{ from }}–{{ to }})</span>
     </span>
-    <select class="fcl-pg-size" :value="pageSize" @change="onSize">
+    <select class="wh-pg-size" :value="pageSize" @change="onSize">
       <option v-for="n in [10, 20, 50, 100]" :key="n" :value="n">{{ n }}/page</option>
     </select>
-    <div class="fcl-pg-pages">
+    <div class="wh-pg-pages">
       <button :disabled="page <= 1" title="Halaman pertama" @click="go(1)">|‹</button>
       <button :disabled="page <= 1" title="Sebelumnya" @click="go(page - 1)">‹</button>
       <button
         v-for="p in visiblePages"
         :key="p"
-        :class="{ 'fcl-pg-active': p === page }"
+        :class="{ 'wh-pg-active': p === page }"
         @click="go(p)"
       >{{ p }}</button>
       <button :disabled="page >= totalPages" title="Berikutnya" @click="go(page + 1)">›</button>
@@ -54,7 +54,7 @@ function onSize(e: Event) {
 </template>
 
 <style scoped>
-.fcl-pagination {
+.wh-pagination {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -63,19 +63,19 @@ function onSize(e: Event) {
   font-size: 11px;
   color: hsl(var(--muted-foreground));
 }
-.fcl-pg-total b { color: hsl(var(--foreground)); }
-.fcl-pg-range { opacity: 0.7; margin-left: 4px; }
-.fcl-pg-size {
+.wh-pg-total b { color: hsl(var(--foreground)); }
+.wh-pg-range { opacity: 0.7; margin-left: 4px; }
+.wh-pg-size {
   height: 26px; border-radius: 5px; padding: 2px 6px; font-size: 11px;
   border: 1px solid hsl(var(--border)); background: hsl(var(--background));
   color: hsl(var(--foreground)); outline: none;
 }
-.fcl-pg-pages { display: flex; gap: 3px; margin-left: auto; }
-.fcl-pg-pages button {
+.wh-pg-pages { display: flex; gap: 3px; margin-left: auto; }
+.wh-pg-pages button {
   min-width: 26px; height: 26px; border-radius: 5px; font-size: 11px; font-weight: 700;
   border: 1px solid hsl(var(--border)); background: hsl(var(--muted));
   color: hsl(var(--foreground)); cursor: pointer;
 }
-.fcl-pg-pages button:disabled { opacity: 0.4; cursor: default; }
-.fcl-pg-active { background: hsl(var(--primary)) !important; border-color: hsl(var(--primary)) !important; color: hsl(var(--primary-foreground)) !important; }
+.wh-pg-pages button:disabled { opacity: 0.4; cursor: default; }
+.wh-pg-active { background: hsl(var(--primary)) !important; border-color: hsl(var(--primary)) !important; color: hsl(var(--primary-foreground)) !important; }
 </style>

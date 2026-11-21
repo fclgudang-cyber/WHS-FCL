@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import FclHeaderDetail from '#/components/fcl/fcl-header-detail.vue';
+import FclHeaderDetail from '#/components/warehouse/warehouse-header-detail.vue';
 
 const statusTag: Record<string, { color: string; text: string }> = {
   Pending: { color: 'orange', text: 'Pending' },

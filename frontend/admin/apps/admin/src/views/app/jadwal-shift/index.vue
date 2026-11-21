@@ -13,8 +13,8 @@ import { LucideDownload, LucidePlus, LucideRefreshCw } from '@vben/icons';
 import { Modal, message, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/fcl';
-import FclCrud from '#/components/fcl/fcl-crud.vue';
+import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/warehouse';
+import FclCrud from '#/components/warehouse/warehouse-crud.vue';
 
 interface RosterRow {
   id: string;
@@ -230,7 +230,7 @@ async function load(silent = false, doSync = true) {
     rows.value = (all || []).filter((r) => String(r.Bulan ?? '').startsWith(month.value));
     if (doSync && rows.value.length) await syncDivisiJabatan(false);
   } catch (err: any) {
-    console.error('[fcl/jadwal-shift]', err);
+    console.error('[warehouse/jadwal-shift]', err);
     notification.error({ message: 'Jadwal Shift', description: err?.message || 'Gagal memuat roster' });
   } finally {
     if (!silent) loading.value = false;

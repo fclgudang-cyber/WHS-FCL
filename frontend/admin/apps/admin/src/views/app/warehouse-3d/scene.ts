@@ -12,8 +12,8 @@ import type {
   Wh3dEquipment,
   Wh3dObject,
   Wh3dWarehouse,
-} from '#/api/fcl/warehouse3d';
-import { num } from '#/api/fcl/warehouse3d';
+} from '#/api/warehouse/warehouse3d';
+import { num } from '#/api/warehouse/warehouse3d';
 
 export type EditorMode = '3d' | '2d';
 export type TransformMode = 'select' | 'move' | 'rotate' | 'resize';

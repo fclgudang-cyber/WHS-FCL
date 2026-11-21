@@ -8,7 +8,7 @@ import { LucidePlus, LucideRefreshCw, LucideTrash2 } from '@vben/icons';
 import { Modal, message, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { fclDelete, fclDeleteWhere, fclInsert, fclPatch, fclQuery } from '#/api/fcl';
+import { fclDelete, fclDeleteWhere, fclInsert, fclPatch, fclQuery } from '#/api/warehouse';
 
 interface Karyawan { id: string; nama?: string | null; divisi?: string | null; jabatan?: string | null }
 interface Roster { id: string; Bulan?: string; Nama?: string; Divisi?: string; Jabatan?: string; [key: string]: any }

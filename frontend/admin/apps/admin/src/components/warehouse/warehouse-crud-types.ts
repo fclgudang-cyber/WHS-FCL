@@ -1,6 +1,6 @@
 /**
  * Tipe konfigurasi bersama untuk CRUD FCL (komponen generik).
- * Dipakai oleh fcl-crud.vue & fcl-header-detail.vue.
+ * Dipakai oleh warehouse-crud.vue & warehouse-header-detail.vue.
  */
 
 export type FclFieldType =

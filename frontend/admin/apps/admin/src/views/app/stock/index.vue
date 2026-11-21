@@ -22,14 +22,14 @@ import {
 import { Modal, message, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/fcl';
-import FclPagination from '#/components/fcl/fcl-pagination.vue';
+import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/warehouse';
+import FclPagination from '#/components/warehouse/warehouse-pagination.vue';
 import {
   groupStockBySku,
   stockExpiringCount,
   stockLowCount,
   type StockRow,
-} from '#/utils/fcl-stock';
+} from '#/utils/warehouse-stock';
 
 const loading = ref(true);
 const rows = ref<StockRow[]>([]);
@@ -79,7 +79,7 @@ async function loadAll(silent = false) {
   try {
     rows.value = await fclQuery<StockRow>('stock', { select: '*', order: 'sku.asc', limit: 10000 });
   } catch (err: any) {
-    console.error('[fcl/stock] load gagal', err);
+    console.error('[warehouse/stock] load gagal', err);
     notification.error({ message: 'Stock Inventory', description: err?.message || 'Gagal memuat data stok' });
   } finally {
     if (!silent) loading.value = false;

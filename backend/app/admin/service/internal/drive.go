@@ -1,5 +1,5 @@
 // drive.go — upload bukti Petty Cash langsung ke Google Drive memakai OAuth 2.0 refresh token.
-// Kredensial dibaca dari environment (file backend/deploy/fcl-drive.env, tidak masuk git).
+// Kredensial dibaca dari environment (file backend/deploy/warehouse-drive.env, tidak masuk git).
 package fcl
 
 import (

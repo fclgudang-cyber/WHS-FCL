@@ -14,13 +14,13 @@ import {
 
 import { Alert, Card, Table, notification } from 'ant-design-vue';
 
-import { fclQuery, formatRp } from '#/api/fcl';
+import { fclQuery, formatRp } from '#/api/warehouse';
 import {
   DIVISI_COLORS,
   matchRosterDivisiKeyword,
   normalizeRosterRows,
   summarizeRosterDay,
-} from '#/utils/fcl-roster';
+} from '#/utils/warehouse-roster';
 
 const router = useRouter();
 const loading = ref(true);
@@ -140,7 +140,7 @@ async function load() {
     history.sort((a, b) => new Date(b.tanggal || 0).getTime() - new Date(a.tanggal || 0).getTime());
     recentHistory.value = history.slice(0, 10);
   } catch (err: any) {
-    console.error('[fcl/dashboard] load gagal', err);
+    console.error('[warehouse/dashboard] load gagal', err);
     loadError.value = err?.message || 'Gagal memuat data dashboard';
     notification.error({ message: 'Dashboard FCL', description: loadError.value });
   } finally {
@@ -166,75 +166,75 @@ onMounted(load);
     />
 
     <!-- Stat cards -->
-    <div class="fcl-stat-grid">
-      <Card :bordered="false" class="fcl-stat-card fcl-tone-teal">
-        <div class="fcl-stat-label"><LucideInbox :size="16" /> Saldo Gudang</div>
-        <div class="fcl-stat-value">{{ formatRp(saldoGudang) }}</div>
+    <div class="wh-stat-grid">
+      <Card :bordered="false" class="wh-stat-card wh-tone-teal">
+        <div class="wh-stat-label"><LucideInbox :size="16" /> Saldo Gudang</div>
+        <div class="wh-stat-value">{{ formatRp(saldoGudang) }}</div>
       </Card>
-      <Card :bordered="false" class="fcl-stat-card fcl-tone-green">
-        <div class="fcl-stat-label"><LucideWallet :size="16" /> Saldo Team Building</div>
-        <div class="fcl-stat-value">{{ formatRp(saldoTB) }}</div>
+      <Card :bordered="false" class="wh-stat-card wh-tone-green">
+        <div class="wh-stat-label"><LucideWallet :size="16" /> Saldo Team Building</div>
+        <div class="wh-stat-value">{{ formatRp(saldoTB) }}</div>
       </Card>
-      <Card :bordered="false" class="fcl-stat-card fcl-tone-amber">
-        <div class="fcl-stat-label"><LucideTrendingUp :size="16" /> Kas Masuk</div>
-        <div class="fcl-stat-value">{{ formatRp(kasMasuk) }}</div>
+      <Card :bordered="false" class="wh-stat-card wh-tone-amber">
+        <div class="wh-stat-label"><LucideTrendingUp :size="16" /> Kas Masuk</div>
+        <div class="wh-stat-value">{{ formatRp(kasMasuk) }}</div>
       </Card>
-      <Card :bordered="false" class="fcl-stat-card fcl-tone-red">
-        <div class="fcl-stat-label"><LucideTrendingDown :size="16" /> Kas Keluar</div>
-        <div class="fcl-stat-value">{{ formatRp(kasKeluar) }}</div>
+      <Card :bordered="false" class="wh-stat-card wh-tone-red">
+        <div class="wh-stat-label"><LucideTrendingDown :size="16" /> Kas Keluar</div>
+        <div class="wh-stat-value">{{ formatRp(kasKeluar) }}</div>
       </Card>
     </div>
 
-    <div class="fcl-two-col">
+    <div class="wh-two-col">
       <!-- Masuk hari ini -->
       <Card title="Masuk Hari Ini (Roster)" :bordered="false" :loading="loading">
         <template v-if="rosterSummary">
-          <div class="fcl-masuk-total">
-            <span class="fcl-masuk-num">{{ rosterSummary.total }}</span>
-            <span class="fcl-masuk-unit">orang</span>
-            <span class="fcl-shift-pill fcl-pagi">🌅 Pagi {{ rosterSummary.pagi }}</span>
-            <span class="fcl-shift-pill fcl-malam">🌙 Malam {{ rosterSummary.malam }}</span>
+          <div class="wh-masuk-total">
+            <span class="wh-masuk-num">{{ rosterSummary.total }}</span>
+            <span class="wh-masuk-unit">orang</span>
+            <span class="wh-shift-pill wh-pagi">🌅 Pagi {{ rosterSummary.pagi }}</span>
+            <span class="wh-shift-pill wh-malam">🌙 Malam {{ rosterSummary.malam }}</span>
           </div>
-          <div class="fcl-chip-row">
-            <span class="fcl-chip fcl-chip-off">OFF {{ rosterSummary.off }}</span>
-            <span class="fcl-chip fcl-chip-cuti">CUTI {{ rosterSummary.cuti }}</span>
-            <span class="fcl-chip fcl-chip-alfa">ALFA {{ rosterSummary.alfa }}</span>
-            <span class="fcl-chip fcl-chip-sakit">SAKIT {{ rosterSummary.sakit }}</span>
-            <span class="fcl-chip fcl-chip-ijin">IJIN {{ rosterSummary.ijin }}</span>
+          <div class="wh-chip-row">
+            <span class="wh-chip wh-chip-off">OFF {{ rosterSummary.off }}</span>
+            <span class="wh-chip wh-chip-cuti">CUTI {{ rosterSummary.cuti }}</span>
+            <span class="wh-chip wh-chip-alfa">ALFA {{ rosterSummary.alfa }}</span>
+            <span class="wh-chip wh-chip-sakit">SAKIT {{ rosterSummary.sakit }}</span>
+            <span class="wh-chip wh-chip-ijin">IJIN {{ rosterSummary.ijin }}</span>
           </div>
-          <div class="fcl-chip-row">
+          <div class="wh-chip-row">
             <span
               v-for="(s, div) in rosterSummary.perDivisi"
               :key="div"
               v-show="s.total > 0"
-              class="fcl-chip fcl-chip-div"
+              class="wh-chip wh-chip-div"
             >
-              <span class="fcl-dot" :style="{ background: DIVISI_COLORS[div] || '#64748b' }"></span>
+              <span class="wh-dot" :style="{ background: DIVISI_COLORS[div] || '#64748b' }"></span>
               <b>{{ div }}</b>: {{ s.total }}
-              <span class="fcl-chip-sub">(P:{{ s.pagi }} M:{{ s.malam }})</span>
+              <span class="wh-chip-sub">(P:{{ s.pagi }} M:{{ s.malam }})</span>
             </span>
           </div>
         </template>
-        <div v-else-if="!loading" class="fcl-empty">Roster bulan ini belum ada.</div>
+        <div v-else-if="!loading" class="wh-empty">Roster bulan ini belum ada.</div>
       </Card>
 
       <!-- Laporan per divisi -->
       <Card title="Laporan Kerja per Divisi" :bordered="false" :loading="loading">
-        <div v-if="!laporanDivisi.length" class="fcl-empty">Belum ada laporan.</div>
-        <div v-for="d in laporanDivisi" :key="d.divisi" class="fcl-bar-row">
-          <span class="fcl-bar-label">{{ d.divisi }}</span>
-          <div class="fcl-bar-track">
+        <div v-if="!laporanDivisi.length" class="wh-empty">Belum ada laporan.</div>
+        <div v-for="d in laporanDivisi" :key="d.divisi" class="wh-bar-row">
+          <span class="wh-bar-label">{{ d.divisi }}</span>
+          <div class="wh-bar-track">
             <div
-              class="fcl-bar-fill"
+              class="wh-bar-fill"
               :style="{ width: `${(d.total / maxLaporanTotal) * 100}%`, background: DIVISI_COLORS[d.divisi] || '#0d74f2' }"
             ></div>
           </div>
-          <span class="fcl-bar-val">{{ d.total }}</span>
+          <span class="wh-bar-val">{{ d.total }}</span>
         </div>
       </Card>
     </div>
 
-    <div class="fcl-two-col">
+    <div class="wh-two-col">
       <!-- Top lembur -->
       <Card title="Top Lembur" :bordered="false" :loading="loading">
         <Table
@@ -256,7 +256,7 @@ onMounted(load);
           size="small"
         >
           <template #bodyCell="{ column, record }">
-            <span v-if="column.dataIndex === 'nominal'" :class="record.nominal >= 0 ? 'fcl-plus' : 'fcl-minus'">
+            <span v-if="column.dataIndex === 'nominal'" :class="record.nominal >= 0 ? 'wh-plus' : 'wh-minus'">
               {{ formatRp(record.nominal) }}
             </span>
           </template>
@@ -266,7 +266,7 @@ onMounted(load);
 
     <!-- Akses cepat ke fitur FCL lainnya (masih iframe) -->
     <Card title="Modul FCL Lainnya" :bordered="false" class="mt-3">
-      <div class="fcl-quick">
+      <div class="wh-quick">
         <a-button type="link" @click="router.push('/fcl/warehouse/stock')">Stock Barang</a-button>
         <a-button type="link" @click="router.push('/fcl/warehouse/order')">Order</a-button>
         <a-button type="link" @click="router.push('/fcl/warehouse/inbound')">Inbound</a-button>
@@ -280,13 +280,13 @@ onMounted(load);
 </template>
 
 <style scoped>
-.fcl-stat-grid {
+.wh-stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 12px;
 }
-.fcl-stat-card .fcl-stat-label {
+.wh-stat-card .wh-stat-label {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -295,52 +295,52 @@ onMounted(load);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.fcl-stat-value {
+.wh-stat-value {
   font-size: 22px;
   font-weight: 800;
   margin-top: 6px;
   color: hsl(var(--foreground));
 }
-.fcl-tone-teal .fcl-stat-value { color: hsl(var(--success)); }
-.fcl-tone-green .fcl-stat-value { color: hsl(var(--success)); }
-.fcl-tone-amber .fcl-stat-value { color: hsl(var(--warning)); }
-.fcl-tone-red .fcl-stat-value { color: hsl(var(--destructive)); }
+.wh-tone-teal .wh-stat-value { color: hsl(var(--success)); }
+.wh-tone-green .wh-stat-value { color: hsl(var(--success)); }
+.wh-tone-amber .wh-stat-value { color: hsl(var(--warning)); }
+.wh-tone-red .wh-stat-value { color: hsl(var(--destructive)); }
 
-.fcl-two-col {
+.wh-two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-bottom: 12px;
 }
 @media (max-width: 1200px) {
-  .fcl-two-col { grid-template-columns: 1fr; }
-  .fcl-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wh-two-col { grid-template-columns: 1fr; }
+  .wh-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-.fcl-masuk-total {
+.wh-masuk-total {
   display: flex;
   align-items: baseline;
   gap: 10px;
   flex-wrap: wrap;
 }
-.fcl-masuk-num { font-size: 40px; font-weight: 800; }
-.fcl-masuk-unit { color: hsl(var(--muted-foreground)); font-size: 14px; }
-.fcl-shift-pill {
+.wh-masuk-num { font-size: 40px; font-weight: 800; }
+.wh-masuk-unit { color: hsl(var(--muted-foreground)); font-size: 14px; }
+.wh-shift-pill {
   font-size: 12px;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 999px;
 }
-.fcl-pagi { background: hsl(var(--warning) / 0.16); color: hsl(var(--warning)); }
-.fcl-malam { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
+.wh-pagi { background: hsl(var(--warning) / 0.16); color: hsl(var(--warning)); }
+.wh-malam { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
 
-.fcl-chip-row {
+.wh-chip-row {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 10px;
 }
-.fcl-chip {
+.wh-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -350,14 +350,14 @@ onMounted(load);
   background: hsl(var(--muted));
   color: hsl(var(--foreground));
 }
-.fcl-chip-off, .fcl-chip-alfa { background: hsl(var(--destructive) / 0.14); color: hsl(var(--destructive)); }
-.fcl-chip-cuti, .fcl-chip-sakit { background: hsl(var(--warning) / 0.16); color: hsl(var(--warning)); }
-.fcl-chip-ijin { background: hsl(var(--warning) / 0.16); color: hsl(var(--warning)); }
-.fcl-chip-div { background: hsl(var(--muted)); }
-.fcl-chip-sub { color: hsl(var(--muted-foreground)); font-size: 10px; }
-.fcl-dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
+.wh-chip-off, .wh-chip-alfa { background: hsl(var(--destructive) / 0.14); color: hsl(var(--destructive)); }
+.wh-chip-cuti, .wh-chip-sakit { background: hsl(var(--warning) / 0.16); color: hsl(var(--warning)); }
+.wh-chip-ijin { background: hsl(var(--warning) / 0.16); color: hsl(var(--warning)); }
+.wh-chip-div { background: hsl(var(--muted)); }
+.wh-chip-sub { color: hsl(var(--muted-foreground)); font-size: 10px; }
+.wh-dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; }
 
-.fcl-bar-row {
+.wh-bar-row {
   display: grid;
   grid-template-columns: 120px 1fr 40px;
   gap: 8px;
@@ -365,15 +365,15 @@ onMounted(load);
   margin-bottom: 6px;
   font-size: 12px;
 }
-.fcl-bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fcl-bar-track { height: 10px; background: hsl(var(--muted)); border-radius: 999px; overflow: hidden; }
-.fcl-bar-fill { height: 100%; border-radius: 999px; transition: width 0.4s; }
-.fcl-bar-val { text-align: right; font-weight: 700; }
+.wh-bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wh-bar-track { height: 10px; background: hsl(var(--muted)); border-radius: 999px; overflow: hidden; }
+.wh-bar-fill { height: 100%; border-radius: 999px; transition: width 0.4s; }
+.wh-bar-val { text-align: right; font-weight: 700; }
 
-.fcl-empty { color: hsl(var(--muted-foreground)); padding: 16px 0; text-align: center; }
+.wh-empty { color: hsl(var(--muted-foreground)); padding: 16px 0; text-align: center; }
 
-.fcl-quick { display: flex; flex-wrap: wrap; gap: 4px; }
+.wh-quick { display: flex; flex-wrap: wrap; gap: 4px; }
 
-.fcl-plus { color: hsl(var(--success)); }
-.fcl-minus { color: hsl(var(--destructive)); }
+.wh-plus { color: hsl(var(--success)); }
+.wh-minus { color: hsl(var(--destructive)); }
 </style>

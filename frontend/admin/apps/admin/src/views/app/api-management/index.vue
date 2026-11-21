@@ -12,8 +12,8 @@ import { LucidePlus, LucideTrash2 } from '@vben/icons';
 import { Modal, message, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/fcl';
-import FclPagination from '#/components/fcl/fcl-pagination.vue';
+import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/warehouse';
+import FclPagination from '#/components/warehouse/warehouse-pagination.vue';
 
 interface Device {
   id: string;
@@ -148,7 +148,7 @@ async function load(silent = false) {
     devices.value = await fclQuery<Device>('fcl_api_devices', { select: '*', order: 'createdAt.desc', limit: 1000 });
     if (!silent && devices.value.length) await checkSignals();
   } catch (err: any) {
-    console.error('[fcl/api-management]', err);
+    console.error('[warehouse/api-management]', err);
     notification.error({ message: 'API Management', description: err?.message || 'Gagal memuat data' });
   } finally {
     if (!silent) loading.value = false;

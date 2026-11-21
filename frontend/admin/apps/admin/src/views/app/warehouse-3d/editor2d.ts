@@ -2,8 +2,8 @@
  * 2D Layout Editor — top-view presisi, sinkron dengan scene 3D.
  * Grid / snap / zoom / pan / select / move / resize / multi-select / ukuran.
  */
-import type { Wh3dArea, Wh3dEmployee, Wh3dEquipment, Wh3dObject, Wh3dWarehouse } from '#/api/fcl/warehouse3d';
-import { num } from '#/api/fcl/warehouse3d';
+import type { Wh3dArea, Wh3dEmployee, Wh3dEquipment, Wh3dObject, Wh3dWarehouse } from '#/api/warehouse/warehouse3d';
+import { num } from '#/api/warehouse/warehouse3d';
 
 export interface MapItem {
   uid: string;

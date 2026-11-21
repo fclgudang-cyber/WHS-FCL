@@ -12,8 +12,8 @@ import { LucideDownload, LucideRefreshCw } from '@vben/icons';
 import { Modal, message, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/fcl';
-import FclPagination from '#/components/fcl/fcl-pagination.vue';
+import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/warehouse';
+import FclPagination from '#/components/warehouse/warehouse-pagination.vue';
 
 interface Karyawan {
   id: string;
@@ -107,7 +107,7 @@ async function load(silent = false) {
     karyawan.value = k;
     absen.value = a;
   } catch (err: any) {
-    console.error('[fcl/absensi]', err);
+    console.error('[warehouse/absensi]', err);
     notification.error({ message: 'Absensi Karyawan', description: err?.message || 'Gagal memuat data' });
   } finally {
     if (!silent) loading.value = false;

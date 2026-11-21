@@ -4,7 +4,7 @@ import { useAccessStore } from '@vben/stores';
  * Klien REST untuk backend FCL (tertanam di admin-service, /api).
  * Memakai token JWT utama (sama seperti request axios) — tanpa login terpisah.
  *
- * Kontrak respons backend FCL (lihat backend/app/admin/service/internal/fcl):
+ * Kontrak respons backend Warehouse (lihat backend/app/admin/service/internal):
  *  - GET /api/tables/{t}          → array baris (bare array)
  *  - GET ...?count=exact&head=1   → { count: n }
  *  - POST/PUT/PATCH/DELETE        → body JSON bebas

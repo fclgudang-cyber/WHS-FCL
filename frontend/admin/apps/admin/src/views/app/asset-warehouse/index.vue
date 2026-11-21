@@ -23,7 +23,7 @@ import {
 import { Modal, message, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/fcl';
+import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/warehouse';
 
 interface AssetRow {
   id: string;
@@ -174,7 +174,7 @@ async function loadAll(silent = false) {
     sessions.value = s;
     opnameLogs.value = l;
   } catch (err: any) {
-    console.error('[fcl/asset-warehouse] load gagal', err);
+    console.error('[warehouse/asset-warehouse] load gagal', err);
     notification.error({ message: 'Asset Warehouse', description: err?.message || 'Gagal memuat data' });
   } finally {
     if (!silent) loading.value = false;

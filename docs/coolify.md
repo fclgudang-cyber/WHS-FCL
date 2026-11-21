@@ -115,7 +115,7 @@ Backend FCL sekarang **berjalan di dalam `admin-service`** (port internal `6905`
   ```bash
   mkdir -p backend/deploy/uploads && chmod 777 backend/deploy/uploads
   ```
-- Kredensial Google Drive tetap dibaca dari `backend/deploy/fcl-drive.env` (opsional).
+- Kredensial Google Drive tetap dibaca dari `backend/deploy/warehouse-drive.env` (opsional).
 - Jika DB FCL gagal dibuka, `admin-service` tetap berjalan; hanya endpoint FCL yang tidak aktif (log: `fcl backend disabled`).
 
 ### Autentikasi FCL = login utama
