@@ -43,6 +43,38 @@ begin
 exception when others then null;
 end $$;
 
+-- 0b. Permission role sistem yang dipakai route authority ([sys:platform_admin], [sys:tenant_manager]).
+do $$
+declare
+  gid bigint;
+begin
+  select id into gid from sys_permission_groups where deleted_at is null order by id limit 1;
+  if gid is null then
+    insert into sys_permission_groups (name, description, module, sort_order, status)
+    values ('系统管理', '系统权限', 'system', 1, 'ON') returning id into gid;
+  end if;
+
+  insert into sys_permissions (name, code, group_id, status, description)
+  select v.name, v.code, gid, 'ON', v.name
+  from (values
+    ('平台管理员', 'sys:platform_admin'),
+    ('租户管理员', 'sys:tenant_manager')
+  ) as v(name, code)
+  where not exists (select 1 from sys_permissions p where p.code = v.code);
+
+  insert into sys_role_permissions (role_id, permission_id, status, effect)
+  select r.id, p.id, 'ON', 'ALLOW'
+    from sys_roles r
+    cross join sys_permissions p
+   where p.code in ('sys:platform_admin', 'sys:tenant_manager')
+     and r.deleted_at is null and r.status = 'ON'
+     and not exists (
+       select 1 from sys_role_permissions rp
+        where rp.role_id = r.id and rp.permission_id = p.id
+     );
+exception when others then null;
+end $$;
+
 -- 1. Grup permission
 do $$ begin
   update sys_permission_groups
