@@ -267,13 +267,13 @@ onMounted(load);
     <!-- Akses cepat ke fitur FCL lainnya (masih iframe) -->
     <Card title="Modul FCL Lainnya" :bordered="false" class="mt-3">
       <div class="wh-quick">
-        <a-button type="link" @click="router.push('/fcl/warehouse/stock')">Stock Barang</a-button>
-        <a-button type="link" @click="router.push('/fcl/warehouse/order')">Order</a-button>
-        <a-button type="link" @click="router.push('/fcl/warehouse/inbound')">Inbound</a-button>
-        <a-button type="link" @click="router.push('/fcl/keuangan/kasGudang')">Kas Gudang</a-button>
-        <a-button type="link" @click="router.push('/fcl/keuangan/pettyCash')">Petty Cash</a-button>
-        <a-button type="link" @click="router.push('/fcl/operasional/laporanKerja')">Laporan Kerja</a-button>
-        <a-button type="link" @click="router.push('/fcl/sdm/jadwalShift')">Jadwal Shift</a-button>
+        <a-button type="link" @click="router.push('/warehouse/inventory/stock')">Stock Barang</a-button>
+        <a-button type="link" @click="router.push('/warehouse/inventory/order')">Order</a-button>
+        <a-button type="link" @click="router.push('/warehouse/inventory/inbound')">Inbound</a-button>
+        <a-button type="link" @click="router.push('/warehouse/finance/kasGudang')">Kas Gudang</a-button>
+        <a-button type="link" @click="router.push('/warehouse/finance/pettyCash')">Petty Cash</a-button>
+        <a-button type="link" @click="router.push('/opm/laporanKerja')">Laporan Kerja</a-button>
+        <a-button type="link" @click="router.push('/opm/jadwalShift')">Jadwal Shift</a-button>
       </div>
     </Card>
   </Page>

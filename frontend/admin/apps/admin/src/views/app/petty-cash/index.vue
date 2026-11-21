@@ -1160,7 +1160,7 @@ onMounted(loadAll);
             >
               {{ onlyBelum ? 'Menampilkan: Belum Bayar' : 'Belum Bayar' }}
             </button>
-            <button class="wh-pc-btn wh-pc-btn-ghost wh-pc-btn-sm" @click="router.push('/fcl/keuangan/pettyCashKategori')"><LucideList :size="13" /> Kategori</button>
+            <button class="wh-pc-btn wh-pc-btn-ghost wh-pc-btn-sm" @click="router.push('/warehouse/finance/pettyCashKategori')"><LucideList :size="13" /> Kategori</button>
             <button class="wh-pc-btn wh-pc-btn-ghost wh-pc-btn-sm" @click="exportExcel"><LucideDownload :size="13" /> Export</button>
             <button class="wh-pc-btn wh-pc-btn-info wh-pc-btn-sm" @click="openInvoice"><LucideFilePenLine :size="13" /> Invoice</button>
             <button class="wh-pc-btn wh-pc-btn-teal wh-pc-btn-sm" @click="printDokumen"><LucideNotebookPen :size="13" /> Dokumen</button>

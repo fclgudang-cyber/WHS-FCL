@@ -971,13 +971,13 @@ do $$ begin
   if to_regclass('public.sys_role_permissions') is not null
      and to_regclass('public.sys_permissions') is not null then
     delete from sys_role_permissions
-     where permission_id in (select id from sys_permissions where code = 'fcl:akun');
+     where permission_id in (select id from sys_permissions where code in ('fcl:akun', 'warehouse:akun'));
   end if;
   if to_regclass('public.sys_permissions') is not null then
-    delete from sys_permissions where code = 'fcl:akun';
+    delete from sys_permissions where code in ('fcl:akun', 'warehouse:akun');
   end if;
   if to_regclass('public.sys_menus') is not null then
-    delete from sys_menus where path in ('/fcl/sdm/akun', '/opm/fcl-akun');
+    delete from sys_menus where path in ('/fcl/sdm/akun', '/opm/fcl-akun', '/warehouse/akun');
   end if;
 exception when others then null;
 end $$;

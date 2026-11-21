@@ -1,9 +1,17 @@
--- Sinkronkan semua fitur FCL ke modul Kelola Hak Akses.
--- Dijalankan sekali; aman diulang (idempoten).
+-- Sinkronkan fitur Warehouse ke modul Kelola Hak Akses & Menu Management.
+-- Aman diulang. Juga memigrasikan permission/menu lama berprefix fcl: -> warehouse:.
 
--- Pastikan sequence menu tidak tertinggal dari data yang sudah ada.
 do $$ begin
   perform setval(pg_get_serial_sequence('sys_menus', 'id'), greatest(coalesce((select max(id) from sys_menus), 1), 1));
+exception when others then null; end $$;
+
+-- 1. Grup permission
+do $$ begin
+  update sys_permission_groups
+     set name = 'Warehouse - Fitur Gudang',
+         description = 'Semua fitur Warehouse',
+         module = 'warehouse'
+   where name = 'FCL - Fitur Gudang';
 exception when others then null; end $$;
 
 do $$
@@ -11,99 +19,112 @@ declare
   gid bigint;
 begin
   select id into gid
-  from sys_permission_groups
-  where name = 'FCL - Fitur Gudang' and deleted_at is null
-  limit 1;
+    from sys_permission_groups
+   where name = 'Warehouse - Fitur Gudang' and deleted_at is null
+   limit 1;
 
   if gid is null then
     insert into sys_permission_groups (name, description, module, sort_order, status)
-    values ('FCL - Fitur Gudang', 'Semua fitur FCL Warehouse', 'fcl', 900, 'ON')
+    values ('Warehouse - Fitur Gudang', 'Semua fitur Warehouse', 'warehouse', 900, 'ON')
     returning id into gid;
   end if;
 
   insert into sys_permissions (name, code, group_id, status, description)
-  select v.name, v.code, gid, 'ON', 'FCL: ' || v.name
+  select v.name, v.code, gid, 'ON', 'Warehouse: ' || v.name
   from (values
-    ('Dashboard', 'fcl:dashboard'),
-    ('Modul Inventaris & Logistik', 'fcl:warehouse'),
-    ('Modul Keuangan', 'fcl:keuangan'),
-    ('Modul Operasional', 'fcl:operasional'),
-    ('Modul SDM', 'fcl:sdm'),
-    ('Modul Dokumentasi', 'fcl:dokumentasi'),
-    ('Stock Barang', 'fcl:stock'),
-    ('Stock Opname', 'fcl:stockOpname'),
-    ('Inbound', 'fcl:inbound'),
-    ('Retur', 'fcl:retur'),
-    ('Order', 'fcl:order'),
-    ('Booking Mobil', 'fcl:bookingMobil'),
-    ('Asset Warehouse', 'fcl:assetWarehouse'),
-    ('Analisis Stock', 'fcl:analisis'),
-    ('Kas Gudang', 'fcl:kasGudang'),
-    ('Team Building', 'fcl:teamBuilding'),
-    ('Pengeluaran', 'fcl:expense'),
-    ('Petty Cash', 'fcl:pettyCash'),
-    ('Kategori Petty Cash', 'fcl:pettyCashKategori'),
-    ('Klaim Paket', 'fcl:klaim'),
-    ('Laporan Kerja', 'fcl:laporanKerja'),
-    ('Grafik Laporan', 'fcl:grafikLaporan'),
-    ('Instruksi Lembur', 'fcl:instruksiLembur'),
-    ('Ijin & Cuti', 'fcl:ijin'),
-    ('Lembur', 'fcl:lembur'),
-    ('Karyawan', 'fcl:karyawan'),
-    ('Absensi Karyawan', 'fcl:absensiKaryawan'),
-    ('Jadwal Shift', 'fcl:jadwalShift'),
-    ('SOP', 'fcl:sop'),
-    ('Webhook Fingerprint', 'fcl:fingerprintWebhook')
+    ('Dashboard', 'warehouse:dashboard'),
+    ('Modul Inventaris & Logistik', 'warehouse:warehouse'),
+    ('Modul Keuangan', 'warehouse:keuangan'),
+    ('Modul Operasional', 'warehouse:operasional'),
+    ('Modul SDM', 'warehouse:sdm'),
+    ('Modul Dokumentasi', 'warehouse:dokumentasi'),
+    ('Stock Barang', 'warehouse:stock'),
+    ('Stock Opname', 'warehouse:stockOpname'),
+    ('Inbound', 'warehouse:inbound'),
+    ('Retur', 'warehouse:retur'),
+    ('Order', 'warehouse:order'),
+    ('Booking Mobil', 'warehouse:bookingMobil'),
+    ('Asset Warehouse', 'warehouse:assetWarehouse'),
+    ('Analisis Stock', 'warehouse:analisis'),
+    ('Kas Gudang', 'warehouse:kasGudang'),
+    ('Team Building', 'warehouse:teamBuilding'),
+    ('Pengeluaran', 'warehouse:expense'),
+    ('Petty Cash', 'warehouse:pettyCash'),
+    ('Kategori Petty Cash', 'warehouse:pettyCashKategori'),
+    ('Klaim Paket', 'warehouse:klaim'),
+    ('Laporan Kerja', 'warehouse:laporanKerja'),
+    ('Grafik Laporan', 'warehouse:grafikLaporan'),
+    ('Instruksi Lembur', 'warehouse:instruksiLembur'),
+    ('Ijin & Cuti', 'warehouse:ijin'),
+    ('Lembur', 'warehouse:lembur'),
+    ('Karyawan', 'warehouse:karyawan'),
+    ('Absensi Karyawan', 'warehouse:absensiKaryawan'),
+    ('Jadwal Shift', 'warehouse:jadwalShift'),
+    ('SOP', 'warehouse:sop'),
+    ('Webhook Fingerprint', 'warehouse:fingerprintWebhook')
   ) as v(name, code)
   where not exists (select 1 from sys_permissions p where p.code = v.code);
 exception when others then null;
 end $$;
 
--- Berikan semua permission FCL kepada setiap role yang aktif.
+-- 2. Pindahkan hak role lama ke kode baru, lalu hapus kode lama.
+do $$ begin
+  insert into sys_role_permissions (role_id, permission_id, status, effect)
+  select rp.role_id, np.id, rp.status, rp.effect
+    from sys_role_permissions rp
+    join sys_permissions op on op.id = rp.permission_id and op.code like 'fcl:%'
+    join sys_permissions np on np.code = 'warehouse:' || substring(op.code from 5)
+   where not exists (
+     select 1 from sys_role_permissions rp2
+      where rp2.role_id = rp.role_id and rp2.permission_id = np.id
+   );
+
+  delete from sys_role_permissions
+   where permission_id in (select id from sys_permissions where code like 'fcl:%');
+  delete from sys_permissions where code like 'fcl:%';
+exception when others then null; end $$;
+
+-- 3. Berikan semua permission Warehouse kepada role aktif.
 do $$ begin
   insert into sys_role_permissions (role_id, permission_id, status, effect)
   select r.id, p.id, 'ON', 'ALLOW'
-  from sys_roles r
-  cross join sys_permissions p
-  where p.code like 'fcl:%'
-    and r.deleted_at is null
-    and not exists (
-      select 1 from sys_role_permissions rp
-      where rp.role_id = r.id and rp.permission_id = p.id
-    );
+    from sys_roles r
+    cross join sys_permissions p
+   where p.code like 'warehouse:%'
+     and r.deleted_at is null
+     and not exists (
+       select 1 from sys_role_permissions rp
+        where rp.role_id = r.id and rp.permission_id = p.id
+     );
 exception when others then null; end $$;
 
--- Menu FCL terintegrasi ke modul utama.
--- Tidak ada grup "SDM / Operasional / Dokumentasi" FCL yang berdiri sendiri.
+-- 4. Menu: hapus semua menu /fcl/* lama, pasang menu /warehouse/* baru.
 do $$
 declare
-  g_warehouse bigint;
-  g_keuangan bigint;
+  g_inventory bigint;
+  g_finance bigint;
   g_opm bigint;
   g_system bigint;
 begin
-  -- Bersihkan katalog FCL lama beserta anaknya (database yang sudah terpasang).
   delete from sys_menus where parent_id in (
-    select id from sys_menus
-     where path in ('/fcl/operasional', '/fcl/sdm', '/fcl/dokumentasi')
+    select id from sys_menus where path like '/fcl/%'
   );
   delete from sys_menus
-   where path in ('/fcl/operasional', '/fcl/sdm', '/fcl/dokumentasi', '/opm/org-units');
+   where path like '/fcl/%' or path = '/opm/org-units';
 
-  -- Katalog modul utama / domain.
   insert into sys_menus (name, path, type, status, parent_id, meta)
   select v.name, v.path, 'CATALOG', 'ON', null::bigint, v.meta::jsonb
   from (values
-    ('Inventaris & Logistik', '/fcl/warehouse', '{"title":"Inventaris & Logistik","icon":"lucide:warehouse","order":1000,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
-    ('Keuangan', '/fcl/keuangan', '{"title":"Keuangan","icon":"lucide:wallet","order":1100,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
+    ('Inventaris & Logistik', '/warehouse/inventory', '{"title":"Inventaris & Logistik","icon":"lucide:warehouse","order":1000,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
+    ('Keuangan', '/warehouse/finance', '{"title":"Keuangan","icon":"lucide:wallet","order":1100,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
     ('Organisasi & SDM', '/opm', '{"title":"Organisasi & SDM","icon":"lucide:users","order":2001,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
     ('Sistem', '/system', '{"title":"Sistem","icon":"lucide:settings","order":2100,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
-    ('Dashboard', '/fcl/dashboard', '{"title":"Dashboard","icon":"lucide:layout-dashboard","order":-3,"authority":["sys:platform_admin","sys:tenant_manager"]}')
+    ('Dashboard', '/warehouse/dashboard', '{"title":"Dashboard","icon":"lucide:layout-dashboard","order":-3,"authority":["sys:platform_admin","sys:tenant_manager"]}')
   ) as v(name, path, meta)
   where not exists (select 1 from sys_menus m where m.parent_id is null and m.path = v.path);
 
-  select id into g_warehouse from sys_menus where parent_id is null and path = '/fcl/warehouse' limit 1;
-  select id into g_keuangan from sys_menus where parent_id is null and path = '/fcl/keuangan' limit 1;
+  select id into g_inventory from sys_menus where parent_id is null and path = '/warehouse/inventory' limit 1;
+  select id into g_finance from sys_menus where parent_id is null and path = '/warehouse/finance' limit 1;
   select id into g_opm from sys_menus where parent_id is null and path = '/opm' limit 1;
   select id into g_system from sys_menus where parent_id is null and path = '/system' limit 1;
 
@@ -111,23 +132,23 @@ begin
   select v.name, v.path, 'MENU', 'ON', v.parent, v.meta::jsonb
   from (values
     -- Inventaris & Logistik
-    ('Stock Barang', '/fcl/warehouse/stock', g_warehouse, '{"title":"Stock Barang","icon":"lucide:package","order":1}'),
-    ('Stock Opname', '/fcl/warehouse/stockOpname', g_warehouse, '{"title":"Stock Opname","icon":"lucide:clipboard-check","order":2}'),
-    ('Warehouse 3D', '/fcl/warehouse/warehouse3d', g_warehouse, '{"title":"Warehouse 3D","icon":"lucide:box","order":3}'),
-    ('Inbound', '/fcl/warehouse/inbound', g_warehouse, '{"title":"Inbound","icon":"lucide:package-plus","order":4}'),
-    ('Retur', '/fcl/warehouse/retur', g_warehouse, '{"title":"Retur","icon":"lucide:undo-2","order":6}'),
-    ('Order', '/fcl/warehouse/order', g_warehouse, '{"title":"Order","icon":"lucide:shopping-cart","order":7}'),
-    ('Booking Mobil', '/fcl/warehouse/bookingMobil', g_warehouse, '{"title":"Booking Mobil","icon":"lucide:car","order":9}'),
-    ('Asset Warehouse', '/fcl/warehouse/assetWarehouse', g_warehouse, '{"title":"Asset Warehouse","icon":"lucide:building-2","order":10}'),
-    ('Analisis Stock', '/fcl/warehouse/analisis', g_warehouse, '{"title":"Analisis Stock","icon":"lucide:chart-bar","order":11}'),
+    ('Stock Barang', '/warehouse/inventory/stock', g_inventory, '{"title":"Stock Barang","icon":"lucide:package","order":1}'),
+    ('Stock Opname', '/warehouse/inventory/stockOpname', g_inventory, '{"title":"Stock Opname","icon":"lucide:clipboard-check","order":2}'),
+    ('Warehouse 3D', '/warehouse/inventory/warehouse3d', g_inventory, '{"title":"Warehouse 3D","icon":"lucide:box","order":3}'),
+    ('Inbound', '/warehouse/inventory/inbound', g_inventory, '{"title":"Inbound","icon":"lucide:package-plus","order":4}'),
+    ('Retur', '/warehouse/inventory/retur', g_inventory, '{"title":"Retur","icon":"lucide:undo-2","order":6}'),
+    ('Order', '/warehouse/inventory/order', g_inventory, '{"title":"Order","icon":"lucide:shopping-cart","order":7}'),
+    ('Booking Mobil', '/warehouse/inventory/bookingMobil', g_inventory, '{"title":"Booking Mobil","icon":"lucide:car","order":9}'),
+    ('Asset Warehouse', '/warehouse/inventory/assetWarehouse', g_inventory, '{"title":"Asset Warehouse","icon":"lucide:building-2","order":10}'),
+    ('Analisis Stock', '/warehouse/inventory/analisis', g_inventory, '{"title":"Analisis Stock","icon":"lucide:chart-bar","order":11}'),
 
     -- Keuangan
-    ('Kas Gudang', '/fcl/keuangan/kasGudang', g_keuangan, '{"title":"Kas Gudang","icon":"lucide:vault","order":1}'),
-    ('Team Building', '/fcl/keuangan/teamBuilding', g_keuangan, '{"title":"Team Building","icon":"lucide:users","order":2}'),
-    ('Pengeluaran', '/fcl/keuangan/expense', g_keuangan, '{"title":"Pengeluaran","icon":"lucide:receipt","order":3}'),
-    ('Petty Cash', '/fcl/keuangan/pettyCash', g_keuangan, '{"title":"Petty Cash","icon":"lucide:coins","order":4}'),
-    ('Kategori Petty Cash', '/fcl/keuangan/pettyCashKategori', g_keuangan, '{"title":"Kategori Petty Cash","icon":"lucide:list","order":5}'),
-    ('Klaim Paket', '/fcl/keuangan/klaim', g_keuangan, '{"title":"Klaim Paket","icon":"lucide:badge-alert","order":6}'),
+    ('Kas Gudang', '/warehouse/finance/kasGudang', g_finance, '{"title":"Kas Gudang","icon":"lucide:vault","order":1}'),
+    ('Team Building', '/warehouse/finance/teamBuilding', g_finance, '{"title":"Team Building","icon":"lucide:users","order":2}'),
+    ('Pengeluaran', '/warehouse/finance/expense', g_finance, '{"title":"Pengeluaran","icon":"lucide:receipt","order":3}'),
+    ('Petty Cash', '/warehouse/finance/pettyCash', g_finance, '{"title":"Petty Cash","icon":"lucide:coins","order":4}'),
+    ('Kategori Petty Cash', '/warehouse/finance/pettyCashKategori', g_finance, '{"title":"Kategori Petty Cash","icon":"lucide:list","order":5}'),
+    ('Klaim Paket', '/warehouse/finance/klaim', g_finance, '{"title":"Klaim Paket","icon":"lucide:badge-alert","order":6}'),
 
     -- Organisasi & SDM (modul utama)
     ('Karyawan', '/opm/karyawan', g_opm, '{"title":"Karyawan","icon":"lucide:id-card","order":5}'),

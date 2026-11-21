@@ -709,10 +709,10 @@ const properties = computed(() => {
 // ---------------------------------------------------------------- action bar (backend nyata)
 const router = useRouter();
 const moduleRoutes: Record<string, string> = {
-  Orders: '/fcl/warehouse/order',
-  Inventory: '/fcl/warehouse/stock',
-  Locations: '/fcl/warehouse/warehouse3d',
-  Analytics: '/fcl/warehouse/analisis',
+  Orders: '/warehouse/inventory/order',
+  Inventory: '/warehouse/inventory/stock',
+  Locations: '/warehouse/inventory/warehouse3d',
+  Analytics: '/warehouse/inventory/analisis',
   Workers: '/opm/karyawan',
 };
 

@@ -307,22 +307,22 @@ create table if not exists wh3d_task (
 );
 
 -- ---------------------------------------------------------------------
--- 11. Permission FCL agar menu Warehouse 3D mengikuti RBAC yang ada
+-- 11. Permission Warehouse agar menu Warehouse 3D mengikuti RBAC yang ada
 -- ---------------------------------------------------------------------
 do $$
-declare gid bigint;
+declare gid bigint; g_inventory bigint;
 begin
   select id into gid from sys_permission_groups
-   where name = 'FCL - Fitur Gudang' and deleted_at is null limit 1;
+   where name = 'Warehouse - Fitur Gudang' and deleted_at is null limit 1;
   if gid is not null then
     insert into sys_permissions (name, code, group_id, status, description)
-    values ('Warehouse 3D', 'fcl:warehouse3d', gid, 'ON', 'FCL: Digital Twin Warehouse 3D')
-    where not exists (select 1 from sys_permissions where code = 'fcl:warehouse3d');
+    values ('Warehouse 3D', 'warehouse:warehouse3d', gid, 'ON', 'Warehouse: Digital Twin Warehouse 3D')
+    where not exists (select 1 from sys_permissions where code = 'warehouse:warehouse3d');
 
     insert into sys_role_permissions (role_id, permission_id, status, effect)
     select r.id, p.id, 'ON', 'ALLOW'
       from sys_roles r
-      join sys_permissions p on p.code = 'fcl:warehouse3d'
+      join sys_permissions p on p.code = 'warehouse:warehouse3d'
      where r.deleted_at is null
        and not exists (
          select 1 from sys_role_permissions rp
@@ -331,17 +331,14 @@ begin
   end if;
 
   -- Menu navigasi di Menu Management (induk: Inventaris & Logistik)
-  declare g_warehouse bigint;
-  begin
-    select id into g_warehouse from sys_menus
-     where parent_id is null and path = '/fcl/warehouse' limit 1;
-    if g_warehouse is not null then
-      insert into sys_menus (name, path, type, status, parent_id, meta)
-      select 'Warehouse 3D', '/fcl/warehouse/warehouse3d', 'MENU', 'ON', g_warehouse,
-             '{"title":"Warehouse 3D","icon":"lucide:box","order":3}'::jsonb
-      where not exists (
-        select 1 from sys_menus where parent_id = g_warehouse and path = '/fcl/warehouse/warehouse3d'
-      );
-    end if;
-  end;
+  select id into g_inventory from sys_menus
+   where parent_id is null and path = '/warehouse/inventory' limit 1;
+  if g_inventory is not null then
+    insert into sys_menus (name, path, type, status, parent_id, meta)
+    select 'Warehouse 3D', '/warehouse/inventory/warehouse3d', 'MENU', 'ON', g_inventory,
+           '{"title":"Warehouse 3D","icon":"lucide:box","order":3}'::jsonb
+    where not exists (
+      select 1 from sys_menus where parent_id = g_inventory and path = '/warehouse/inventory/warehouse3d'
+    );
+  end if;
 end $$;

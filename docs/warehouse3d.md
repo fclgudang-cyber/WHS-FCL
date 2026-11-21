@@ -32,7 +32,7 @@ Fitur ini menambahkan **Warehouse 3D** ke modul FCL tanpa mengganti WMS yang sud
 ## Deploy
 
 1. Pull perubahan ini di server, lalu **redeploy** `admin-service` dan `admin` (frontend).
-2. Saat start, `admin-service` otomatis membuat tabel `wh3d_*`, permission `fcl:warehouse3d`,
+2. Saat start, `admin-service` otomatis membuat tabel `wh3d_*`, permission `warehouse:warehouse3d`,
    dan menu **Inventaris & Logistik → Warehouse 3D**.
 3. Buka menu Warehouse 3D. Gudang default `WH-001 / Gudang Utama` dibuat otomatis
    bila belum ada — semua dimensi bisa diedit lewat tombol **Info Gudang**
