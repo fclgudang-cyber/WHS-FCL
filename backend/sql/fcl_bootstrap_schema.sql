@@ -965,41 +965,19 @@ do $$ begin
   alter table stock alter column "expDate" type text using "expDate"::text;
 exception when others then null; end $$;
 
--- Permission & menu Kelola Akun FCL
-do $$
-declare gid bigint; parent bigint;
-begin
-  select id into gid from sys_permission_groups
-   where name = 'FCL - Fitur Gudang' and deleted_at is null limit 1;
-
-  if gid is not null then
-    insert into sys_permissions (name, code, group_id, status, description)
-    values ('Kelola Akun', 'fcl:akun', gid, 'ON', 'FCL: Kelola akun login')
-    where not exists (select 1 from sys_permissions where code = 'fcl:akun');
-
-    insert into sys_role_permissions (role_id, permission_id, status, effect)
-    select r.id, p.id, 'ON', 'ALLOW'
-      from sys_roles r join sys_permissions p on p.code = 'fcl:akun'
-     where r.deleted_at is null
-       and not exists (select 1 from sys_role_permissions rp
-                       where rp.role_id = r.id and rp.permission_id = p.id);
-
-    -- Akun FCL berada di modul Organisasi & SDM (/opm), bukan di SDM FCL.
-    delete from sys_menus where path = '/fcl/sdm/akun';
-
-    insert into sys_menus (name, path, type, status, parent_id, meta)
-    select 'Organisasi & SDM', '/opm', 'CATALOG', 'ON', null::bigint,
-           '{"title":"Organisasi & SDM","icon":"lucide:users","order":2001}'::jsonb
-    where not exists (select 1 from sys_menus where parent_id is null and path = '/opm');
-
-    select id into parent from sys_menus
-     where parent_id is null and path = '/opm' limit 1;
-    if parent is not null then
-      insert into sys_menus (name, path, type, status, parent_id, meta)
-      select 'Akun Gudang (FCL)', '/opm/fcl-akun', 'MENU', 'ON', parent,
-             '{"title":"Akun Gudang (FCL)","icon":"lucide:users","order":4}'::jsonb
-      where not exists (select 1 from sys_menus
-                        where parent_id = parent and path = '/opm/fcl-akun');
-    end if;
+-- Cleanup: fitur "Akun Gudang FCL" dihapus.
+-- Hapus sisa menu/permission pada database yang pernah menjalankan fitur ini.
+do $$ begin
+  if to_regclass('public.sys_role_permissions') is not null
+     and to_regclass('public.sys_permissions') is not null then
+    delete from sys_role_permissions
+     where permission_id in (select id from sys_permissions where code = 'fcl:akun');
   end if;
+  if to_regclass('public.sys_permissions') is not null then
+    delete from sys_permissions where code = 'fcl:akun';
+  end if;
+  if to_regclass('public.sys_menus') is not null then
+    delete from sys_menus where path in ('/fcl/sdm/akun', '/opm/fcl-akun');
+  end if;
+exception when others then null;
 end $$;

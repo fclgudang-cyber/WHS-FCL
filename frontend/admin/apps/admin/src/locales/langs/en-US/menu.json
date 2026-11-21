@@ -27,8 +27,7 @@
     "orgUnit": "Organizations",
     "position": "Positions",
     "user": "Users",
-    "userDetail": "User Details",
-    "fclAccount": "Warehouse Accounts (FCL)"
+    "userDetail": "User Details"
   },
   "tenant": {
     "moduleName": "Tenants",

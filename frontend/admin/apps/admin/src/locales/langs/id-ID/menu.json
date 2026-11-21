@@ -27,8 +27,7 @@
     "orgUnit": "Kelola Organisasi",
     "position": "Kelola Jabatan",
     "user": "Kelola Pengguna",
-    "userDetail": "Detail Pengguna",
-    "fclAccount": "Akun Gudang (FCL)"
+    "userDetail": "Detail Pengguna"
   },
   "tenant": {
     "moduleName": "Manajemen Tenant",
