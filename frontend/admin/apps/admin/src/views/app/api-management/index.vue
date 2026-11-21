@@ -27,26 +27,35 @@ interface Device {
 }
 
 const savedDomain = (() => {
-  try { return localStorage.getItem('fcl_webhook_domain') || ''; } catch { return ''; }
+  try { return localStorage.getItem('warehouse_webhook_domain') || ''; } catch { return ''; }
+})();
+const savedHttpHost = (() => {
+  try { return localStorage.getItem('warehouse_webhook_http_host') || ''; } catch { return ''; }
+})();
+const savedHttpPort = (() => {
+  try { return localStorage.getItem('warehouse_webhook_http_port') || ''; } catch { return ''; }
 })();
 const domain = ref(savedDomain || window.location.origin);
+const httpHost = ref(savedHttpHost || window.location.hostname);
+const httpPort = ref(savedHttpPort || '8085');
 
 function saveDomain() {
-  try { localStorage.setItem('fcl_webhook_domain', domain.value.trim()); } catch { /* abaikan */ }
-  message.success('Domain webhook disimpan');
+  try {
+    localStorage.setItem('warehouse_webhook_domain', domain.value.trim());
+    localStorage.setItem('warehouse_webhook_http_host', httpHost.value.trim());
+    localStorage.setItem('warehouse_webhook_http_port', httpPort.value.trim());
+  } catch { /* abaikan */ }
+  message.success('Pengaturan webhook disimpan');
 }
 const webhookBase = computed(() => domain.value.trim().replace(/\/+$/, ''));
 const admsUrl = computed(() => `${webhookBase.value}/iclock/cdata?SN=<SERIAL_NUMBER>`);
-const jsonUrl = computed(() => `${webhookBase.value}/fp`);
-const apiUrl = computed(() => `${webhookBase.value}/api/fingerprint-webhook`);
-const port80Url = computed(() => {
-  try {
-    const u = new URL(webhookBase.value);
-    return `${u.protocol}//${u.hostname}:80/fp`;
-  } catch {
-    return 'http://<IP-SERVER>:80/fp';
-  }
-});
+
+// Mesin ADMS Solution X900 hanya mendukung http:// (bukan https).
+const httpBase = computed(() => `http://${httpHost.value.trim() || '<IP-SERVER>'}:${httpPort.value.trim() || '8085'}`);
+const admsHttpUrl = computed(() => `${httpBase.value}/iclock/cdata?SN=<SERIAL_NUMBER>`);
+const jsonHttpUrl = computed(() => `${httpBase.value}/fp`);
+const apiHttpUrl = computed(() => `${httpBase.value}/api/fingerprint-webhook`);
+const isHttpsDomain = computed(() => domain.value.trim().toLowerCase().startsWith('https://'));
 
 const payloadExample = `{
   "records": [
@@ -61,11 +70,11 @@ const payloadExample = `{
 }`;
 
 const steps = [
-  { title: 'Set domain / IP server', desc: 'Isi alamat server yang bisa dijangkau mesin, lalu klik Simpan. Contoh: http://192.168.1.10' },
-  { title: 'Buka port 80', desc: 'Webhook & ADMS berjalan di port 80. Pastikan firewall/server mengizinkan TCP 80 dari jaringan mesin fingerprint.' },
-  { title: 'Setting mesin Solution X900', desc: 'Masuk menu Network/ADMS → isi Server URL/IP, Port 80, endpoint /iclock/cdata, lalu aktifkan ADMS. Serial number (SN) akan otomatis terdaftar di tabel mesin.' },
-  { title: 'Kirim data absensi', desc: 'Mesin mengirim GET/POST ke /iclock/cdata?SN=<serial>. Untuk integrasi manual/JSON, POST ke /fp atau /api/fingerprint-webhook dengan format di bawah.' },
-  { title: 'Cek status & sinyal', desc: 'Klik Cek Sinyal untuk memastikan mesin online. Data absensi akan masuk ke Daftar Karyawan → Absensi Karyawan.' },
+  { title: 'Isi IP/host & port HTTP', desc: 'Mesin hanya mendukung http://. Isi IP server dan port HTTP (default 8085), lalu klik Simpan. Contoh: http://192.168.1.10:8085' },
+  { title: 'Buka port 8085', desc: 'Webhook berjalan di port 80 di dalam container dan dipublish ke host pada port 8085. Pastikan firewall mengizinkan TCP 8085 dari jaringan mesin.' },
+  { title: 'Setting mesin Solution X900', desc: 'Menu Network/ADMS → Server URL = http://IP:8085, endpoint /iclock/cdata, aktifkan ADMS. Serial number (SN) otomatis terdaftar di tabel mesin.' },
+  { title: 'Kirim data absensi', desc: 'Mesin mengirim GET/POST ke http://IP:8085/iclock/cdata?SN=<serial>. Integrasi manual/JSON: POST ke http://IP:8085/fp dengan format di bawah.' },
+  { title: 'Cek status & sinyal', desc: 'Klik Cek Sinyal untuk memastikan mesin online. Data absensi masuk ke modul Absensi Karyawan.' },
 ];
 
 async function copyText(text: string, label = 'Teks') {
@@ -200,34 +209,46 @@ onMounted(() => load());
         <div class="api-hero-head">
           <div>
             <div class="api-title">Webhook Fingerprint Solution X900 (ADMS)</div>
-            <div class="api-subtitle">Terima absensi mesin langsung ke Master Karyawan · berjalan pada <b>port 80</b></div>
+            <div class="api-subtitle">Terima absensi mesin langsung ke Master Karyawan · mesin hanya mendukung <b>http://</b></div>
           </div>
-          <span class="api-port-badge">PORT 80</span>
+          <span class="api-port-badge">HTTP · PORT 8085</span>
         </div>
 
         <div class="api-domain-row">
-          <label>Domain / alamat server</label>
-          <input v-model="domain" class="api-input" placeholder="http://192.168.3.100" @change="saveDomain" />
+          <label>IP / host server (untuk mesin)</label>
+          <input v-model="httpHost" class="api-input api-input-host" placeholder="192.168.1.10" />
+          <label>Port HTTP</label>
+          <input v-model="httpPort" class="api-input api-input-port" placeholder="8085" />
           <button class="api-btn api-btn-ghost" @click="saveDomain">Simpan</button>
           <button class="api-btn api-btn-accent" :loading="checking" @click="testWebhook">Tes Webhook</button>
         </div>
 
+        <div class="api-domain-row api-domain-secondary">
+          <label>Domain aplikasi (browser, opsional)</label>
+          <input v-model="domain" class="api-input" placeholder="https://warehouse.domain.com" @change="saveDomain" />
+        </div>
+
+        <div v-if="isHttpsDomain" class="api-warning">
+          Domain aplikasi menggunakan <b>https://</b>. Mesin ADMS Solution X900 hanya mendukung
+          <b>http://</b> — gunakan URL HTTP dengan port 8085 di bawah, bukan domain https.
+        </div>
+
         <div class="api-url-grid">
-          <div class="api-url-item">
-            <span>ADMS / auto-register mesin (GET/POST)</span>
-            <div><code>{{ admsUrl }}</code><button class="api-copy" @click="copyText(admsUrl, 'URL ADMS')">Salin</button></div>
+          <div class="api-url-item api-url-primary">
+            <span>ADMS — HTTP langsung (pakai ini di mesin)</span>
+            <div><code>{{ admsHttpUrl }}</code><button class="api-copy" @click="copyText(admsHttpUrl, 'URL ADMS HTTP')">Salin</button></div>
+          </div>
+          <div class="api-url-item api-url-primary">
+            <span>Webhook JSON HTTP (POST)</span>
+            <div><code>{{ jsonHttpUrl }}</code><button class="api-copy" @click="copyText(jsonHttpUrl, 'URL webhook HTTP')">Salin</button></div>
           </div>
           <div class="api-url-item">
-            <span>Webhook JSON (POST) — direkomendasikan</span>
-            <div><code>{{ jsonUrl }}</code><button class="api-copy" @click="copyText(jsonUrl, 'URL webhook')">Salin</button></div>
+            <span>Endpoint alternatif HTTP</span>
+            <div><code>{{ apiHttpUrl }}</code><button class="api-copy" @click="copyText(apiHttpUrl, 'Endpoint HTTP')">Salin</button></div>
           </div>
           <div class="api-url-item">
-            <span>Endpoint alternatif</span>
-            <div><code>{{ apiUrl }}</code><button class="api-copy" @click="copyText(apiUrl, 'Endpoint')">Salin</button></div>
-          </div>
-          <div class="api-url-item">
-            <span>Akses langsung via port 80</span>
-            <div><code>{{ port80Url }}</code><button class="api-copy" @click="copyText(port80Url, 'URL port 80')">Salin</button></div>
+            <span>Via domain aplikasi (butuh dukungan https di mesin)</span>
+            <div><code>{{ admsUrl }}</code><button class="api-copy" @click="copyText(admsUrl, 'URL domain')">Salin</button></div>
           </div>
         </div>
       </div>
@@ -354,6 +375,11 @@ onMounted(() => load());
 .api-step p { margin: 2px 0 0; font-size: 10px; line-height: 1.5; color: hsl(var(--muted-foreground)); }
 .api-payload-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 5px; }
 .api-code { background: hsl(var(--muted) / 0.65); border: 1px solid hsl(var(--border)); border-radius: 8px; padding: 10px; font-size: 11px; line-height: 1.5; overflow-x: auto; margin: 0; }
+.api-input-host { flex: 1 1 180px; }
+.api-input-port { flex: 0 0 90px; width: 90px; }
+.api-domain-secondary { margin-top: 6px; }
+.api-warning { background: hsl(var(--warning) / 0.12); border: 1px solid hsl(var(--warning) / 0.4); color: hsl(var(--foreground)); border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.5; margin: 8px 0; }
+.api-url-primary { border-color: hsl(var(--primary) / 0.45); background: hsl(var(--primary) / 0.05); }
 
 @media (max-width: 900px) {
   .api-hero-head, .api-domain-row { flex-wrap: wrap; }

@@ -163,10 +163,9 @@ services:
       - "127.0.0.1:6900:6900"
       - "127.0.0.1:6901:6901"
       - "127.0.0.1:6905:6905"
-    # Port 80 dipakai di DALAM container untuk webhook/ADMS.
-    # Tidak di-publish ke host karena port 80 host dipakai proxy Coolify.
-    expose:
-      - "80"
+      # Webhook/ADMS: port 80 di dalam container, dipublish ke host pada 8085
+      # (port 80 host dipakai proxy Coolify). Mesin hanya mendukung HTTP.
+      - "${FCL_WEBHOOK_PORT:-8085}:80"
     # Backend FCL kini sudah termasuk di dalam admin-service.
     env_file:
       - path: ./backend/deploy/warehouse-drive.env
