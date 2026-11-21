@@ -984,14 +984,22 @@ begin
        and not exists (select 1 from sys_role_permissions rp
                        where rp.role_id = r.id and rp.permission_id = p.id);
 
+    -- Akun FCL berada di modul Organisasi & SDM (/opm), bukan di SDM FCL.
+    delete from sys_menus where path = '/fcl/sdm/akun';
+
+    insert into sys_menus (name, path, type, status, parent_id, meta)
+    select 'Organisasi & SDM', '/opm', 'CATALOG', 'ON', null::bigint,
+           '{"title":"Organisasi & SDM","icon":"lucide:users","order":2001}'::jsonb
+    where not exists (select 1 from sys_menus where parent_id is null and path = '/opm');
+
     select id into parent from sys_menus
-     where parent_id is null and path = '/fcl/sdm' limit 1;
+     where parent_id is null and path = '/opm' limit 1;
     if parent is not null then
       insert into sys_menus (name, path, type, status, parent_id, meta)
-      select 'Kelola Akun', '/fcl/sdm/akun', 'MENU', 'ON', parent,
-             '{"title":"Kelola Akun","icon":"lucide:users","order":2}'::jsonb
+      select 'Akun Gudang (FCL)', '/opm/fcl-akun', 'MENU', 'ON', parent,
+             '{"title":"Akun Gudang (FCL)","icon":"lucide:users","order":4}'::jsonb
       where not exists (select 1 from sys_menus
-                        where parent_id = parent and path = '/fcl/sdm/akun');
+                        where parent_id = parent and path = '/opm/fcl-akun');
     end if;
   end if;
 end $$;

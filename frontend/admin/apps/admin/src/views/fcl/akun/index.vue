@@ -240,8 +240,8 @@ onMounted(async () => { await load(); await fclCount('users').catch(() => 0); })
     <div class="akun-page">
       <div class="akun-head">
         <div>
-          <h2>👤 Kelola Akun</h2>
-          <p>Akun login FCL · {{ rows.length }} akun · {{ totalAktif }} aktif</p>
+          <h2>👤 Akun Gudang (FCL)</h2>
+          <p>Organisasi &amp; SDM · Akun login FCL · {{ rows.length }} akun · {{ totalAktif }} aktif</p>
         </div>
         <div class="akun-actions">
           <a-button size="small" @click="downloadTemplate"><LucideDownload :size="14" /> Template</a-button>

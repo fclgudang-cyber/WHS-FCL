@@ -53,6 +53,17 @@ const opm: RouteRecordRaw[] = [
         component: () => import('#/views/app/opm/user/index.vue'),
       },
       {
+        path: 'fcl-akun',
+        name: 'FclAccountManagement',
+        meta: {
+          order: 4,
+          icon: 'lucide:users',
+          title: $t('menu.opm.fclAccount'),
+          authority: ['fcl:akun', 'sys:platform_admin', 'sys:tenant_manager'],
+        },
+        component: () => import('#/views/fcl/akun/index.vue'),
+      },
+      {
         path: 'users/detail/:id',
         name: 'UserDetail',
         meta: {

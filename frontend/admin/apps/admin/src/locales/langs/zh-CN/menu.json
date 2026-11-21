@@ -27,7 +27,8 @@
     "orgUnit": "组织管理",
     "position": "职位管理",
     "user": "用户管理",
-    "userDetail": "用户详情"
+    "userDetail": "用户详情",
+    "fclAccount": "仓库账号 (FCL)"
   },
   "tenant": {
     "moduleName": "租户管理",
