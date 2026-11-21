@@ -7,7 +7,7 @@
  * Hapus / Bukti / Print, serta form order + item barang.
  * Seluruh warna memakai token tema vben (hsl(var(--...))).
  */
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import {
@@ -412,6 +412,105 @@ async function deleteOrder(o: OrderRow) {
   });
 }
 
+// ── Validasi fisik pesanan (scan SKU + qty) ─────────────────────────────────
+interface VerifyItem extends DetailRow {
+  scannedQty: number;
+}
+const verifyOpen = ref(false);
+const verifyOrder = ref<OrderRow | null>(null);
+const verifyItems = ref<VerifyItem[]>([]);
+const verifyScan = ref('');
+const verifyQty = ref(1);
+const verifyNote = ref('');
+const verifyBusy = ref(false);
+const verifyScanEl = ref<HTMLInputElement | null>(null);
+
+function verifyStatus(i: VerifyItem): 'BELUM' | 'OK' | 'KURANG' | 'LEBIH' {
+  const expected = num(i.qty);
+  const actual = num(i.scannedQty);
+  if (actual === 0) return 'BELUM';
+  if (actual === expected) return 'OK';
+  return actual < expected ? 'KURANG' : 'LEBIH';
+}
+
+function openVerify(o: OrderRow) {
+  verifyOrder.value = o;
+  verifyItems.value = detailsOf(o).map((d) => ({ ...d, scannedQty: num(d.packedQty) }));
+  verifyScan.value = '';
+  verifyQty.value = 1;
+  verifyNote.value = '';
+  verifyOpen.value = true;
+  void nextTick(() => verifyScanEl.value?.focus());
+}
+
+function scanToSku(text: string): string | null {
+  const t = text.trim().toLowerCase();
+  if (!t) return null;
+  const found = stockRows.value.find((r) =>
+    String(r.sku ?? '').toLowerCase() === t ||
+    String(r.barcode ?? '').toLowerCase() === t,
+  );
+  return found ? String(found.sku ?? '') : null;
+}
+
+function submitVerifyScan() {
+  const raw = verifyScan.value.trim();
+  if (!raw) return;
+  const sku = scanToSku(raw);
+  if (!sku) {
+    verifyNote.value = `SKU / barcode "${raw}" tidak ditemukan di Stock Barang`;
+    verifyScan.value = '';
+    void nextTick(() => verifyScanEl.value?.focus());
+    return;
+  }
+  const item = verifyItems.value.find((i) => String(i.sku ?? '') === sku);
+  if (!item) {
+    verifyNote.value = `SKU ${sku} tidak tercantum dalam order ini`;
+    verifyScan.value = '';
+    void nextTick(() => verifyScanEl.value?.focus());
+    return;
+  }
+  const qty = Math.max(1, Math.floor(num(verifyQty.value)));
+  item.scannedQty = num(item.scannedQty) + qty;
+  verifyNote.value = `${sku} · ${item.nama || '-'} → ${item.scannedQty}/${num(item.qty)} ${verifyStatus(item)}`;
+  verifyScan.value = '';
+  verifyQty.value = 1;
+  void nextTick(() => verifyScanEl.value?.focus());
+}
+
+const verifySummary = computed(() => {
+  const all = verifyItems.value;
+  const ok = all.filter((i) => verifyStatus(i) === 'OK').length;
+  return { total: all.length, ok, done: ok === all.length && all.length > 0 };
+});
+
+async function saveVerify(markValidated: boolean) {
+  if (!verifyOrder.value) return;
+  if (markValidated && !verifySummary.value.done) {
+    message.warning('Masih ada SKU/qty yang belum sesuai. Selesaikan verifikasi dulu.');
+    return;
+  }
+  verifyBusy.value = true;
+  try {
+    for (const i of verifyItems.value) {
+      await fclPatch('orderdetail', i.id, { packedQty: String(num(i.scannedQty)) });
+    }
+    if (markValidated) {
+      await fclPatch('order', verifyOrder.value.id, { status: 'Divalidasi' });
+    }
+    notification.success({
+      message: markValidated ? 'Validasi selesai' : 'Progres verifikasi disimpan',
+      description: `${verifySummary.value.ok}/${verifySummary.value.total} item sesuai`,
+    });
+    verifyOpen.value = false;
+    await loadAll(true);
+  } catch (err: any) {
+    notification.error({ message: 'Validasi fisik gagal', description: err?.message });
+  } finally {
+    verifyBusy.value = false;
+  }
+}
+
 async function markStatus(o: OrderRow, status: string, extra: Record<string, any> = {}) {
   await fclPatch('order', o.id, { status, ...extra });
   notification.success({ message: 'Order', description: `Status diubah menjadi ${status}` });
@@ -608,7 +707,7 @@ onMounted(loadAll);
               <td>
                 <div class="ord-row-actions">
                   <template v-if="!isSent(o)">
-                    <button class="ord-btn ord-btn-primary ord-btn-xs" @click="markStatus(o, 'Divalidasi')"><LucideCheck :size="12" /> Validasi Fisik Pesanan</button>
+                    <button class="ord-btn ord-btn-primary ord-btn-xs" @click="openVerify(o)"><LucideCheck :size="12" /> Validasi Fisik Pesanan</button>
                     <button class="ord-btn ord-btn-success ord-btn-xs" @click="markStatus(o, 'Terkirim', { sentAt: dayjs().format('YYYY-MM-DD HH:mm:ss') })"><LucideSend :size="12" /> Kirim</button>
                     <button class="ord-btn ord-btn-ghost ord-btn-xs" @click="openOrderModal(o)"><LucidePencil :size="12" /> Edit</button>
                     <button class="ord-btn ord-btn-danger ord-btn-xs" @click="deleteOrder(o)"><LucideTrash2 :size="12" /> Hapus</button>
@@ -724,6 +823,63 @@ onMounted(loadAll);
       </div>
     </a-modal>
 
+    <!-- ── Modal validasi fisik (scan SKU + qty) ── -->
+    <a-modal
+      v-model:open="verifyOpen"
+      :title="`Validasi Fisik — ${verifyOrder?.noOrder || ''}`"
+      :width="760"
+      :footer="null"
+    >
+      <div class="vf-root">
+        <div class="vf-head">
+          <div>
+            <b>Scan SKU / barcode lalu masukkan qty</b>
+            <p class="ord-muted">Sistem mencocokkan SKU dengan item order dan menjumlahkan qty yang sudah discan.</p>
+          </div>
+          <span class="vf-progress" :class="{ done: verifySummary.done }">
+            {{ verifySummary.ok }}/{{ verifySummary.total }} sesuai
+          </span>
+        </div>
+
+        <div class="vf-scan">
+          <input
+            ref="verifyScanEl"
+            v-model="verifyScan"
+            class="ord-input"
+            placeholder="Scan / ketik SKU atau barcode…"
+            @keydown.enter.prevent="submitVerifyScan"
+          />
+          <input v-model.number="verifyQty" type="number" min="1" class="ord-input vf-qty" placeholder="Qty" @keydown.enter.prevent="submitVerifyScan" />
+          <button class="ord-btn ord-btn-primary" :disabled="verifyBusy" @click="submitVerifyScan">Verifikasi</button>
+        </div>
+        <div v-if="verifyNote" class="vf-note" :class="{ error: verifyNote.includes('tidak') }">{{ verifyNote }}</div>
+
+        <div class="vf-list">
+          <div class="vf-row vf-row-head">
+            <span>SKU</span><span>NAMA BARANG</span><span>QTY ORDER</span><span>QTY SCAN</span><span>STATUS</span>
+          </div>
+          <div v-for="i in verifyItems" :key="i.id" class="vf-row" :class="`vf-${verifyStatus(i).toLowerCase()}`">
+            <span><b>{{ i.sku || '-' }}</b></span>
+            <span>{{ i.nama || '-' }}</span>
+            <span class="c">{{ num(i.qty) }}</span>
+            <span class="c"><b>{{ num(i.scannedQty) }}</b></span>
+            <span class="c">
+              <span class="vf-badge" :class="verifyStatus(i).toLowerCase()">{{ verifyStatus(i) }}</span>
+            </span>
+          </div>
+          <div v-if="!verifyItems.length" class="ord-empty">Order ini belum memiliki item.</div>
+        </div>
+
+        <div class="vf-footer">
+          <button class="ord-btn ord-btn-ghost" @click="verifyOpen = false">Tutup</button>
+          <button class="ord-btn ord-btn-ghost" :disabled="verifyBusy" @click="saveVerify(false)">Simpan Progres</button>
+          <button class="ord-btn ord-btn-success" :disabled="verifyBusy || !verifySummary.done" @click="saveVerify(true)">
+            <LucideCheck :size="12" /> Selesai &amp; Validasi
+          </button>
+        </div>
+      </div>
+    </a-modal>
+
     <!-- ── Modal bukti packing ── -->
     <a-modal v-model:open="buktiModalOpen" title="Bukti Packing" ok-text="Simpan" cancel-text="Batal" width="460px" @ok="saveBukti">
       <p class="ord-muted">Masukkan link foto bukti packing (kosongkan untuk menghapus).</p>
@@ -832,9 +988,34 @@ onMounted(loadAll);
 .ord-stock { font-size: 10px; font-weight: 700; color: hsl(var(--success)); text-align: center; white-space: nowrap; }
 .ord-stock.low { color: hsl(var(--destructive)); }
 
+.vf-root { display: flex; flex-direction: column; gap: 10px; }
+.vf-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.vf-head p { margin: 3px 0 0; }
+.vf-progress { background: hsl(var(--muted)); border-radius: 999px; padding: 4px 11px; font-size: 11px; font-weight: 800; color: hsl(var(--warning)); white-space: nowrap; }
+.vf-progress.done { color: hsl(var(--success)); background: hsl(var(--success) / 0.12); }
+.vf-scan { display: flex; gap: 6px; }
+.vf-qty { flex: 0 0 90px; width: 90px; }
+.vf-note { font-size: 11px; font-weight: 700; color: hsl(var(--success)); background: hsl(var(--success) / 0.1); border-radius: 6px; padding: 6px 9px; }
+.vf-note.error { color: hsl(var(--destructive)); background: hsl(var(--destructive) / 0.1); }
+.vf-list { border: 1px solid hsl(var(--border)); border-radius: 8px; overflow-x: auto; }
+.vf-row { display: grid; grid-template-columns: 1.1fr 1.8fr 0.8fr 0.8fr 0.8fr; gap: 6px; padding: 7px 10px; font-size: 11px; border-bottom: 1px solid hsl(var(--border)); align-items: center; }
+.vf-row:last-child { border-bottom: 0; }
+.vf-row-head { background: hsl(var(--muted)); font-size: 10px; font-weight: 800; color: hsl(var(--muted-foreground)); }
+.vf-row.vf-ok { background: hsl(var(--success) / 0.06); }
+.vf-row.vf-kurang, .vf-row.vf-lebih { background: hsl(var(--warning) / 0.07); }
+.vf-badge { font-size: 9px; font-weight: 800; border-radius: 999px; padding: 2px 7px; background: hsl(var(--muted)); }
+.vf-badge.ok { color: hsl(var(--success)); background: hsl(var(--success) / 0.14); }
+.vf-badge.kurang, .vf-badge.belum { color: hsl(var(--warning)); background: hsl(var(--warning) / 0.14); }
+.vf-badge.lebih { color: hsl(var(--destructive)); background: hsl(var(--destructive) / 0.14); }
+.vf-footer { display: flex; justify-content: flex-end; gap: 6px; padding-top: 4px; border-top: 1px solid hsl(var(--border)); }
+
 @media (max-width: 900px) {
   .ord-form-row { grid-template-columns: 1fr 1fr; }
   .ord-item-row { grid-template-columns: 1fr 1fr 0.7fr 32px; }
-.ord-item-row .ord-stock { grid-column: 1 / -1; text-align: left; }
+  .ord-item-row .ord-stock { grid-column: 1 / -1; text-align: left; }
+  .vf-scan { flex-wrap: wrap; }
+  .vf-row { grid-template-columns: 1fr 1fr; }
+  .vf-row-head { display: none; }
+  .vf-footer { flex-wrap: wrap; }
 }
 </style>
