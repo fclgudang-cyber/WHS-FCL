@@ -98,6 +98,37 @@ do $$ begin
      );
 exception when others then null; end $$;
 
+-- 4. Akun tanpa role tidak bisa login ("insufficient authority").
+--    Beri role default yang memiliki permission sys:access_backend.
+do $$
+declare
+  default_role bigint;
+begin
+  select r.id into default_role
+    from sys_roles r
+    join sys_role_permissions rp on rp.role_id = r.id and rp.status = 'ON' and rp.effect = 'ALLOW'
+    join sys_permissions p on p.id = rp.permission_id and p.code = 'sys:access_backend'
+   where r.deleted_at is null and r.status = 'ON'
+   order by case
+       when r.code = 'platform:admin' then 0
+       when r.code like 'tenant:%' then 1
+       else 2
+     end
+   limit 1;
+
+  if default_role is not null then
+    insert into sys_user_roles (tenant_id, user_id, role_id, is_primary, status, assigned_at, created_at)
+    select u.tenant_id, u.id, default_role, true, 'ACTIVE', now(), now()
+      from sys_users u
+     where u.deleted_at is null
+       and not exists (
+         select 1 from sys_user_roles ur
+          where ur.user_id = u.id and ur.deleted_at is null
+       );
+  end if;
+exception when others then null;
+end $$;
+
 -- 4. Menu: hapus semua menu /fcl/* lama, pasang menu /warehouse/* baru.
 do $$
 declare

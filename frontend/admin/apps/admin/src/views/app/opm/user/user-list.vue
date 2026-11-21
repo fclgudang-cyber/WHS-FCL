@@ -277,13 +277,13 @@ const importing = ref(false);
 const importRows = ref<Record<string, string>[]>([]);
 const importFileName = ref('');
 const importColumns = [
-  'username', 'password', 'realname', 'nickname', 'email', 'mobile', 'status',
+  'username', 'password', 'role', 'realname', 'nickname', 'email', 'mobile', 'status',
 ];
 
 function downloadTemplate() {
   const ws = XLSX.utils.aoa_to_sheet([
     importColumns,
-    ['operator1', 'rahasia123', 'Operator Gudang', 'Operator', 'operator@fcl.local', '08123456789', 'ON'],
+    ['operator1', 'rahasia123', 'tenant:manager', 'Operator Gudang', 'Operator', 'operator@fcl.local', '08123456789', 'ON'],
   ]);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Users');
@@ -336,8 +336,27 @@ async function submitImport() {
   let ok = 0;
   const failed: string[] = [];
   try {
+    const roleRes = await fetchListRoles(
+      new PaginationQuery({ formValues: { status: 'ON', type__not: 'TEMPLATE' } }),
+    );
+    const roles = (roleRes.items ?? []) as any[];
+    const defaultRole = roles.find((r) => String(r.code ?? '') === 'tenant:manager')
+      ?? roles.find((r) => String(r.code ?? '').includes('admin'))
+      ?? roles.find((r) => String(r.code ?? '').includes('manager'))
+      ?? roles[0];
+    if (!defaultRole) {
+      throw new Error('Tidak ada role aktif. Buat role terlebih dahulu agar akun bisa login.');
+    }
+
     for (const r of rows) {
       try {
+        const roleText = String(r.role ?? '').trim().toLowerCase();
+        const role = roleText
+          ? roles.find((x) =>
+              String(x.code ?? '').toLowerCase() === roleText ||
+              String(x.name ?? '').toLowerCase() === roleText)
+          : defaultRole;
+        const chosenRole = role ?? defaultRole;
         await apiClient.userService.Create({
           data: {
             username: String(r.username).trim(),
@@ -347,6 +366,7 @@ async function submitImport() {
             mobile: String(r.mobile ?? '').trim(),
             status: String(r.status ?? 'ON').trim() || 'ON',
             tenantId: userViewStore.getCurrentTenantId(),
+            roleIds: [Number(chosenRole.id)],
           } as any,
           password: String(r.password).trim(),
         } as any);
@@ -501,9 +521,9 @@ function handleDetail(row: any) {
   >
     <div class="import-info">
       <p>
-        Kolom: <b>username</b>, <b>password</b>, <b>realname</b>,
+        Kolom: <b>username</b>, <b>password</b>, <b>role</b>, <b>realname</b>,
         <b>nickname</b>, <b>email</b>, <b>mobile</b>, <b>status</b> (ON/OFF).
-        Username &amp; password wajib diisi.
+        Username &amp; password wajib. Role opsional (default: tenant:manager).
       </p>
       <a-button size="small" @click="downloadTemplate">Download Template</a-button>
     </div>
