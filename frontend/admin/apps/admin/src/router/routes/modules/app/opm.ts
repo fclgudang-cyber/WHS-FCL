@@ -52,6 +52,55 @@ const opm: RouteRecordRaw[] = [
         },
         component: () => import('#/views/app/opm/user/index.vue'),
       },
+      // Modul FCL yang terintegrasi ke Organisasi & SDM.
+      {
+        path: 'karyawan',
+        name: 'FCLKaryawan',
+        meta: { order: 5, icon: 'lucide:id-card', title: 'Karyawan', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
+        component: () => import('#/views/fcl/karyawan/index.vue'),
+      },
+      {
+        path: 'absensiKaryawan',
+        name: 'FCLAbsensiKaryawan',
+        meta: { order: 6, icon: 'lucide:fingerprint', title: 'Absensi Karyawan', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
+        component: () => import('#/views/fcl/absensi-karyawan/index.vue'),
+      },
+      {
+        path: 'jadwalShift',
+        name: 'FCLJadwalShift',
+        meta: { order: 7, icon: 'lucide:calendar-clock', title: 'Jadwal Shift', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
+        component: () => import('#/views/fcl/jadwal-shift/index.vue'),
+      },
+      {
+        path: 'laporanKerja',
+        name: 'FCLLaporanKerja',
+        meta: { order: 8, icon: 'lucide:clipboard-pen', title: 'Laporan Kerja', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
+        component: () => import('#/views/fcl/laporan-kerja/index.vue'),
+      },
+      {
+        path: 'grafikLaporan',
+        name: 'FCLGrafikLaporan',
+        meta: { order: 9, icon: 'lucide:chart-line', title: 'Grafik Laporan', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
+        component: () => import('#/views/fcl/grafik-laporan/index.vue'),
+      },
+      {
+        path: 'instruksiLembur',
+        name: 'FCLInstruksiLembur',
+        meta: { order: 10, icon: 'lucide:alarm-clock', title: 'Instruksi Lembur', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
+        component: () => import('#/views/fcl/instruksi-lembur/index.vue'),
+      },
+      {
+        path: 'ijin',
+        name: 'FCLIjin',
+        meta: { order: 11, icon: 'lucide:calendar-x', title: 'Ijin & Cuti', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
+        component: () => import('#/views/fcl/ijin/index.vue'),
+      },
+      {
+        path: 'lembur',
+        name: 'FCLLembur',
+        meta: { order: 12, icon: 'lucide:clock', title: 'Lembur', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
+        component: () => import('#/views/fcl/lembur/index.vue'),
+      },
       {
         path: 'users/detail/:id',
         name: 'UserDetail',

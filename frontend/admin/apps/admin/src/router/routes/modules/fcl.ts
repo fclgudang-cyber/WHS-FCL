@@ -153,101 +153,36 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  // Kompatibilitas: URL lama dialihkan ke modul utama.
   {
     path: '/fcl/operasional',
-    name: 'FCLOperasional',
-    component: lazyLayout,
-    meta: {
-      order: 1200,
-      icon: 'lucide:settings-2',
-      title: 'Operasional',
-      authority: ['fcl:operasional', 'sys:platform_admin'],
-      redirect: '/fcl/operasional/laporanKerja',
-    },
-    children: [
-      {
-        path: 'laporanKerja',
-        name: 'FCLLaporanKerja',
-        component: () => import('#/views/fcl/laporan-kerja/index.vue'),
-        meta: { icon: 'lucide:clipboard-pen', order: 1, title: 'Laporan Kerja', authority: ['fcl:laporanKerja', 'sys:platform_admin'] },
-      },
-      {
-        path: 'grafikLaporan',
-        name: 'FCLGrafikLaporan',
-        component: () => import('#/views/fcl/grafik-laporan/index.vue'),
-        meta: { icon: 'lucide:chart-line', order: 2, title: 'Grafik Laporan', authority: ['fcl:grafikLaporan', 'sys:platform_admin'] },
-      },
-      {
-        path: 'instruksiLembur',
-        name: 'FCLInstruksiLembur',
-        component: () => import('#/views/fcl/instruksi-lembur/index.vue'),
-        meta: { icon: 'lucide:alarm-clock', order: 3, title: 'Instruksi Lembur', authority: ['fcl:instruksiLembur', 'sys:platform_admin'] },
-      },
-      {
-        path: 'ijin',
-        name: 'FCLIjin',
-        component: () => import('#/views/fcl/ijin/index.vue'),
-        meta: { icon: 'lucide:calendar-x', order: 4, title: 'Ijin & Cuti', authority: ['fcl:ijin', 'sys:platform_admin'] },
-      },
-      {
-        path: 'lembur',
-        name: 'FCLLembur',
-        component: () => import('#/views/fcl/lembur/index.vue'),
-        meta: { icon: 'lucide:clock', order: 5, title: 'Lembur', authority: ['fcl:lembur', 'sys:platform_admin'] },
-      },
-    ],
+    redirect: '/opm',
+    meta: { hideInMenu: true, title: 'Redirect' },
+  },
+  {
+    path: '/fcl/operasional/:child',
+    redirect: (to) => `/opm/${String(to.params.child ?? '')}`,
+    meta: { hideInMenu: true, title: 'Redirect' },
   },
   {
     path: '/fcl/sdm',
-    name: 'FCLSDM',
-    component: lazyLayout,
-    meta: {
-      order: 1300,
-      icon: 'lucide:users-round',
-      title: 'SDM',
-      authority: ['fcl:sdm', 'sys:platform_admin'],
-      redirect: '/fcl/sdm/karyawan',
-    },
-    children: [
-      {
-        path: 'karyawan',
-        name: 'FCLKaryawan',
-        component: () => import('#/views/fcl/karyawan/index.vue'),
-        meta: { icon: 'lucide:id-card', order: 1, title: 'Karyawan', authority: ['fcl:karyawan', 'sys:platform_admin'] },
-      },
-      {
-        path: 'absensiKaryawan',
-        name: 'FCLAbsensiKaryawan',
-        component: () => import('#/views/fcl/absensi-karyawan/index.vue'),
-        meta: { icon: 'lucide:fingerprint', order: 3, title: 'Absensi Karyawan', authority: ['fcl:absensiKaryawan', 'sys:platform_admin'] },
-      },
-      {
-        path: 'jadwalShift',
-        name: 'FCLJadwalShift',
-        component: () => import('#/views/fcl/jadwal-shift/index.vue'),
-        meta: { icon: 'lucide:calendar-clock', order: 4, title: 'Jadwal Shift', authority: ['fcl:jadwalShift', 'sys:platform_admin'] },
-      },
-    ],
+    redirect: '/opm/karyawan',
+    meta: { hideInMenu: true, title: 'Redirect' },
+  },
+  {
+    path: '/fcl/sdm/:child',
+    redirect: (to) => `/opm/${String(to.params.child ?? '')}`,
+    meta: { hideInMenu: true, title: 'Redirect' },
   },
   {
     path: '/fcl/dokumentasi',
-    name: 'FCLDokumentasi',
-    component: lazyLayout,
-    meta: {
-      order: 1400,
-      icon: 'lucide:file-text',
-      title: 'Dokumentasi',
-      authority: ['fcl:dokumentasi', 'sys:platform_admin'],
-      redirect: '/fcl/dokumentasi/sop',
-    },
-    children: [
-      {
-        path: 'sop',
-        name: 'FCLSop',
-        component: () => import('#/views/fcl/sop/index.vue'),
-        meta: { icon: 'lucide:book-open', order: 1, title: 'SOP', authority: ['fcl:sop', 'sys:platform_admin'] },
-      },
-    ],
+    redirect: '/system/sop',
+    meta: { hideInMenu: true, title: 'Redirect' },
+  },
+  {
+    path: '/fcl/dokumentasi/:child',
+    redirect: '/system/sop',
+    meta: { hideInMenu: true, title: 'Redirect' },
   },
 ];
 

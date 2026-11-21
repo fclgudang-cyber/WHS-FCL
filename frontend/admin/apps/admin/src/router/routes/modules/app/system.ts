@@ -76,6 +76,13 @@ const system: RouteRecordRaw[] = [
         },
         component: () => import('#/views/app/system/language/index.vue'),
       },
+      // Modul FCL yang terintegrasi ke Sistem.
+      {
+        path: 'sop',
+        name: 'FCLSop',
+        meta: { order: 90, icon: 'lucide:book-open', title: 'SOP', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
+        component: () => import('#/views/fcl/sop/index.vue'),
+      },
     ],
   },
 ];
