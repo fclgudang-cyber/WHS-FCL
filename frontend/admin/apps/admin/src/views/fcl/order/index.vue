@@ -28,6 +28,7 @@ import dayjs from 'dayjs';
 
 import { fclDelete, fclInsert, fclPatch, fclQuery } from '#/api/fcl';
 import FclPagination from '#/components/fcl/fcl-pagination.vue';
+import type { StockRow } from '#/utils/fcl-stock';
 
 interface OrderRow {
   id: string;
@@ -64,6 +65,7 @@ type KategoriTab = 'MP' | 'Dist' | 'Store' | 'History';
 const loading = ref(true);
 const orders = ref<OrderRow[]>([]);
 const details = ref<DetailRow[]>([]);
+const stockRows = ref<StockRow[]>([]);
 const searchText = ref('');
 const searchSku = ref('');
 const activeTab = ref<KategoriTab>('MP');
@@ -96,8 +98,11 @@ function isSent(o?: OrderRow | null): boolean {
 const counts = computed(() => {
   const c: Record<KategoriTab, number> = { MP: 0, Dist: 0, Store: 0, History: 0 };
   orders.value.forEach((o) => {
-    if (isSent(o)) c.History++;
-    else c[katOf(o)]++;
+    if (isSent(o)) c.History = (c.History ?? 0) + 1;
+    else {
+      const tab = katOf(o);
+      c[tab] = (c[tab] ?? 0) + 1;
+    }
   });
   return c;
 });
@@ -153,12 +158,14 @@ function toggleExpand(id: string) {
 async function loadAll(silent = false) {
   if (!silent) loading.value = true;
   try {
-    const [o, d] = await Promise.all([
+    const [o, d, st] = await Promise.all([
       fclQuery<OrderRow>('order', { select: '*', order: 'createdAt.desc', limit: 10000 }),
       fclQuery<DetailRow>('orderdetail', { select: '*', limit: 20000 }),
+      fclQuery<StockRow>('stock', { select: '*', order: 'sku.asc', limit: 20000 }),
     ]);
     orders.value = o;
     details.value = d;
+    stockRows.value = st;
   } catch (err: any) {
     console.error('[fcl/order] load gagal', err);
     notification.error({ message: 'Manajemen Order', description: err?.message || 'Gagal memuat data order' });
@@ -223,12 +230,79 @@ function openOrderModal(o?: OrderRow | null) {
 }
 
 function addScanItem() {
-  const sku = scanInput.value.trim();
-  if (!sku) return;
-  // cari nama dari item yang pernah ada
-  const known = details.value.find((d) => String(d.sku).toLowerCase() === sku.toLowerCase());
-  items.value.push({ sku, nama: known?.nama ?? '', qty: 1, satuan: known?.satuan ?? 'pcs', batch: '', expDate: '' });
+  const text = scanInput.value.trim().toLowerCase();
+  if (!text) return;
+  const found = stockRows.value.find((r) =>
+    String(r.sku ?? '').toLowerCase() === text ||
+    String(r.barcode ?? '').toLowerCase() === text,
+  );
+  if (!found) {
+    message.warning('SKU / barcode tidak ditemukan di Stock Barang');
+    return;
+  }
+  const item = { ...newItem(), sku: String(found.sku ?? '') };
+  onSkuChange(item, item.sku);
+  item.qty = 1;
+  items.value.push(item);
   scanInput.value = '';
+}
+
+// ── Sinkronisasi dengan Stock Barang ────────────────────────────────────────
+const stockSkuOptions = computed(() => {
+  const map = new Map<string, { sku: string; nama: string; satuan: string; total: number }>();
+  for (const r of stockRows.value) {
+    const sku = String(r.sku ?? '').trim();
+    const qty = num(r.stok);
+    if (!sku || qty <= 0) continue;
+    const cur = map.get(sku) ?? { sku, nama: String(r.nama ?? ''), satuan: String(r.satuan ?? 'pcs'), total: 0 };
+    cur.total += qty;
+    if (!cur.nama && r.nama) cur.nama = String(r.nama);
+    map.set(sku, cur);
+  }
+  return [...map.values()].map((v) => ({
+    label: `${v.sku} — ${v.nama || '-'} (stok ${v.total})`,
+    value: v.sku,
+  }));
+});
+
+function batchOptions(sku: string) {
+  const seen = new Set<string>();
+  const out: Array<{ label: string; value: string }> = [];
+  for (const r of stockRows.value) {
+    if (String(r.sku ?? '') !== sku) continue;
+    const batch = String(r.batch ?? '').trim();
+    if (!batch || seen.has(batch)) continue;
+    seen.add(batch);
+    out.push({ label: `${batch}${r.expDate ? ` · exp ${String(r.expDate).slice(0, 10)}` : ''}`, value: batch });
+  }
+  return out;
+}
+
+function stockKey(item: { sku: string; batch: string }): string {
+  return `${String(item.sku ?? '').trim()}|${String(item.batch ?? '').trim()}`;
+}
+
+function availableStock(item: { sku: string; batch: string }): number {
+  const sku = String(item.sku ?? '').trim();
+  const batch = String(item.batch ?? '').trim();
+  if (!sku) return 0;
+  return stockRows.value
+    .filter((r) => String(r.sku ?? '') === sku && (!batch || String(r.batch ?? '') === batch))
+    .reduce((sum, r) => sum + num(r.stok), 0);
+}
+
+function onSkuChange(item: { sku: string; nama: string; satuan: string; batch: string; expDate: string }, sku: string) {
+  const match = stockRows.value.find((r) => String(r.sku ?? '') === sku && num(r.stok) > 0)
+    ?? stockRows.value.find((r) => String(r.sku ?? '') === sku);
+  if (!match) {
+    item.batch = '';
+    item.expDate = '';
+    return;
+  }
+  item.nama = String(match.nama ?? '');
+  item.satuan = String(match.satuan ?? 'pcs');
+  item.batch = String(match.batch ?? '');
+  item.expDate = String(match.expDate ?? '').slice(0, 10);
 }
 
 async function saveOrder() {
@@ -240,6 +314,36 @@ async function saveOrder() {
       return;
     }
   }
+  const validItems = items.value.filter((i) => i.sku || i.nama || num(i.qty) > 0);
+  const usage = new Map<string, number>();
+  for (const i of validItems) {
+    const sku = String(i.sku ?? '').trim();
+    if (!sku) {
+      message.warning('Pilih SKU dari Stock Barang untuk setiap item');
+      return;
+    }
+    if (!stockRows.value.some((r) => String(r.sku ?? '') === sku)) {
+      message.warning(`SKU ${sku} tidak ditemukan di Stock Barang`);
+      return;
+    }
+    if (num(i.qty) <= 0) {
+      message.warning(`Qty ${sku} harus lebih dari 0`);
+      return;
+    }
+    const key = stockKey(i as any);
+    usage.set(key, (usage.get(key) ?? 0) + num(i.qty));
+  }
+  for (const [key, qty] of usage) {
+    const parts = key.split('|');
+    const sku = parts[0] ?? '';
+    const batch = parts[1] ?? '';
+    const avail = availableStock({ sku, batch });
+    if (qty > avail) {
+      message.warning(`Stok ${sku}${batch ? ` batch ${batch}` : ''} tidak cukup. Tersedia ${avail}, diminta ${qty}`);
+      return;
+    }
+  }
+
   orderSaving.value = true;
   const total = items.value.reduce((s, i) => s + num(i.qty), 0);
   const payload: Record<string, any> = {
@@ -376,21 +480,22 @@ async function handleImport(event: Event) {
     const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(Boolean);
     const parsed = lines.map((line) => (line.match(/("([^"]|"")*"|[^,])+/g) ?? [])
       .map((c) => c.replace(/^"|"$/g, '').replace(/""/g, '"').trim()));
-    if (!parsed.length || !parsed[0][0]?.toLowerCase().includes('order')) throw new Error('Baris pertama harus header template');
+    const header = parsed[0] ?? [];
+    if (!header[0]?.toLowerCase().includes('order')) throw new Error('Baris pertama harus header template');
     let created = 0, skipped = 0;
     for (let i = 1; i < parsed.length; i++) {
-      const c = parsed[i];
+      const c = parsed[i] ?? [];
       const noOrder = c[0];
       if (!noOrder) continue;
       if (orders.value.some((o) => o.noOrder === noOrder)) { skipped++; continue; }
       await fclInsert('order', [{
         noOrder,
         tanggal: c[1] || dayjs().format('YYYY-MM-DD'),
-        kategori: c[2] || 'Distributor',
-        pelanggan: c[3] || '',
-        alamat: c[4] || '',
-        noResi: c[5] || '',
-        keterangan: c[6] || '',
+        kategori: (c[2] || 'Distributor'),
+        pelanggan: (c[3] || ''),
+        alamat: (c[4] || ''),
+        noResi: (c[5] || ''),
+        keterangan: (c[6] || ''),
         status: 'Menunggu',
         totalItem: '1',
       }]);
@@ -582,17 +687,37 @@ onMounted(loadAll);
         </div>
 
         <div class="ord-items-head">
-          <b>Daftar Barang Order</b>
-          <button class="ord-btn ord-btn-ghost ord-btn-xs" @click="items.push(newItem())"><LucidePlus :size="12" /> Tambah Baris</button>
+          <b>Daftar Barang Order <span class="ord-muted">(sinkron dengan Stock Barang)</span></b>
+          <div class="ord-actions">
+            <button class="ord-btn ord-btn-ghost ord-btn-xs" @click="loadAll(true)">⟳ Refresh Stok</button>
+            <button class="ord-btn ord-btn-ghost ord-btn-xs" @click="items.push(newItem())"><LucidePlus :size="12" /> Tambah Baris</button>
+          </div>
         </div>
         <div class="ord-items-grid">
           <div v-for="(item, idx) in items" :key="idx" class="ord-item-row">
-            <input v-model="item.sku" class="ord-input" placeholder="SKU" />
-            <input v-model="item.nama" class="ord-input" placeholder="Nama barang" />
+            <a-select
+              v-model:value="item.sku"
+              class="ord-input"
+              show-search
+              option-filter-prop="label"
+              :options="stockSkuOptions"
+              placeholder="Cari SKU / barang"
+              @change="onSkuChange(item, $event)"
+            />
+            <input v-model="item.nama" class="ord-input" placeholder="Nama barang (dari stock)" readonly />
+            <a-select
+              v-model:value="item.batch"
+              class="ord-input"
+              :options="batchOptions(item.sku)"
+              placeholder="Batch"
+              allow-clear
+            />
             <input v-model.number="item.qty" type="number" min="0" class="ord-input" placeholder="Qty" />
             <input v-model="item.satuan" class="ord-input" placeholder="Satuan" />
-            <input v-model="item.batch" class="ord-input" placeholder="Batch" />
             <input v-model="item.expDate" type="date" class="ord-input" />
+            <span class="ord-stock" :class="{ low: num(item.qty) > availableStock(item) }">
+              Stok {{ availableStock(item) }}
+            </span>
             <button class="ord-btn ord-btn-danger ord-btn-xs" title="Hapus baris" @click="items.splice(idx, 1)"><LucideTrash2 :size="12" /></button>
           </div>
         </div>
@@ -703,10 +828,13 @@ onMounted(loadAll);
 .ord-scan-row { display: flex; gap: 6px; }
 .ord-items-head { display: flex; justify-content: space-between; align-items: center; }
 .ord-items-grid { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
-.ord-item-row { display: grid; grid-template-columns: 1fr 1.6fr 0.6fr 0.7fr 0.9fr 1.1fr 32px; gap: 5px; align-items: center; }
+.ord-item-row { display: grid; grid-template-columns: 1.5fr 1.4fr 0.9fr 0.5fr 0.7fr 1fr 0.8fr 32px; gap: 5px; align-items: center; }
+.ord-stock { font-size: 10px; font-weight: 700; color: hsl(var(--success)); text-align: center; white-space: nowrap; }
+.ord-stock.low { color: hsl(var(--destructive)); }
 
 @media (max-width: 900px) {
   .ord-form-row { grid-template-columns: 1fr 1fr; }
   .ord-item-row { grid-template-columns: 1fr 1fr 0.7fr 32px; }
+.ord-item-row .ord-stock { grid-column: 1 / -1; text-align: left; }
 }
 </style>
