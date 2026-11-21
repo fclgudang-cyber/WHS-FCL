@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/data"
-	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/fcl"
+	"github.com/Mikdad-Force/Ghost/app/admin/service/internal"
 	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/server"
 	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/service"
 	"github.com/Mikdad-Force/Ghost/pkg/middleware/auth"
