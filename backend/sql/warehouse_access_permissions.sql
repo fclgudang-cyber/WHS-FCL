@@ -5,6 +5,44 @@ do $$ begin
   perform setval(pg_get_serial_sequence('sys_menus', 'id'), greatest(coalesce((select max(id) from sys_menus), 1), 1));
 exception when others then null; end $$;
 
+-- 0. Pastikan permission akses backend ada dan melekat pada semua role aktif.
+-- Tanpa ini login ditolak dengan "insufficient authority" meski user punya role.
+do $$
+declare
+  gid bigint;
+  pid bigint;
+begin
+  select id into gid
+    from sys_permission_groups
+   where deleted_at is null
+   order by id
+   limit 1;
+
+  if gid is null then
+    insert into sys_permission_groups (name, description, module, sort_order, status)
+    values ('系统管理', '系统权限', 'system', 1, 'ON')
+    returning id into gid;
+  end if;
+
+  insert into sys_permissions (name, code, group_id, status, description)
+  select '访问后台', 'sys:access_backend', gid, 'ON', '允许用户访问系统后台管理界面'
+   where not exists (select 1 from sys_permissions where code = 'sys:access_backend');
+
+  select id into pid from sys_permissions where code = 'sys:access_backend' limit 1;
+
+  if pid is not null then
+    insert into sys_role_permissions (role_id, permission_id, status, effect)
+    select r.id, pid, 'ON', 'ALLOW'
+      from sys_roles r
+     where r.deleted_at is null and r.status = 'ON'
+       and not exists (
+         select 1 from sys_role_permissions rp
+          where rp.role_id = r.id and rp.permission_id = pid
+       );
+  end if;
+exception when others then null;
+end $$;
+
 -- 1. Grup permission
 do $$ begin
   update sys_permission_groups
