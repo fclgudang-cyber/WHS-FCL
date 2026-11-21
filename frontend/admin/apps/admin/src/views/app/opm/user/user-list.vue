@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 import type { VxeGridListeners, VxeGridProps } from '#/adapter/vxe-table';
 
-import { h, watch } from 'vue';
+import { h, ref, watch } from 'vue';
 
 import { useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
 import { LucideFilePenLine, LucideInfo, LucideTrash2 } from '@vben/icons';
 import { isEqual } from '@vben/utils';
 
-import { notification } from 'ant-design-vue';
+import { message, Modal, notification } from 'ant-design-vue';
+import * as XLSX from 'xlsx';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
@@ -279,6 +280,105 @@ function openDrawer(create: boolean, row?: any) {
   drawerApi.open();
 }
 
+// ==================== Import akun dari Excel ====================
+const importOpen = ref(false);
+const importing = ref(false);
+const importRows = ref<Record<string, string>[]>([]);
+const importFileName = ref('');
+const importColumns = ['username', 'password', 'realname', 'nickname', 'email', 'mobile', 'status'];
+
+function downloadTemplate() {
+  const ws = XLSX.utils.aoa_to_sheet([
+    importColumns,
+    ['operator1', 'rahasia123', 'Operator Gudang', 'Operator', 'operator@fcl.local', '08123456789', 'ON'],
+  ]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Users');
+  XLSX.writeFile(wb, 'template-akun-user.xlsx');
+  message.success('Template berhasil diunduh');
+}
+
+async function pickImportFile(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  importFileName.value = file.name;
+  try {
+    const isCsv = /\.csv$/i.test(file.name);
+    const wb = isCsv
+      ? XLSX.read(await file.text(), { type: 'string' })
+      : XLSX.read(await file.arrayBuffer(), { type: 'array' });
+    const name = wb.SheetNames[0];
+    if (!name || !wb.Sheets[name]) throw new Error('File tidak punya sheet');
+    const matrix = XLSX.utils.sheet_to_json<string[]>(wb.Sheets[name], { header: 1, defval: '' });
+    if (matrix.length < 2) throw new Error('File kosong atau tidak ada baris data');
+    const headers = (matrix[0] ?? []).map((v) => String(v ?? '').trim().toLowerCase());
+    importRows.value = matrix.slice(1)
+      .filter((r) => Array.isArray(r) && r.some((v) => String(v ?? '').trim()))
+      .map((r) => {
+        const row: Record<string, string> = {};
+        headers.forEach((key, i) => {
+          if (key) row[key] = String(r[i] ?? '').trim();
+        });
+        return row;
+      });
+    message.success(`${importRows.value.length} baris terbaca`);
+  } catch (err: any) {
+    importRows.value = [];
+    notification.error({ message: 'Gagal membaca file', description: err?.message });
+  }
+}
+
+async function submitImport() {
+  const rows = importRows.value.filter((r) => {
+    const username = String(r.username ?? '').trim();
+    const password = String(r.password ?? '').trim();
+    return username.length > 0 && password.length > 0;
+  });
+  if (!rows.length) {
+    message.warning('Tidak ada baris valid (username & password wajib)');
+    return;
+  }
+  importing.value = true;
+  let ok = 0;
+  const failed: string[] = [];
+  try {
+    for (const r of rows) {
+      try {
+        await apiClient.userService.Create({
+          data: {
+            username: String(r.username).trim(),
+            realname: String(r.realname ?? '').trim(),
+            nickname: String(r.nickname ?? '').trim(),
+            email: String(r.email ?? '').trim(),
+            mobile: String(r.mobile ?? '').trim(),
+            status: String(r.status ?? 'ON').trim() || 'ON',
+            tenantId: userViewStore.currentTenantId ?? 0,
+          } as any,
+          password: String(r.password).trim(),
+        } as any);
+        ok++;
+      } catch (err: any) {
+        failed.push(`${r.username}: ${err?.message ?? 'gagal'}`);
+      }
+    }
+    notification.success({
+      message: 'Import selesai',
+      description: `${ok} akun dibuat, ${failed.length} gagal`,
+    });
+    if (failed.length) {
+      Modal.warning({ title: `${failed.length} akun gagal`, content: failed.slice(0, 10).join('\n'), width: 480 });
+    }
+    if (ok > 0) {
+      importOpen.value = false;
+      importRows.value = [];
+      await gridApi.reload();
+    }
+  } finally {
+    importing.value = false;
+  }
+}
+
 /* 创建 */
 function handleCreate() {
   console.log('创建');
@@ -330,7 +430,9 @@ watch(
 <template>
   <Grid :table-title="$t('menu.opm.user')">
     <template #toolbar-tools>
-      <a-button type="primary" @click="handleCreate">
+      <a-button size="small" @click="downloadTemplate">Template Excel</a-button>
+      <a-button size="small" @click="importOpen = true">Import Excel</a-button>
+      <a-button type="primary" size="small" @click="handleCreate">
         {{ $t('page.user.button.create') }}
       </a-button>
     </template>
@@ -419,6 +521,60 @@ watch(
     </template>
   </Grid>
   <Drawer />
+
+  <a-modal
+    v-model:open="importOpen"
+    title="Import Akun dari Excel"
+    :width="720"
+    ok-text="Import"
+    cancel-text="Batal"
+    :confirm-loading="importing"
+    @ok="submitImport"
+  >
+    <div class="import-info">
+      <p>
+        Kolom: <b>username</b>, <b>password</b>, <b>realname</b>,
+        <b>nickname</b>, <b>email</b>, <b>mobile</b>, <b>status</b> (ON/OFF).
+        Username &amp; password wajib diisi.
+      </p>
+      <a-button size="small" @click="downloadTemplate">Download Template</a-button>
+    </div>
+    <input type="file" accept=".xlsx,.xls,.csv" @change="pickImportFile" />
+    <div v-if="importFileName" class="import-file">
+      {{ importFileName }} · {{ importRows.length }} baris
+    </div>
+    <div v-if="importRows.length" class="import-preview">
+      <table>
+        <thead>
+          <tr><th v-for="c in importColumns" :key="c">{{ c }}</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="(r, i) in importRows.slice(0, 8)" :key="i">
+            <td v-for="c in importColumns" :key="c">{{ r[c] || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </a-modal>
 </template>
 
-<style scoped></style>
+<style scoped>
+.import-info {
+  background: hsl(var(--muted) / 0.5);
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.import-info p { margin: 0; }
+.import-file { margin-top: 8px; font-size: 12px; font-weight: 700; }
+.import-preview { margin-top: 10px; max-height: 260px; overflow: auto; border: 1px solid hsl(var(--border)); border-radius: 8px; }
+.import-preview table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.import-preview th,
+.import-preview td { padding: 5px 7px; text-align: left; border-bottom: 1px solid hsl(var(--border)); }
+.import-preview th { background: hsl(var(--muted) / 0.6); }
+</style>
