@@ -472,6 +472,14 @@ export const useAuthStore = defineStore('auth', () => {
       ];
     }
 
+    // Kompatibilitas: database lama belum punya sys:platform_admin / sys:tenant_manager.
+    // Akun dengan permission warehouse:* tetap dianggap bisa mengakses modul utama.
+    if (userPermissionCodes.some((code) => String(code).startsWith('warehouse:'))) {
+      for (const code of ['sys:platform_admin', 'sys:tenant_manager']) {
+        if (!userPermissionCodes.includes(code)) userPermissionCodes.push(code);
+      }
+    }
+
     startRefreshTimer();
 
     _connectSSEServer();
