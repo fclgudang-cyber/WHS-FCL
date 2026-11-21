@@ -139,5 +139,9 @@ Backend FCL membuka listener khusus di **port 80** (`FCL_WEBHOOK_ADDR`, default 
 Endpoint lain tetap di `FCL_ADDR` (6905) dan memakai JWT utama.
 
 - Image `admin-service` diberi capability `cap_net_bind_service` agar user non-root bisa bind port 80.
-- Di Compose, port host dapat diubah lewat `FCL_WEBHOOK_PORT` (default `80:80`).
+- Port 80 **hanya terbuka di dalam jaringan Docker** (`expose: ["80"]`), tidak di-publish ke host
+  karena port 80 host biasanya dipakai proxy Coolify. Mesin mengakses lewat domain aplikasi:
+  `https://<domain>/iclock/cdata?SN=...` dan `https://<domain>/fp`.
 - Nginx mem-proxy `/iclock/` dan `/fp` ke `admin-service:80`.
+- Jika memang perlu akses langsung IP:port, tambahkan sendiri mapping host di Compose, misalnya
+  `"8085:80"`, lalu sesuaikan URL di mesin.
