@@ -88,7 +88,7 @@ begin
      where path in ('/fcl/operasional', '/fcl/sdm', '/fcl/dokumentasi')
   );
   delete from sys_menus
-   where path in ('/fcl/operasional', '/fcl/sdm', '/fcl/dokumentasi');
+   where path in ('/fcl/operasional', '/fcl/sdm', '/fcl/dokumentasi', '/opm/org-units');
 
   -- Katalog modul utama / domain.
   insert into sys_menus (name, path, type, status, parent_id, meta)

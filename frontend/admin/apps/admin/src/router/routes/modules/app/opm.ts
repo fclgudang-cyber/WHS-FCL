@@ -17,16 +17,11 @@ const opm: RouteRecordRaw[] = [
       authority: ['sys:platform_admin', 'sys:tenant_manager'],
     },
     children: [
+      // URL lama dialihkan ke Kelola Pengguna.
       {
         path: 'org-units',
-        name: 'OrgUnitManagement',
-        meta: {
-          order: 1,
-          icon: 'lucide:layers',
-          title: $t('menu.opm.orgUnit'),
-          authority: ['sys:platform_admin', 'sys:tenant_manager'],
-        },
-        component: () => import('#/views/app/opm/org_unit/index.vue'),
+        redirect: '/opm/users',
+        meta: { hideInMenu: true, title: 'Redirect' },
       },
 
       {

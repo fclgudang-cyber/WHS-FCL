@@ -113,7 +113,7 @@ export function useDeleteMenu(
  *
  * component 路径规则:
  * - 布局组件 → "BasicLayout" / "IFrameView"
- * - 页面组件 → 相对于 views/ 的路径，如 "app/opm/org_unit/index.vue"
+ * - 页面组件 → 相对于 views/ 的路径，如 "app/opm/user/index.vue"
  */
 /**
  * 将前端静态路由定义列表转换为后端菜单同步请求
