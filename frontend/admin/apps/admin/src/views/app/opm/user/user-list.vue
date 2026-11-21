@@ -353,7 +353,7 @@ async function submitImport() {
             email: String(r.email ?? '').trim(),
             mobile: String(r.mobile ?? '').trim(),
             status: String(r.status ?? 'ON').trim() || 'ON',
-            tenantId: userViewStore.currentTenantId ?? 0,
+            tenantId: userViewStore.getCurrentTenantId(),
           } as any,
           password: String(r.password).trim(),
         } as any);

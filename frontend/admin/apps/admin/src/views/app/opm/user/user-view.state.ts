@@ -99,14 +99,18 @@ export const useUserViewStore = defineStore('user-view', {
     ): Promise<ListUserResponse> {
       this.loading = true;
       try {
+        // Tanpa panel Tenant/Organisasi, jangan membatasi daftar ke tenant 0.
+        const values: Record<string, any> = { ...formValues };
+        if (this.currentTenantId !== undefined) {
+          values.tenant_id = this.currentTenantId;
+        }
+        if (this.currentOrgUnitId !== undefined) {
+          values.org_unit_id = this.currentOrgUnitId;
+        }
         this.userList = await fetchListUsers(
           new PaginationQuery({
             paging: { page: currentPage, pageSize },
-            formValues: {
-              ...formValues,
-              tenant_id: this.currentTenantId ?? 0,
-              org_unit_id: this.currentOrgUnitId,
-            },
+            formValues: values,
           }),
         );
       } catch (error) {
