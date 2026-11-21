@@ -81,7 +81,7 @@ const [BaseForm, baseFormApi] = useVbenForm({
         numberToString: true,
         showSearch: true,
         treeDefaultExpandAll: true,
-        allowClear: true,
+        allowClear: false,
         childrenField: 'children',
         labelField: 'name',
         valueField: 'id',
