@@ -1,6 +1,6 @@
 import type { Router } from 'vue-router';
 
-import { DEFAULT_HOME_PATH, LOGIN_PATH } from '@vben/constants';
+import { DEFAULT_HOME_PATH, LOGIN_PATH, normalizeHomePath } from '@vben/constants';
 import { preferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { startProgress, stopProgress } from '@vben/utils';
@@ -56,8 +56,7 @@ function setupAccessGuard(router: Router) {
       if (to.path === LOGIN_PATH && accessStore.accessToken) {
         return decodeURIComponent(
           (to.query?.redirect as string) ||
-            userStore.userInfo?.homePath ||
-            DEFAULT_HOME_PATH,
+            normalizeHomePath(userStore.userInfo?.homePath),
         );
       }
       return true;
@@ -117,7 +116,7 @@ function setupAccessGuard(router: Router) {
 
     const redirectPath = (from.query.redirect ??
       (to.path === DEFAULT_HOME_PATH
-        ? userStore.userInfo?.homePath || DEFAULT_HOME_PATH
+        ? normalizeHomePath(userStore.userInfo?.homePath)
         : to.fullPath)) as string;
 
     return {

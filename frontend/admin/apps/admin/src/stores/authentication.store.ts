@@ -2,7 +2,7 @@ import type { Recordable, UserInfo } from '@vben/types';
 
 import { ref } from 'vue';
 
-import { DEFAULT_HOME_PATH, LOGIN_PATH } from '@vben/constants';
+import { LOGIN_PATH, normalizeHomePath } from '@vben/constants';
 import { preferences } from '@vben/preferences';
 import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
 
@@ -147,7 +147,7 @@ export const useAuthStore = defineStore('auth', () => {
         } else {
           onSuccess
             ? await onSuccess?.()
-            : await router.push(userInfo.homePath || DEFAULT_HOME_PATH);
+            : await router.push(normalizeHomePath(userInfo.homePath));
         }
 
         if (userInfo?.realname) {

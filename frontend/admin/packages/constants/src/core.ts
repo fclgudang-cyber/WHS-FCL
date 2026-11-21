@@ -4,9 +4,20 @@
 export const LOGIN_PATH = '/auth/login';
 
 /**
+ * Normalisasi homePath lama agar tidak mengarah ke route /fcl/* yang sudah diganti.
+ */
+export function normalizeHomePath(path?: string | null): string {
+  const value = String(path ?? '').trim();
+  if (!value.startsWith('/') || value.startsWith('/fcl/')) {
+    return DEFAULT_HOME_PATH;
+  }
+  return value;
+}
+
+/**
  * @zh_CN 默认首页地址
  */
-export const DEFAULT_HOME_PATH = '/fcl/dashboard';
+export const DEFAULT_HOME_PATH = '/warehouse/dashboard';
 
 /**
  * Language option type
