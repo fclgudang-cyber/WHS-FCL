@@ -78,6 +78,18 @@ watch(() => accessStore.accessToken, (token) => {
   if (token) startStream();
 });
 
+// Tampilan responsif: panel kiri/kanan jadi drawer di layar kecil.
+const isMobile = ref(false);
+const leftOpen = ref(false);
+const rightOpen = ref(false);
+function updateViewport() {
+  isMobile.value = window.innerWidth <= 900;
+  if (!isMobile.value) {
+    leftOpen.value = false;
+    rightOpen.value = false;
+  }
+}
+
 const sceneEl = ref<HTMLDivElement | null>(null);
 const canvas2d = ref<HTMLCanvasElement | null>(null);
 const minimap = ref<HTMLCanvasElement | null>(null);
@@ -246,11 +258,9 @@ watch(mode, async (m) => {
         rightTab.value = 'properties';
         scene?.select(selectedUid.value);
       },
-      onMove: (uid, x, y) => applyPosition(uid, x, y),
-      onResize: (uid, l, w) => {
-        const o = objects.value.find((v) => v.objectUid === uid);
-        if (o) { o.length = l; o.width = w; pushHistory(); syncScene(); }
-      },
+      onMove: (uid, x, y) => liveTransform(uid, { positionX: x, positionY: y }),
+      onResize: (uid, l, w) => liveTransform(uid, { length: l, width: w }),
+      onTransformEnd: commitTransform,
       onDraw: (x, y, l, w) => addArea(x, y, l, w),
     });
     editor2d.setSnap(snapToGrid.value);
@@ -308,18 +318,26 @@ function addArea(x = 0, y = 0, l = 10, w = 8, tpl?: (typeof defaultAreas)[number
   select(uid);
 }
 
-function applyPosition(uid: string, x: number, y: number) {
-  const o = objects.value.find((v) => v.objectUid === uid)
+function findTransformable(uid: string): any {
+  return objects.value.find((v) => v.objectUid === uid)
     ?? areas.value.find((v) => v.areaUid === uid)
-    ?? equipment.value.find((v) => v.equipmentUid === uid);
-  if (!o) return;
-  (o as any).positionX = x;
-  (o as any).positionY = y;
+    ?? equipment.value.find((v) => v.equipmentUid === uid)
+    ?? null;
+}
+
+// Perubahan langsung saat drag (tanpa history / rebuild scene).
+function liveTransform(uid: string, patch: Record<string, any>) {
+  const target = findTransformable(uid);
+  if (target) Object.assign(target, patch);
+}
+
+// Commit sekali saat drag selesai.
+function commitTransform(uid: string, patch: Record<string, any>) {
+  liveTransform(uid, patch);
   pushHistory();
   syncScene();
 }
 
-function onSceneMove(uid: string, x: number, y: number) { applyPosition(uid, x, y); }
 
 function patchSelected(patch: Record<string, any>) {
   const uid = selectedUid.value;
@@ -674,7 +692,7 @@ const moduleRoutes: Record<string, string> = {
   Inventory: '/fcl/warehouse/stock',
   Locations: '/fcl/warehouse/warehouse3d',
   Analytics: '/fcl/warehouse/analisis',
-  Workers: '/fcl/sdm/karyawan',
+  Workers: '/opm/karyawan',
 };
 
 async function openModule(name: string) {
@@ -730,11 +748,16 @@ async function setLatestTaskStatus(status: string) {
 }
 
 onMounted(async () => {
+  updateViewport();
+  window.addEventListener('resize', updateViewport);
   await load();
   if (sceneEl.value) {
     scene = new Warehouse3DScene(sceneEl.value, {
       onSelect: (uid) => { selectedUid.value = uid; selectedUids.value = uid ? [uid] : []; if (uid) rightTab.value = 'properties'; },
-      onMove: onSceneMove,
+      onMove: (uid, x, y) => liveTransform(uid, { positionX: x, positionY: y }),
+      onRotate: (uid, rotation) => liveTransform(uid, { rotation }),
+      onResize: (uid, length, width) => liveTransform(uid, { length, width }),
+      onTransformEnd: commitTransform,
     });
     scene.setWarehouse(warehouse.value);
     scene.setLayout(objects.value, areas.value, employees.value, equipment.value);
@@ -744,6 +767,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateViewport);
   scene?.dispose();
   editor2d?.dispose();
   stream?.close();
@@ -785,6 +809,11 @@ onBeforeUnmount(() => {
 
     <!-- ================= TOOLBAR ================= -->
     <div class="wh3d-toolbar">
+      <div class="tool-group mobile-only">
+        <a-button size="small" @click="leftOpen = !leftOpen">📦 Library</a-button>
+        <a-button size="small" @click="rightOpen = !rightOpen">📊 Panel</a-button>
+      </div>
+      <span class="sep mobile-only" />
       <div class="tool-group">
         <a-tooltip title="Select"><a-button :type="transform === 'select' ? 'primary' : 'text'" size="small" @click="transform='select'; scene?.setTransform('select')"><LucideEye :size="15" /></a-button></a-tooltip>
         <a-tooltip title="Move"><a-button :type="transform === 'move' ? 'primary' : 'text'" size="small" @click="transform='move'; scene?.setTransform('move')">✥</a-button></a-tooltip>
@@ -831,11 +860,16 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
+    <div v-if="isMobile && (leftOpen || rightOpen)" class="drawer-backdrop" @click="leftOpen = false; rightOpen = false" />
+
     <!-- ================= BODY ================= -->
     <div class="wh3d-body">
       <!-- LEFT: Object library -->
-      <aside class="wh3d-left">
-        <div class="panel-head"><span>▦</span> OBJECT LIBRARY</div>
+      <aside class="wh3d-left" :class="{ open: leftOpen }">
+        <div class="panel-head">
+          <span>▦</span> OBJECT LIBRARY
+          <a-button v-if="isMobile" class="mobile-only ml-auto" size="small" type="text" @click="leftOpen = false">✕</a-button>
+        </div>
         <div class="search-wrap">
           <span>🔍</span>
           <a-input v-model:value="searchText" size="small" variant="borderless" placeholder="SKU / Bin / Karyawan / Order" @press-enter="doSearch" />
@@ -861,8 +895,8 @@ onBeforeUnmount(() => {
           <div class="lib-grid">
             <div
               v-for="c in items" :key="c.type" class="lib-item" draggable="true"
-              @dragstart="dragStart($event, c)" @dblclick="addObject(c)"
-              :title="`${c.l} × ${c.w} × ${c.h} m`"
+              @dragstart="dragStart($event, c)" @click="addObject(c)"
+              :title="`Klik / tap untuk menambah · ${c.l} × ${c.w} × ${c.h} m`"
             >
               <div class="lib-icon">{{ c.icon }}</div>
               <span>{{ c.name }}</span>
@@ -880,6 +914,11 @@ onBeforeUnmount(() => {
       <main class="wh3d-center" @dragover.prevent @drop.prevent="onDrop">
         <div ref="sceneEl" class="scene-host" :style="{ display: mode === '3d' ? 'block' : 'none' }" />
         <canvas ref="canvas2d" class="canvas2d" :style="{ display: mode === '2d' ? 'block' : 'none' }" />
+
+        <div v-if="loading" class="scene-loading">Memuat Warehouse 3D…</div>
+        <div v-else-if="!objects.length && !areas.length" class="scene-hint">
+          Belum ada objek. Tap / klik item di <b>Object Library</b> untuk menambahkan.
+        </div>
 
         <div class="scene-badge">
           <span class="pulse" /> LIVE · {{ employees.filter(e => e.activity !== 'IDLE').length }} pekerja aktif
@@ -899,8 +938,9 @@ onBeforeUnmount(() => {
       </main>
 
       <!-- RIGHT -->
-      <aside class="wh3d-right">
+      <aside class="wh3d-right" :class="{ open: rightOpen }">
         <div class="right-tabs">
+          <a-button v-if="isMobile" class="mobile-only panel-close" size="small" type="text" @click="rightOpen = false">✕</a-button>
           <button :class="{ active: rightTab === 'activity' }" @click="rightTab='activity'">Aktivitas</button>
           <button :class="{ active: rightTab === 'alerts' }" @click="rightTab='alerts'">Cases & Alerts <b v-if="alerts.length">{{ alerts.length }}</b></button>
           <button :class="{ active: rightTab === 'properties' }" @click="rightTab='properties'">Properties</button>
@@ -1043,8 +1083,9 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.wh3d-page { padding: 0 !important; }
-.wh3d-top { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 16px; background:hsl(var(--card)); border-bottom:1px solid hsl(var(--border)); }
+.wh3d-page { padding: 0 !important; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.mobile-only { display: none; }
+.wh3d-top { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 16px; background:hsl(var(--card)); border-bottom:1px solid hsl(var(--border)); flex-shrink:0; }
 .wh3d-title { display:flex; align-items:center; gap:10px; }
 .wh3d-logo { width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:#e6f2f4;color:#1f7a86; }
 .wh3d-name { font-size:16px;font-weight:800; }
@@ -1061,7 +1102,11 @@ onBeforeUnmount(() => {
 .tool-group { display:flex;gap:3px;align-items:center; }
 .tool-spacer { flex:1; }
 .sep { width:1px;height:22px;background:hsl(var(--border)); }
-.wh3d-body { display:grid;grid-template-columns:238px 1fr 292px;gap:8px;padding:8px;height:calc(100vh - 196px);min-height:520px; }
+.wh3d-body { display:grid;grid-template-columns:238px 1fr 292px;gap:8px;padding:8px;flex:1;min-height:0; }
+.wh3d-center { min-width:0; }
+.scene-loading,.scene-hint { position:absolute;inset:0;display:grid;place-items:center;background:rgba(238,241,243,.82);z-index:5;font-size:12px;font-weight:700;color:#456;pointer-events:none; }
+.scene-hint { background:rgba(238,241,243,.55); }
+.drawer-backdrop { position:fixed;inset:0;background:rgba(15,30,38,.38);z-index:55; }
 .wh3d-left,.wh3d-right { background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:12px;overflow:auto; }
 .panel-head { display:flex;align-items:center;gap:7px;padding:10px 12px;font-size:11px;font-weight:800;letter-spacing:.08em;border-bottom:1px solid hsl(var(--border)); }
 .search-wrap { display:flex;align-items:center;gap:6px;margin:8px;padding:6px 9px;border:1px solid hsl(var(--border));border-radius:8px; }
@@ -1095,6 +1140,7 @@ onBeforeUnmount(() => {
 .right-tabs button { flex:1;border:0;background:transparent;padding:9px 4px;font-size:10px;font-weight:700;color:hsl(var(--muted-foreground));cursor:pointer; }
 .right-tabs button.active { color:#127f8b;border-bottom:2px solid #127f8b; }
 .right-tabs b { background:#e8a317;color:#fff;border-radius:8px;padding:0 5px;font-size:9px; }
+.panel-close { flex: 0 0 auto; padding: 0 6px; }
 .right-list { padding:8px; }
 .act-row { display:flex;gap:7px;padding:7px 4px;border-bottom:1px solid hsl(var(--border)); }
 .act-dot { width:8px;height:8px;border-radius:50%;background:#4a9ad4;margin-top:4px;flex-shrink:0; }
@@ -1134,4 +1180,53 @@ onBeforeUnmount(() => {
 .form-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
 .w-full { width:100%; }
 .area-auto { background:#eaf5f6;border-radius:8px;padding:8px 10px;font-size:11px;color:#1f6b75; }
+
+/* ===================== Responsif / Mobile ===================== */
+@media (max-width: 1180px) {
+  .wh3d-top { flex-wrap: wrap; }
+  .wh3d-title { width: 100%; }
+  .wh3d-kpis { width: 100%; }
+  .wh3d-body { grid-template-columns: 210px 1fr 250px; }
+}
+
+@media (max-width: 900px) {
+  .mobile-only { display: inline-flex; }
+  .wh3d-top { padding: 8px 10px; gap: 8px; }
+  .wh3d-name { font-size: 14px; }
+  .wh3d-sub { flex-wrap: wrap; font-size: 10px; }
+  .wh3d-kpis { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+  .kpi { flex: 0 0 auto; min-width: 96px; padding: 5px 8px; }
+  .kpi-value { font-size: 14px; }
+  .wh3d-toolbar { flex-wrap: nowrap; overflow-x: auto; padding: 6px 8px; }
+  .tool-group, .sep { flex-shrink: 0; }
+  .tool-spacer { display: none; }
+  .wh3d-body { display: block; position: relative; padding: 6px; }
+  .wh3d-center { height: 100%; min-height: 52vh; }
+  .wh3d-left, .wh3d-right {
+    position: absolute; top: 6px; bottom: 6px; width: min(86vw, 320px);
+    z-index: 60; border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 35, 45, .25);
+    transition: transform .22s ease;
+  }
+  .wh3d-left { left: 6px; transform: translateX(calc(-100% - 12px)); }
+  .wh3d-left.open { transform: translateX(0); }
+  .wh3d-right { right: 6px; transform: translateX(calc(100% + 12px)); }
+  .wh3d-right.open { transform: translateX(0); }
+  .minimap-wrap { width: 132px; }
+  .minimap-canvas { height: 78px; }
+  .scene-badge { font-size: 9px; padding: 4px 9px; }
+  .issue-strip { top: 38px; right: 8px; left: 8px; }
+  .wh3d-bottom { flex-wrap: wrap; padding: 6px 8px; }
+  .bottom-nav, .bottom-actions { width: 100%; flex-wrap: nowrap; overflow-x: auto; }
+  .bottom-nav button, .bottom-actions button { flex-shrink: 0; }
+}
+
+@media (max-width: 560px) {
+  .kpi-icon { display: none; }
+  .kpi { min-width: 84px; }
+  .wh3d-logo { width: 32px; height: 32px; }
+  .wh3d-sub .dot, .wh3d-sub span:nth-last-child(-n + 2) { display: none; }
+  .minimap-wrap { width: 116px; }
+  .minimap-canvas { height: 68px; }
+}
 </style>

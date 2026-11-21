@@ -21,6 +21,9 @@ export type TransformMode = 'select' | 'move' | 'rotate' | 'resize';
 export interface SceneCallbacks {
   onSelect?: (uid: string | null) => void;
   onMove?: (uid: string, x: number, y: number) => void;
+  onRotate?: (uid: string, rotation: number) => void;
+  onResize?: (uid: string, length: number, width: number) => void;
+  onTransformEnd?: (uid: string, patch: Record<string, any>) => void;
   onHover?: (uid: string | null) => void;
 }
 
@@ -29,6 +32,9 @@ interface Entry {
   root: THREE.Group;
   baseColor: THREE.Color | null;
   kind: string;
+  rotation: number;
+  length: number;
+  width: number;
 }
 
 const PALETTE: Record<string, string> = {
@@ -127,7 +133,15 @@ export class Warehouse3DScene {
   private clock = new THREE.Clock();
   private frame = 0;
   private dragging: string | null = null;
+  private dragMode: TransformMode = 'select';
   private dragOffset = new THREE.Vector3();
+  private startClient = { x: 0, y: 0 };
+  private startRotation = 0;
+  private startLength = 1;
+  private startWidth = 1;
+  private buildingLength = 100;
+  private buildingWidth = 50;
+  private resizeObserver: ResizeObserver | null = null;
   private mode: EditorMode = '3d';
   private transform: TransformMode = 'select';
   private frustum = 60;
@@ -193,6 +207,10 @@ export class Warehouse3DScene {
     el.addEventListener('pointerup', this.onPointerUp);
     el.addEventListener('dblclick', this.onDoubleClick);
     window.addEventListener('resize', this.onResize);
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.onResize());
+      this.resizeObserver.observe(container);
+    }
     this.animate();
   }
 
@@ -201,6 +219,8 @@ export class Warehouse3DScene {
     const w = this.container.clientWidth || 800;
     const h = this.container.clientHeight || 600;
     const aspect = w / h;
+    const span = Math.max(this.buildingLength, this.buildingWidth);
+    this.frustum = Math.max(60, span / (2 * Math.max(aspect, 0.5)));
     this.camera.left = -this.frustum * aspect;
     this.camera.right = this.frustum * aspect;
     this.camera.top = this.frustum;
@@ -230,52 +250,96 @@ export class Warehouse3DScene {
     this.updatePointer(e);
     const hit = this.pick();
     const uid = hit?.userData.uid as string | undefined;
-    if (uid) {
-      const entry = this.entries.get(uid);
-      if (entry && this.transform === 'move') {
-        this.dragging = uid;
-        this.controls.enabled = false;
+    if (!uid) {
+      this.select(null);
+      return;
+    }
+    const entry = this.entries.get(uid);
+    this.select(uid);
+    if (!entry || entry.root.userData.kind === 'EMPLOYEE') return;
+
+    if (this.transform === 'move' || this.transform === 'rotate' || this.transform === 'resize') {
+      this.dragging = uid;
+      this.dragMode = this.transform;
+      this.startClient = { x: e.clientX, y: e.clientY };
+      this.startRotation = entry.rotation;
+      this.startLength = entry.length;
+      this.startWidth = entry.width;
+      this.controls.enabled = false;
+      if (this.transform === 'move') {
         const p = new THREE.Vector3();
         this.raycaster.ray.intersectPlane(this.ground, p);
-        const obj = entry.root;
-        this.dragOffset.set(p.x - obj.position.x, 0, p.z - obj.position.z);
-      } else {
-        this.select(uid);
+        this.dragOffset.set(p.x - entry.root.position.x, 0, p.z - entry.root.position.z);
       }
-    } else {
-      this.select(null);
+      this.renderer.domElement.setPointerCapture?.(e.pointerId);
     }
   };
 
   private onPointerMove = (e: PointerEvent) => {
     if (this.mode === '2d') return;
     this.updatePointer(e);
-    if (this.dragging) {
-      const entry = this.entries.get(this.dragging);
-      if (entry) {
-        const p = new THREE.Vector3();
-        if (this.raycaster.ray.intersectPlane(this.ground, p)) {
-          const x = Math.round((p.x - this.dragOffset.x) * 10) / 10;
-          const y = Math.round((p.z - this.dragOffset.y) * 10) / 10;
-          entry.root.position.set(x, entry.root.position.y, y);
-          this.refreshHighlight();
-          this.cb.onMove?.(this.dragging, x, y);
-        }
-      }
+    if (!this.dragging) {
+      const hit = this.pick();
+      const uid = (hit?.userData.uid as string) ?? null;
+      this.cb.onHover?.(uid);
+      this.renderer.domElement.style.cursor = uid ? 'grab' : 'default';
       return;
     }
-    const hit = this.pick();
-    const uid = (hit?.userData.uid as string) ?? null;
-    this.cb.onHover?.(uid);
-    this.renderer.domElement.style.cursor = uid ? (this.transform === 'move' ? 'grab' : 'pointer') : 'default';
+    const entry = this.entries.get(this.dragging);
+    if (!entry) return;
+
+    if (this.dragMode === 'move') {
+      const p = new THREE.Vector3();
+      if (this.raycaster.ray.intersectPlane(this.ground, p)) {
+        const x = Math.round((p.x - this.dragOffset.x) * 10) / 10;
+        const y = Math.round((p.z - this.dragOffset.y) * 10) / 10;
+        entry.root.position.set(x, entry.root.position.y, y);
+        this.cb.onMove?.(this.dragging, x, y);
+      }
+    } else if (this.dragMode === 'rotate') {
+      const deg = Math.round(
+        (this.startRotation + (e.clientX - this.startClient.x) * 0.4 + 360) % 360,
+      );
+      entry.rotation = deg;
+      entry.root.rotation.y = (deg * Math.PI) / 180;
+      this.cb.onRotate?.(this.dragging, deg);
+    } else if (this.dragMode === 'resize') {
+      const length = Math.max(0.5, Math.round(
+        (this.startLength * (1 + (e.clientX - this.startClient.x) * 0.03)) * 10,
+      ) / 10);
+      const width = Math.max(0.5, Math.round(
+        (this.startWidth * (1 + (e.clientY - this.startClient.y) * 0.03)) * 10,
+      ) / 10);
+      entry.length = length;
+      entry.width = width;
+      entry.root.scale.set(length / this.startLength, 1, width / this.startWidth);
+      this.cb.onResize?.(this.dragging, length, width);
+    }
+    this.refreshHighlight();
   };
 
-  private onPointerUp = () => {
-    if (this.dragging) {
-      this.dragging = null;
-      this.controls.enabled = true;
-      this.renderer.domElement.style.cursor = 'default';
+  private onPointerUp = (e: PointerEvent) => {
+    if (!this.dragging) return;
+    const uid = this.dragging;
+    const entry = this.entries.get(uid);
+    if (entry) {
+      const patch: Record<string, any> = {};
+      if (this.dragMode === 'move') {
+        patch.positionX = Math.round(entry.root.position.x * 10) / 10;
+        patch.positionY = Math.round(entry.root.position.z * 10) / 10;
+      } else if (this.dragMode === 'rotate') {
+        patch.rotation = entry.rotation;
+      } else if (this.dragMode === 'resize') {
+        patch.length = entry.length;
+        patch.width = entry.width;
+      }
+      this.cb.onTransformEnd?.(uid, patch);
     }
+    this.dragging = null;
+    this.dragMode = 'select';
+    this.controls.enabled = true;
+    this.renderer.domElement.releasePointerCapture?.(e.pointerId);
+    this.renderer.domElement.style.cursor = 'default';
   };
 
   private onDoubleClick = (e: MouseEvent) => {
@@ -297,7 +361,10 @@ export class Warehouse3DScene {
   }
 
   setWarehouse(wh: Wh3dWarehouse) {
+    this.buildingLength = num(wh.lengthM) || 100;
+    this.buildingWidth = num(wh.widthM) || 50;
     this.buildBuilding(wh);
+    this.onResize();
   }
 
   select(uid: string | null) {
@@ -459,7 +526,10 @@ export class Warehouse3DScene {
       root.position.set(num(o.positionX), num(o.positionZ), num(o.positionY));
       root.rotation.y = (num(o.rotation) * Math.PI) / 180;
       this.objectsRoot.add(root);
-      this.entries.set(o.objectUid, { uid: o.objectUid, root, baseColor: null, kind: o.objectType });
+      this.entries.set(o.objectUid, {
+        uid: o.objectUid, root, baseColor: null, kind: o.objectType,
+        rotation: num(o.rotation), length: num(o.length), width: num(o.width),
+      });
       this.dynamic.push({ obj: root, data: o, kind: o.objectType });
     }
 
@@ -470,7 +540,10 @@ export class Warehouse3DScene {
       root.position.set(num(e.positionX), 0, num(e.positionY));
       root.rotation.y = (num(e.rotation) * Math.PI) / 180;
       this.objectsRoot.add(root);
-      this.entries.set(e.equipmentUid, { uid: e.equipmentUid, root, baseColor: null, kind: e.equipmentType });
+      this.entries.set(e.equipmentUid, {
+        uid: e.equipmentUid, root, baseColor: null, kind: e.equipmentType,
+        rotation: num(e.rotation), length: 2.8, width: 1.5,
+      });
       this.dynamic.push({ obj: root, data: e, kind: 'EQUIPMENT' });
     }
 
@@ -483,6 +556,7 @@ export class Warehouse3DScene {
       this.objectsRoot.add(root);
       this.entries.set(`emp-${p.employeeId}`, {
         uid: `emp-${p.employeeId}`, root, baseColor: null, kind: 'EMPLOYEE',
+        rotation: num(p.rotation), length: 1, width: 1,
       });
       this.dynamic.push({ obj: root, data: p, kind: 'WORKER' });
     }
@@ -746,6 +820,7 @@ export class Warehouse3DScene {
     el.removeEventListener('pointerup', this.onPointerUp);
     el.removeEventListener('dblclick', this.onDoubleClick);
     window.removeEventListener('resize', this.onResize);
+    this.resizeObserver?.disconnect();
     this.controls.dispose();
     this.renderer.dispose();
     el.remove();

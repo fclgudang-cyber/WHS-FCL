@@ -23,6 +23,7 @@ export interface Editor2DCallbacks {
   onMove?: (uid: string, x: number, y: number) => void;
   onResize?: (uid: string, l: number, w: number) => void;
   onDraw?: (x: number, y: number, l: number, w: number) => void;
+  onTransformEnd?: (uid: string, patch: Record<string, any>) => void;
 }
 
 type DragMode = 'none' | 'pan' | 'move' | 'resize' | 'draw';
@@ -215,6 +216,14 @@ export class Editor2D {
       const d = this.draft;
       if (Math.abs(d.l) > 0.5 && Math.abs(d.w) > 0.5) {
         this.cb.onDraw?.(d.x + d.l / 2, d.y + d.w / 2, Math.abs(d.l), Math.abs(d.w));
+      }
+    } else if ((this.drag === 'move' || this.drag === 'resize') && this.startItems.size) {
+      const uid = [...this.startItems.keys()][0];
+      const item = this.items.find((i) => i.uid === uid);
+      if (uid && item) {
+        this.cb.onTransformEnd?.(uid, this.drag === 'move'
+          ? { positionX: item.x, positionY: item.y }
+          : { length: item.l, width: item.w });
       }
     }
     this.drag = 'none';

@@ -132,6 +132,111 @@ func h3dRows(query string, args ...any) []map[string]any {
 	return rows
 }
 
+// h3dMapRows mengubah nama kolom DB (snake_case) menjadi kontrak JSON frontend
+// (camelCase), sekaligus mengubah nilai numerik/boolean/JSON ke tipe yang tepat.
+func h3dMapRows(rows []map[string]any, mapping map[string]string) []map[string]any {
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		mapped := map[string]any{}
+		for dbKey, value := range row {
+			key := dbKey
+			if k, ok := mapping[dbKey]; ok {
+				key = k
+			}
+			switch {
+			case h3dJSONKeys[key]:
+				if str, ok := h3dStr(value), true; ok && str != "" {
+					var parsed any
+					if json.Unmarshal([]byte(str), &parsed) == nil {
+						mapped[key] = parsed
+						continue
+					}
+				}
+				mapped[key] = value
+			case h3dBoolKeys[key]:
+				mapped[key] = value == true || h3dStr(value) == "true" || h3dStr(value) == "t"
+			case h3dNumericKeys[key]:
+				// employee_id bisa berupa UUID(text) — jangan dipaksa jadi 0.
+				if str := h3dStr(value); str != "" {
+					if _, err := strconv.ParseFloat(str, 64); err != nil {
+						mapped[key] = value
+						continue
+					}
+				}
+				mapped[key] = h3dNum(value)
+			default:
+				mapped[key] = value
+			}
+		}
+		out = append(out, mapped)
+	}
+	return out
+}
+
+var (
+	h3dJSONKeys    = map[string]bool{"config": true, "path": true, "permissions": true}
+	h3dBoolKeys    = map[string]bool{"locked": true, "visible": true}
+	h3dNumericKeys = map[string]bool{
+		"id": true, "warehouseId": true, "layoutId": true, "employeeId": true,
+		"lengthM": true, "widthM": true, "heightM": true, "areaM2": true,
+		"totalFloor": true, "capacity": true, "wallThickness": true, "version": true,
+		"positionX": true, "positionY": true, "positionZ": true,
+		"length": true, "width": true, "height": true, "rotation": true,
+		"zIndex": true, "levels": true, "bays": true, "bins": true,
+		"occupancy": true, "speed": true, "operatorId": true,
+	}
+
+	h3dWarehouseMap = map[string]string{
+		"length_m": "lengthM", "width_m": "widthM", "height_m": "heightM",
+		"area_m2": "areaM2", "total_floor": "totalFloor",
+		"building_shape": "buildingShape", "wall_thickness": "wallThickness",
+		"created_at": "createdAt", "updated_at": "updatedAt",
+	}
+	h3dLayoutMap = map[string]string{
+		"warehouse_id": "warehouseId", "published_at": "publishedAt",
+		"created_at": "createdAt", "updated_at": "updatedAt",
+	}
+	h3dObjectMap = map[string]string{
+		"object_uid": "objectUid", "object_type": "objectType",
+		"position_x": "positionX", "position_y": "positionY", "position_z": "positionZ",
+		"length_m": "length", "width_m": "width", "height_m": "height",
+		"parent_uid": "parentUid", "group_uid": "groupUid", "z_index": "zIndex",
+		"area_uid": "areaUid", "rack_uid": "rackUid", "bin_uid": "binUid",
+		"location_code": "locationCode", "employee_id": "employeeId",
+		"equipment_uid": "equipmentUid", "created_at": "createdAt", "updated_at": "updatedAt",
+	}
+	h3dAreaMap = map[string]string{
+		"area_uid": "areaUid", "area_type": "areaType",
+		"position_x": "positionX", "position_y": "positionY", "position_z": "positionZ",
+		"length_m": "length", "width_m": "width", "height_m": "height", "area_m2": "areaM2",
+		"created_at": "createdAt", "updated_at": "updatedAt",
+	}
+	h3dRackMap = map[string]string{
+		"rack_uid": "rackUid", "rack_type": "rackType",
+		"position_x": "positionX", "position_y": "positionY", "position_z": "positionZ",
+		"length_m": "length", "width_m": "width", "height_m": "height",
+		"created_at": "createdAt", "updated_at": "updatedAt",
+	}
+	h3dBinMap = map[string]string{
+		"rack_uid": "rackUid", "bin_uid": "binUid",
+		"position_x": "positionX", "position_y": "positionY", "position_z": "positionZ",
+		"location_code": "locationCode", "created_at": "createdAt",
+	}
+	h3dEquipmentMap = map[string]string{
+		"equipment_uid": "equipmentUid", "equipment_type": "equipmentType",
+		"operator_id": "operatorId", "task_uid": "taskUid",
+		"position_x": "positionX", "position_y": "positionY", "position_z": "positionZ",
+		"created_at": "createdAt", "updated_at": "updatedAt",
+	}
+	h3dEmployeeMap = map[string]string{
+		"employee_id": "employeeId", "full_name": "fullName",
+		"photo_url": "photoUrl", "warehouse_id": "warehouseId",
+		"current_area": "currentArea", "activity_label": "activityLabel",
+		"task_code": "taskCode", "current_task": "currentTask",
+		"position_x": "positionX", "position_y": "positionY", "position_z": "positionZ",
+	}
+)
+
 // ---------------------------------------------------------------- default data
 
 // h3dEnsureDefault membuat gudang + layout kosong saat pertama kali dipakai.
@@ -196,17 +301,17 @@ func h3dHandleBootstrap(w http.ResponseWriter, r *http.Request) {
 		lid = q
 	}
 
-	warehouse := h3dRows(`select * from wh3d_warehouse where id = $1`, wid)
-	layout := h3dRows(`select * from wh3d_layout where id = $1`, lid)
-	objects := h3dRows(`select * from wh3d_object where layout_id = $1 order by z_index, id`, lid)
-	areas := h3dRows(`select * from wh3d_area where layout_id = $1 order by id`, lid)
-	racks := h3dRows(`select * from wh3d_rack where layout_id = $1 order by id`, lid)
-	bins := h3dRows(`select * from wh3d_bin where layout_id = $1 order by id`, lid)
-	equipment := h3dRows(`select * from wh3d_equipment where layout_id = $1 order by id`, lid)
+	warehouse := h3dMapRows(h3dRows(`select * from wh3d_warehouse where id = $1`, wid), h3dWarehouseMap)
+	layout := h3dMapRows(h3dRows(`select * from wh3d_layout where id = $1`, lid), h3dLayoutMap)
+	objects := h3dMapRows(h3dRows(`select * from wh3d_object where layout_id = $1 order by z_index, id`, lid), h3dObjectMap)
+	areas := h3dMapRows(h3dRows(`select * from wh3d_area where layout_id = $1 order by id`, lid), h3dAreaMap)
+	racks := h3dMapRows(h3dRows(`select * from wh3d_rack where layout_id = $1 order by id`, lid), h3dRackMap)
+	bins := h3dMapRows(h3dRows(`select * from wh3d_bin where layout_id = $1 order by id`, lid), h3dBinMap)
+	equipment := h3dMapRows(h3dRows(`select * from wh3d_equipment where layout_id = $1 order by id`, lid), h3dEquipmentMap)
 
 	// Pekerja 3D = join ke master karyawan, TANPA tabel karyawan duplikat.
 	h3dSeedEmployees(wid)
-	employees := h3dRows(`select
+	employees := h3dMapRows(h3dRows(`select
 			k.id as employee_id, k.nama as full_name, k.jabatan, k.divisi, k.cabang,
 			k.status as employee_status, coalesce(k."fingerprintId", k.fingerprint_id) as fingerprint_id,
 			e.photo_url, e.warehouse_id, e.current_area, e.activity, e.activity_label,
@@ -216,7 +321,7 @@ func h3dHandleBootstrap(w http.ResponseWriter, r *http.Request) {
 		join karyawan k on k.id = e.employee_id
 		where ($1 = 0 or e.warehouse_id = $1)
 		  and lower(coalesce(k.status,'')) <> 'resign'
-		order by k.nama`, wid)
+		order by k.nama`, wid), h3dEmployeeMap)
 
 	activities := h3dRows(`select * from wh3d_activity
 		where ($1 = 0 or warehouse_id = $1) order by event_time desc limit 50`, wid)
