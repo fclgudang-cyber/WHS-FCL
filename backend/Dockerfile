@@ -68,8 +68,9 @@ COPY deploy/entrypoint.sh /app/bin/entrypoint.sh
 
 # 创建一个名为 appuser 的非 root 用户，并授予渲染配置所需的写权限
 RUN adduser -D appuser && \
+    mkdir -p /app/uploads && \
     chmod +x /app/bin/entrypoint.sh && \
-    chown -R appuser:appuser /app/bin /app/configs
+    chown -R appuser:appuser /app/bin /app/configs /app/uploads
 
 # 切换到非特权用户
 USER appuser:appuser

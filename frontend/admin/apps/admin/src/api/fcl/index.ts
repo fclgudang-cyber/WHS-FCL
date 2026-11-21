@@ -1,9 +1,9 @@
 /**
- * Klien REST untuk backend FCL (fcl-service Go di /api).
+ * Klien REST untuk backend FCL (tertanam di admin-service, /api).
  * Nonaktifkan axios ghost agar tidak kena interceptor auth/refresh ghost —
  * FCL punya otentikasi sendiri (localStorage `fcl_user`).
  *
- * Kontrak respons fcl-service (lihat backend/app/fcl-service):
+ * Kontrak respons backend FCL (lihat backend/app/admin/service/internal/fcl):
  *  - GET /api/tables/{t}          → array baris (bare array)
  *  - GET ...?count=exact&head=1   → { count: n }
  *  - POST/PUT/PATCH/DELETE        → body JSON bebas

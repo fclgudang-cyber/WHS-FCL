@@ -1,5 +1,5 @@
 // auth.go — login / ubah password FCL (bcrypt $2a cocok dengan pgcrypto crypt()).
-package main
+package fcl
 
 import (
 	"encoding/json"

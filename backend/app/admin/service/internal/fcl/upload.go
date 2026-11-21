@@ -1,6 +1,6 @@
 // upload.go — upload bukti transaksi (Petty Cash) langsung ke server.
 // File disimpan di /app/uploads/pettycash dan dilayani lewat /api/files/.
-package main
+package fcl
 
 import (
 	"fmt"

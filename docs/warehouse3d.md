@@ -6,8 +6,8 @@ Fitur ini menambahkan **Warehouse 3D** ke modul FCL tanpa mengganti WMS yang sud
 
 | Lapisan | Implementasi |
 |---|---|
-| Database | `backend/sql/warehouse3d_schema.sql` — auto-apply saat `fcl-service` start (`go:embed`) |
-| Backend | `backend/app/fcl-service/warehouse3d.go` — REST di `/api/warehouse3d/*` |
+| Database | `backend/sql/warehouse3d_schema.sql` — auto-apply saat `admin-service` start (`go:embed`) |
+| Backend | `backend/app/admin/service/internal/fcl/warehouse3d.go` — REST di `/api/warehouse3d/*` |
 | Frontend | `frontend/admin/apps/admin/src/views/fcl/warehouse-3d/` — Vue 3 + Three.js |
 | Widget 3D | `three` + `OrbitControls`, kamera isometric, raycasting, animasi worker/forklift |
 | Editor 2D | Canvas 2D sinkron dengan scene 3D (grid, snap, zoom, pan, move, resize) |
@@ -31,8 +31,8 @@ Fitur ini menambahkan **Warehouse 3D** ke modul FCL tanpa mengganti WMS yang sud
 
 ## Deploy
 
-1. Pull perubahan ini di server, lalu **redeploy** `fcl-service` dan `admin` (frontend).
-2. Saat start, `fcl-service` otomatis membuat tabel `wh3d_*`, permission `fcl:warehouse3d`,
+1. Pull perubahan ini di server, lalu **redeploy** `admin-service` dan `admin` (frontend).
+2. Saat start, `admin-service` otomatis membuat tabel `wh3d_*`, permission `fcl:warehouse3d`,
    dan menu **Inventaris & Logistik → Warehouse 3D**.
 3. Buka menu Warehouse 3D. Gudang default `WH-001 / Gudang Utama` dibuat otomatis
    bila belum ada — semua dimensi bisa diedit lewat tombol **Info Gudang**

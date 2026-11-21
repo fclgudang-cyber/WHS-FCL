@@ -1,6 +1,6 @@
 // signal.go — pengecekan konektivitas ke mesin fingerprint Solution X900.
-// Browser tidak bisa melakukan raw TCP, jadi pengecekan dilakukan fcl-service.
-package main
+// Browser tidak bisa melakukan raw TCP, jadi pengecekan dilakukan backend FCL di admin-service.
+package fcl
 
 import (
 	"encoding/json"

@@ -1,5 +1,5 @@
-// Package main — koneksi & helper DB untuk fcl-service (port dari server/db.js / Pg.php).
-package main
+// Helper koneksi & DB FCL (kini menjadi bagian dari admin-service).
+package fcl
 
 import (
 	"database/sql"

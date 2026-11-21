@@ -1,5 +1,5 @@
 // tables.go — CRUD generik tabel FCL (port dari server/routes/tables.js / TablesController.php).
-package main
+package fcl
 
 import (
 	"encoding/json"

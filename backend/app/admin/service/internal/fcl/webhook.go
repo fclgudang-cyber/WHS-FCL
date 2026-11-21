@@ -1,6 +1,6 @@
 // webhook.go — penerima push absensi dari mesin fingerprint Solution X900 (ADMS)
 // dan sinkronisasi ke tabel absensikaryawan + master karyawan.
-package main
+package fcl
 
 import (
 	"crypto/rand"

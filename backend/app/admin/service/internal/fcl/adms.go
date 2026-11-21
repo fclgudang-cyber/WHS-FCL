@@ -1,7 +1,7 @@
 // adms.go — auto-registrasi mesin fingerprint yang terhubung via protokol ADMS.
 // Mesin ZKTeco/ADMS biasanya memanggil GET/POST /iclock/cdata?SN=<serial>.
 // SN + IP request disimpan ke fcl_api_devices agar muncul di "Daftar Mesin Fingerprint".
-package main
+package fcl
 
 import (
 	"net"

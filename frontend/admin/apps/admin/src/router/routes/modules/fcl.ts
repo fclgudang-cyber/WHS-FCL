@@ -13,7 +13,7 @@ const routes: RouteRecordRaw[] = [
       order: -3,
       icon: 'lucide:layout-dashboard',
       title: 'Dashboard',
-      authority: ['fcl:dashboard', 'sys:platform_admin'],
+      authority: ['sys:platform_admin', 'sys:tenant_manager'],
     },
     children: [
       {
@@ -24,7 +24,7 @@ const routes: RouteRecordRaw[] = [
           affixTab: true,
           title: 'Dashboard',
           icon: 'lucide:layout-dashboard',
-          authority: ['fcl:dashboard', 'sys:platform_admin'],
+          authority: ['sys:platform_admin', 'sys:tenant_manager'],
         },
       },
     ],
@@ -37,7 +37,7 @@ const routes: RouteRecordRaw[] = [
       order: 1000,
       icon: 'lucide:warehouse',
       title: 'Inventaris & Logistik',
-      authority: ['fcl:warehouse', 'sys:platform_admin'],
+      authority: ['sys:platform_admin', 'sys:tenant_manager'],
       // Halaman induk — arahkan ke stock sebagai halaman pertama
       redirect: '/fcl/warehouse/stock',
     },
@@ -46,7 +46,7 @@ const routes: RouteRecordRaw[] = [
         path: 'warehouse3d',
         name: 'FCLWarehouse3D',
         component: () => import('#/views/fcl/warehouse-3d/index.vue'),
-        meta: { icon: 'lucide:box', order: 3, title: 'Warehouse 3D', authority: ['fcl:warehouse3d', 'sys:platform_admin'] },
+        meta: { icon: 'lucide:box', order: 3, title: 'Warehouse 3D', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
       },
       {
         path: 'stock',
@@ -111,7 +111,7 @@ const routes: RouteRecordRaw[] = [
       order: 1100,
       icon: 'lucide:wallet',
       title: 'Keuangan',
-      authority: ['fcl:keuangan', 'sys:platform_admin'],
+      authority: ['sys:platform_admin', 'sys:tenant_manager'],
       redirect: '/fcl/keuangan/kasGudang',
     },
     children: [

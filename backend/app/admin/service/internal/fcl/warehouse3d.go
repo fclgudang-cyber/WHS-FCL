@@ -1,7 +1,7 @@
 // warehouse3d.go — Digital Twin Warehouse 3D.
 // Semua data operasional tetap dibaca dari tabel WMS/FCL yang sudah ada
 // (stock, order, karyawan). File ini hanya menyimpan/menyajikanLAYOUT visual.
-package main
+package fcl
 
 import (
 	_ "embed"
@@ -25,7 +25,7 @@ var fclAccessSQL string
 
 // h3dApplySchema menerapkan schema secara idempoten saat service start.
 // Bagian permission dibuat best-effort karena tabel RBAC core-service
-// mungkin belum termigrasi saat fcl-service pertama kali boot.
+// mungkin belum termigrasi saat admin-service pertama kali boot.
 func h3dApplySchema() {
 	marker := "-- 11. Permission"
 	parts := strings.SplitN(h3dSchemaSQL, marker, 2)

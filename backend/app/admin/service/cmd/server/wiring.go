@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/go-kratos/kratos/v2"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/tx7do/kratos-bootstrap/bootstrap"
 	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/data"
+	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/fcl"
 	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/server"
 	"github.com/Mikdad-Force/Ghost/app/admin/service/internal/service"
 	"github.com/Mikdad-Force/Ghost/pkg/middleware/auth"
@@ -51,6 +53,14 @@ func initApp(ctx *bootstrap.Context) (*kratos.App, func(), error) {
 		return nil, nil, err
 	}
 	cleanups = append(cleanups, cleanupRedis)
+
+	// Backend FCL berjalan di dalam admin-service (tanpa service terpisah).
+	// Kegagalan koneksi DB FCL tidak boleh menghentikan service utama.
+	if fclHTTP, ferr := fcl.Start(); ferr != nil {
+		log.Errorf("fcl backend disabled: %v", ferr)
+	} else {
+		cleanups = append(cleanups, func() { fcl.Stop(fclHTTP) })
+	}
 
 	captcha := data.NewCaptcha(redisClient)
 	minIOClient := data.NewMinIoClient(ctx)

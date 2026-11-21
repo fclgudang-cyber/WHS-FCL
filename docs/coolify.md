@@ -33,7 +33,7 @@ Config YAML sudah ditanamkan ke dalam image dan **dirender dari environment vari
 
 | Variable | Default | Keterangan |
 |:---|:---|:---|
-| `POSTGRES_PASSWORD` | `*Abcd123456` | Password Postgres. Otomatis dipakai oleh `postgres`, `core-service` dan `fcl-service` |
+| `POSTGRES_PASSWORD` | `*Abcd123456` | Password Postgres. Otomatis dipakai oleh `postgres`, `core-service` dan `admin-service` |
 | `REDIS_PASSWORD` | `*Abcd123456` | Password Redis. Otomatis dipakai oleh `redis`, `core-service`, `admin-service`, `app-service` |
 | `MINIO_ROOT_PASSWORD` | `*Abcd123456` | Password MinIO; otomatis dipakai sebagai `secret_key` OSS |
 | `JWT_SIGNING_KEY` | `dev_only_change_me_in_prod` | **Wajib diganti di produksi** — kunci tanda tangan JWT |
@@ -106,3 +106,14 @@ Volume yang perlu dibackup: `postgres-data`, `minio-data`, `etcd-data`. Dengan C
 ```bash
 docker compose -f docker-compose.yaml exec postgres pg_dump -U postgres ghost_wms > backup.sql
 ```
+
+## 12. Catatan backend FCL terintegrasi
+
+Backend FCL sekarang **berjalan di dalam `admin-service`** (port internal `6905`), bukan service terpisah. Nginx mem-proxy `/api/*`, `/iclock/*` dan `/fp` ke `admin-service:6905`.
+
+- Pastikan folder `backend/deploy/uploads` di server bisa ditulis oleh container:
+  ```bash
+  mkdir -p backend/deploy/uploads && chmod 777 backend/deploy/uploads
+  ```
+- Kredensial Google Drive tetap dibaca dari `backend/deploy/fcl-drive.env` (opsional).
+- Jika DB FCL gagal dibuka, `admin-service` tetap berjalan; hanya endpoint FCL yang tidak aktif (log: `fcl backend disabled`).

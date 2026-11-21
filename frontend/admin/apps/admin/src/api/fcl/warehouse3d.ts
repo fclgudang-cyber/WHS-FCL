@@ -1,5 +1,5 @@
 /**
- * Warehouse 3D — klien API ke fcl-service (/api/warehouse3d).
+ * Warehouse 3D — klien API ke backend FCL di dalam admin-service (/api/warehouse3d).
  * Semua data berasal dari backend; tidak ada data dummy di frontend.
  */
 
