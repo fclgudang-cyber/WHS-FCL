@@ -167,7 +167,8 @@ begin
 exception when others then null;
 end $$;
 
--- 4. Menu: hapus semua menu /fcl/* lama, pasang menu /warehouse/* baru.
+-- 5. Menu: hapus semua menu /fcl/* lama, pasang menu /warehouse/* baru.
+--    component wajib diisi agar Vben bisa memetakan path ke file view.
 do $$
 declare
   g_inventory bigint;
@@ -181,15 +182,50 @@ begin
   delete from sys_menus
    where path like '/fcl/%' or path = '/opm/org-units';
 
-  insert into sys_menus (name, path, type, status, parent_id, meta)
-  select v.name, v.path, 'CATALOG', 'ON', null::bigint, v.meta::jsonb
+  -- Perbarui component untuk menu yang sudah ada (dari seed tanpa component).
+  update sys_menus m set component = v.component
   from (values
-    ('Inventaris & Logistik', '/warehouse/inventory', '{"title":"Inventaris & Logistik","icon":"lucide:warehouse","order":1000,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
-    ('Keuangan', '/warehouse/finance', '{"title":"Keuangan","icon":"lucide:wallet","order":1100,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
-    ('Organisasi & SDM', '/opm', '{"title":"Organisasi & SDM","icon":"lucide:users","order":2001,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
-    ('Sistem', '/system', '{"title":"Sistem","icon":"lucide:settings","order":2100,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
-    ('Dashboard', '/warehouse/dashboard', '{"title":"Dashboard","icon":"lucide:layout-dashboard","order":-3,"authority":["sys:platform_admin","sys:tenant_manager"]}')
-  ) as v(name, path, meta)
+    ('/warehouse/inventory', 'BasicLayout'),
+    ('/warehouse/finance', 'BasicLayout'),
+    ('/opm', 'BasicLayout'),
+    ('/system', 'BasicLayout'),
+    ('/warehouse/dashboard', 'app/dashboard/index.vue'),
+    ('/warehouse/inventory/stock', 'app/stock/index.vue'),
+    ('/warehouse/inventory/stockOpname', 'app/stock-opname/index.vue'),
+    ('/warehouse/inventory/warehouse3d', 'app/warehouse-3d/index.vue'),
+    ('/warehouse/inventory/inbound', 'app/inbound/index.vue'),
+    ('/warehouse/inventory/retur', 'app/retur/index.vue'),
+    ('/warehouse/inventory/order', 'app/order/index.vue'),
+    ('/warehouse/inventory/bookingMobil', 'app/booking-mobil/index.vue'),
+    ('/warehouse/inventory/assetWarehouse', 'app/asset-warehouse/index.vue'),
+    ('/warehouse/inventory/analisis', 'app/analisis/index.vue'),
+    ('/warehouse/finance/kasGudang', 'app/kas-gudang/index.vue'),
+    ('/warehouse/finance/teamBuilding', 'app/team-building/index.vue'),
+    ('/warehouse/finance/expense', 'app/expense/index.vue'),
+    ('/warehouse/finance/pettyCash', 'app/petty-cash/index.vue'),
+    ('/warehouse/finance/pettyCashKategori', 'app/petty-cash-kategori/index.vue'),
+    ('/warehouse/finance/klaim', 'app/klaim/index.vue'),
+    ('/opm/karyawan', 'app/karyawan/index.vue'),
+    ('/opm/absensiKaryawan', 'app/absensi-karyawan/index.vue'),
+    ('/opm/jadwalShift', 'app/jadwal-shift/index.vue'),
+    ('/opm/laporanKerja', 'app/laporan-kerja/index.vue'),
+    ('/opm/grafikLaporan', 'app/grafik-laporan/index.vue'),
+    ('/opm/instruksiLembur', 'app/instruksi-lembur/index.vue'),
+    ('/opm/ijin', 'app/ijin/index.vue'),
+    ('/opm/lembur', 'app/lembur/index.vue'),
+    ('/system/sop', 'app/sop/index.vue')
+  ) as v(path, component)
+  where m.path = v.path;
+
+  insert into sys_menus (name, path, type, status, parent_id, component, meta)
+  select v.name, v.path, 'CATALOG', 'ON', null::bigint, v.component, v.meta::jsonb
+  from (values
+    ('Inventaris & Logistik', '/warehouse/inventory', 'BasicLayout', '{"title":"Inventaris & Logistik","icon":"lucide:warehouse","order":1000,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
+    ('Keuangan', '/warehouse/finance', 'BasicLayout', '{"title":"Keuangan","icon":"lucide:wallet","order":1100,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
+    ('Organisasi & SDM', '/opm', 'BasicLayout', '{"title":"Organisasi & SDM","icon":"lucide:users","order":2001,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
+    ('Sistem', '/system', 'BasicLayout', '{"title":"Sistem","icon":"lucide:settings","order":2100,"authority":["sys:platform_admin","sys:tenant_manager"]}'),
+    ('Dashboard', '/warehouse/dashboard', 'app/dashboard/index.vue', '{"title":"Dashboard","icon":"lucide:layout-dashboard","order":-3,"authority":["sys:platform_admin","sys:tenant_manager"]}')
+  ) as v(name, path, component, meta)
   where not exists (select 1 from sys_menus m where m.parent_id is null and m.path = v.path);
 
   select id into g_inventory from sys_menus where parent_id is null and path = '/warehouse/inventory' limit 1;
@@ -197,41 +233,37 @@ begin
   select id into g_opm from sys_menus where parent_id is null and path = '/opm' limit 1;
   select id into g_system from sys_menus where parent_id is null and path = '/system' limit 1;
 
-  insert into sys_menus (name, path, type, status, parent_id, meta)
-  select v.name, v.path, 'MENU', 'ON', v.parent, v.meta::jsonb
+  insert into sys_menus (name, path, type, status, parent_id, component, meta)
+  select v.name, v.path, 'MENU', 'ON', v.parent, v.component, v.meta::jsonb
   from (values
-    -- Inventaris & Logistik
-    ('Stock Barang', '/warehouse/inventory/stock', g_inventory, '{"title":"Stock Barang","icon":"lucide:package","order":1}'),
-    ('Stock Opname', '/warehouse/inventory/stockOpname', g_inventory, '{"title":"Stock Opname","icon":"lucide:clipboard-check","order":2}'),
-    ('Warehouse 3D', '/warehouse/inventory/warehouse3d', g_inventory, '{"title":"Warehouse 3D","icon":"lucide:box","order":3}'),
-    ('Inbound', '/warehouse/inventory/inbound', g_inventory, '{"title":"Inbound","icon":"lucide:package-plus","order":4}'),
-    ('Retur', '/warehouse/inventory/retur', g_inventory, '{"title":"Retur","icon":"lucide:undo-2","order":6}'),
-    ('Order', '/warehouse/inventory/order', g_inventory, '{"title":"Order","icon":"lucide:shopping-cart","order":7}'),
-    ('Booking Mobil', '/warehouse/inventory/bookingMobil', g_inventory, '{"title":"Booking Mobil","icon":"lucide:car","order":9}'),
-    ('Asset Warehouse', '/warehouse/inventory/assetWarehouse', g_inventory, '{"title":"Asset Warehouse","icon":"lucide:building-2","order":10}'),
-    ('Analisis Stock', '/warehouse/inventory/analisis', g_inventory, '{"title":"Analisis Stock","icon":"lucide:chart-bar","order":11}'),
+    ('Stock Barang', '/warehouse/inventory/stock', g_inventory, 'app/stock/index.vue', '{"title":"Stock Barang","icon":"lucide:package","order":1}'),
+    ('Stock Opname', '/warehouse/inventory/stockOpname', g_inventory, 'app/stock-opname/index.vue', '{"title":"Stock Opname","icon":"lucide:clipboard-check","order":2}'),
+    ('Warehouse 3D', '/warehouse/inventory/warehouse3d', g_inventory, 'app/warehouse-3d/index.vue', '{"title":"Warehouse 3D","icon":"lucide:box","order":3}'),
+    ('Inbound', '/warehouse/inventory/inbound', g_inventory, 'app/inbound/index.vue', '{"title":"Inbound","icon":"lucide:package-plus","order":4}'),
+    ('Retur', '/warehouse/inventory/retur', g_inventory, 'app/retur/index.vue', '{"title":"Retur","icon":"lucide:undo-2","order":6}'),
+    ('Order', '/warehouse/inventory/order', g_inventory, 'app/order/index.vue', '{"title":"Order","icon":"lucide:shopping-cart","order":7}'),
+    ('Booking Mobil', '/warehouse/inventory/bookingMobil', g_inventory, 'app/booking-mobil/index.vue', '{"title":"Booking Mobil","icon":"lucide:car","order":9}'),
+    ('Asset Warehouse', '/warehouse/inventory/assetWarehouse', g_inventory, 'app/asset-warehouse/index.vue', '{"title":"Asset Warehouse","icon":"lucide:building-2","order":10}'),
+    ('Analisis Stock', '/warehouse/inventory/analisis', g_inventory, 'app/analisis/index.vue', '{"title":"Analisis Stock","icon":"lucide:chart-bar","order":11}'),
 
-    -- Keuangan
-    ('Kas Gudang', '/warehouse/finance/kasGudang', g_finance, '{"title":"Kas Gudang","icon":"lucide:vault","order":1}'),
-    ('Team Building', '/warehouse/finance/teamBuilding', g_finance, '{"title":"Team Building","icon":"lucide:users","order":2}'),
-    ('Pengeluaran', '/warehouse/finance/expense', g_finance, '{"title":"Pengeluaran","icon":"lucide:receipt","order":3}'),
-    ('Petty Cash', '/warehouse/finance/pettyCash', g_finance, '{"title":"Petty Cash","icon":"lucide:coins","order":4}'),
-    ('Kategori Petty Cash', '/warehouse/finance/pettyCashKategori', g_finance, '{"title":"Kategori Petty Cash","icon":"lucide:list","order":5}'),
-    ('Klaim Paket', '/warehouse/finance/klaim', g_finance, '{"title":"Klaim Paket","icon":"lucide:badge-alert","order":6}'),
+    ('Kas Gudang', '/warehouse/finance/kasGudang', g_finance, 'app/kas-gudang/index.vue', '{"title":"Kas Gudang","icon":"lucide:vault","order":1}'),
+    ('Team Building', '/warehouse/finance/teamBuilding', g_finance, 'app/team-building/index.vue', '{"title":"Team Building","icon":"lucide:users","order":2}'),
+    ('Pengeluaran', '/warehouse/finance/expense', g_finance, 'app/expense/index.vue', '{"title":"Pengeluaran","icon":"lucide:receipt","order":3}'),
+    ('Petty Cash', '/warehouse/finance/pettyCash', g_finance, 'app/petty-cash/index.vue', '{"title":"Petty Cash","icon":"lucide:coins","order":4}'),
+    ('Kategori Petty Cash', '/warehouse/finance/pettyCashKategori', g_finance, 'app/petty-cash-kategori/index.vue', '{"title":"Kategori Petty Cash","icon":"lucide:list","order":5}'),
+    ('Klaim Paket', '/warehouse/finance/klaim', g_finance, 'app/klaim/index.vue', '{"title":"Klaim Paket","icon":"lucide:badge-alert","order":6}'),
 
-    -- Organisasi & SDM (modul utama)
-    ('Karyawan', '/opm/karyawan', g_opm, '{"title":"Karyawan","icon":"lucide:id-card","order":5}'),
-    ('Absensi Karyawan', '/opm/absensiKaryawan', g_opm, '{"title":"Absensi Karyawan","icon":"lucide:fingerprint","order":6}'),
-    ('Jadwal Shift', '/opm/jadwalShift', g_opm, '{"title":"Jadwal Shift","icon":"lucide:calendar-clock","order":7}'),
-    ('Laporan Kerja', '/opm/laporanKerja', g_opm, '{"title":"Laporan Kerja","icon":"lucide:clipboard-pen","order":8}'),
-    ('Grafik Laporan', '/opm/grafikLaporan', g_opm, '{"title":"Grafik Laporan","icon":"lucide:chart-line","order":9}'),
-    ('Instruksi Lembur', '/opm/instruksiLembur', g_opm, '{"title":"Instruksi Lembur","icon":"lucide:alarm-clock","order":10}'),
-    ('Ijin & Cuti', '/opm/ijin', g_opm, '{"title":"Ijin & Cuti","icon":"lucide:calendar-x","order":11}'),
-    ('Lembur', '/opm/lembur', g_opm, '{"title":"Lembur","icon":"lucide:clock","order":12}'),
+    ('Karyawan', '/opm/karyawan', g_opm, 'app/karyawan/index.vue', '{"title":"Karyawan","icon":"lucide:id-card","order":5}'),
+    ('Absensi Karyawan', '/opm/absensiKaryawan', g_opm, 'app/absensi-karyawan/index.vue', '{"title":"Absensi Karyawan","icon":"lucide:fingerprint","order":6}'),
+    ('Jadwal Shift', '/opm/jadwalShift', g_opm, 'app/jadwal-shift/index.vue', '{"title":"Jadwal Shift","icon":"lucide:calendar-clock","order":7}'),
+    ('Laporan Kerja', '/opm/laporanKerja', g_opm, 'app/laporan-kerja/index.vue', '{"title":"Laporan Kerja","icon":"lucide:clipboard-pen","order":8}'),
+    ('Grafik Laporan', '/opm/grafikLaporan', g_opm, 'app/grafik-laporan/index.vue', '{"title":"Grafik Laporan","icon":"lucide:chart-line","order":9}'),
+    ('Instruksi Lembur', '/opm/instruksiLembur', g_opm, 'app/instruksi-lembur/index.vue', '{"title":"Instruksi Lembur","icon":"lucide:alarm-clock","order":10}'),
+    ('Ijin & Cuti', '/opm/ijin', g_opm, 'app/ijin/index.vue', '{"title":"Ijin & Cuti","icon":"lucide:calendar-x","order":11}'),
+    ('Lembur', '/opm/lembur', g_opm, 'app/lembur/index.vue', '{"title":"Lembur","icon":"lucide:clock","order":12}'),
 
-    -- Sistem (modul utama)
-    ('SOP', '/system/sop', g_system, '{"title":"SOP","icon":"lucide:book-open","order":90}')
-  ) as v(name, path, parent, meta)
+    ('SOP', '/system/sop', g_system, 'app/sop/index.vue', '{"title":"SOP","icon":"lucide:book-open","order":90}')
+  ) as v(name, path, parent, component, meta)
   where v.parent is not null
     and not exists (select 1 from sys_menus m where m.parent_id = v.parent and m.path = v.path);
 exception when others then null;

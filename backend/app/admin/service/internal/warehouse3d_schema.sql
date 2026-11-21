@@ -334,8 +334,9 @@ begin
   select id into g_inventory from sys_menus
    where parent_id is null and path = '/warehouse/inventory' limit 1;
   if g_inventory is not null then
-    insert into sys_menus (name, path, type, status, parent_id, meta)
+    insert into sys_menus (name, path, type, status, parent_id, component, meta)
     select 'Warehouse 3D', '/warehouse/inventory/warehouse3d', 'MENU', 'ON', g_inventory,
+           'app/warehouse-3d/index.vue',
            '{"title":"Warehouse 3D","icon":"lucide:box","order":3}'::jsonb
     where not exists (
       select 1 from sys_menus where parent_id = g_inventory and path = '/warehouse/inventory/warehouse3d'
