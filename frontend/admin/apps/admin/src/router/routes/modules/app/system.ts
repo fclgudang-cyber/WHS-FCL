@@ -81,7 +81,7 @@ const system: RouteRecordRaw[] = [
         path: 'sop',
         name: 'FCLSop',
         meta: { order: 90, icon: 'lucide:book-open', title: 'SOP', authority: ['sys:platform_admin', 'sys:tenant_manager'] },
-        component: () => import('#/views/fcl/sop/index.vue'),
+        component: () => import('#/views/app/fcl/sop/index.vue'),
       },
     ],
   },

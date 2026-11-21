@@ -73,7 +73,7 @@ const permission: RouteRecordRaw[] = [
           title: 'Webhook Fingerprint X900',
           authority: ['sys:platform_admin', 'sys:tenant_manager'],
         },
-        component: () => import('#/views/fcl/api-management/index.vue'),
+        component: () => import('#/views/app/fcl/api-management/index.vue'),
       },
     ],
   },
