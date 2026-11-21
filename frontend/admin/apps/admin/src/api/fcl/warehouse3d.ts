@@ -260,6 +260,10 @@ export const warehouse3dApi = {
       method: 'POST',
       body: JSON.stringify({ layoutId, version }),
     }),
+  regenerateBuilding: (layoutId: number) =>
+    api<{ ok: boolean; layoutId: number }>(`/building/regenerate?layoutId=${layoutId}`, {
+      method: 'POST',
+    }),
   validate: (layoutId: number, warehouseId: number) =>
     api<{ valid: boolean; issues: Wh3dIssue[]; count: number }>(
       `/validate?layoutId=${layoutId}&warehouseId=${warehouseId}`,

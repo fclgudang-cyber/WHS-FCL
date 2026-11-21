@@ -286,6 +286,122 @@ func h3dEnsureDefault() (int64, int64, error) {
 	return wid, lid, nil
 }
 
+// ---------------------------------------------------------------- building objects
+
+type h3dBuildingPart struct {
+	uid, typ, name string
+	x, y, z        float64
+	l, w, h        float64
+	color          string
+	config         map[string]any
+}
+
+// h3dSeedBuildingObjects membuat komponen bangunan sebagai objek layout yang
+// bisa dipilih dan dipindah. Dipanggil sekali per layout (flag building_seeded),
+// atau dipaksa ulang lewat endpoint regenerate.
+func h3dSeedBuildingObjects(layoutID int64, force bool) {
+	row, err := queryOne(`select l.building_seeded, w.length_m, w.width_m, w.height_m, w.wall_thickness
+		from wh3d_layout l join wh3d_warehouse w on w.id = l.warehouse_id where l.id = $1`, layoutID)
+	if err != nil || row == nil {
+		return
+	}
+	if !force && h3dStr(row["building_seeded"]) == "true" {
+		return
+	}
+
+	L := h3dNum(row["length_m"])
+	W := h3dNum(row["width_m"])
+	H := h3dNum(row["height_m"])
+	t := h3dNum(row["wall_thickness"])
+	if L <= 0 {
+		L = 100
+	}
+	if W <= 0 {
+		W = 50
+	}
+	if H <= 0 {
+		H = 12
+	}
+	if t <= 0 {
+		t = 0.2
+	}
+
+	doorW := 8.0
+	parts := []h3dBuildingPart{
+		{"bld-floor", "FLOOR", "Lantai Gudang", 0, 0, 0, L, W, 0.1, "#D9D3C7", map[string]any{}},
+		{"bld-wall-back", "WALL", "Dinding Belakang", 0, -W/2 + t/2, 0, L, t, H, "#E8E4DA", map[string]any{"wallThickness": t}},
+		{"bld-wall-front-left", "WALL", "Dinding Depan Kiri", -(L/2 + doorW/2), W/2 - t/2, 0, L - doorW, t, H, "#E8E4DA", map[string]any{"wallThickness": t}},
+		{"bld-wall-front-right", "WALL", "Dinding Depan Kanan", (L/2 + doorW/2), W/2 - t/2, 0, L - doorW, t, H, "#E8E4DA", map[string]any{"wallThickness": t}},
+		{"bld-wall-left", "WALL", "Dinding Kiri", -L/2 + t/2, 0, 0, t, W, H, "#E8E4DA", map[string]any{"wallThickness": t}},
+		{"bld-wall-right", "WALL", "Dinding Kanan", L/2 - t/2, 0, 0, t, W, H, "#E8E4DA", map[string]any{"wallThickness": t}},
+		{"bld-door", "DOOR", "Pintu Utama", 0, W/2 - t/2, 0, doorW, t, 6, "#3F7D8C", map[string]any{}},
+		{"bld-dock", "LOADING_DOCK", "Loading Dock", 0, W/2 - 2.5, 0, 10, 4, 1, "#7A8791", map[string]any{}},
+	}
+
+	i := 0
+	for x := -L/2 + 12; x < L/2-6; x += 18 {
+		i++
+		parts = append(parts, h3dBuildingPart{
+			uid: fmt.Sprintf("bld-window-%02d", i), typ: "WINDOW",
+			name: fmt.Sprintf("Jendela %02d", i), x: x, y: -W/2 + t/2 + 0.1, z: H - 3,
+			l: 6, w: 0.2, h: 2.4, color: "#9CC9D4", config: map[string]any{},
+		})
+	}
+	i = 0
+	for x := -L/2 + 8; x <= L/2-8; x += 16 {
+		for j, z := range []float64{-W/2 + 6, 0, W/2 - 6} {
+			i++
+			parts = append(parts, h3dBuildingPart{
+				uid: fmt.Sprintf("bld-pillar-%02d", i), typ: "PILLAR",
+				name: fmt.Sprintf("Tiang %02d-%d", i, j+1), x: x, y: z, z: 0,
+				l: 0.7, w: 0.7, h: H, color: "#8C9AA3", config: map[string]any{},
+			})
+		}
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+	for _, p := range parts {
+		_, err = tx.Exec(`insert into wh3d_object
+			(layout_id, object_uid, object_type, category, name, label,
+			 position_x, position_y, position_z, length_m, width_m, height_m, rotation, color,
+			 visible, locked, z_index, config)
+			values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18::jsonb)
+			on conflict (layout_id, object_uid) do nothing`,
+			layoutID, p.uid, p.typ, "BUILDING", p.name, p.name,
+			p.x, p.y, p.z, p.l, p.w, p.h, 0, p.color,
+			true, false, 0, h3dJSON(p.config))
+		if err != nil {
+			log.Printf("warehouse3d: seed building %s gagal: %v", p.uid, err)
+			return
+		}
+	}
+	if _, err = tx.Exec(`update wh3d_layout set building_seeded = true where id = $1`, layoutID); err != nil {
+		return
+	}
+	_ = tx.Commit()
+}
+
+func h3dHandleBuildingRegenerate(w http.ResponseWriter, r *http.Request) {
+	lid := h3dID(r, "layoutId")
+	if lid == 0 {
+		_, lid, _ = h3dEnsureDefault()
+	}
+	if _, err := db.Exec(`delete from wh3d_object where layout_id = $1 and category = 'BUILDING'`, lid); err != nil {
+		h3dFail(w, err)
+		return
+	}
+	if _, err := db.Exec(`update wh3d_layout set building_seeded = false where id = $1`, lid); err != nil {
+		h3dFail(w, err)
+		return
+	}
+	h3dSeedBuildingObjects(lid, true)
+	h3dWrite(w, 200, map[string]any{"ok": true, "layoutId": lid})
+}
+
 // ---------------------------------------------------------------- bootstrap
 
 func h3dHandleBootstrap(w http.ResponseWriter, r *http.Request) {
@@ -300,6 +416,7 @@ func h3dHandleBootstrap(w http.ResponseWriter, r *http.Request) {
 	if q := h3dID(r, "layoutId"); q > 0 {
 		lid = q
 	}
+	h3dSeedBuildingObjects(lid, false)
 
 	warehouse := h3dMapRows(h3dRows(`select * from wh3d_warehouse where id = $1`, wid), h3dWarehouseMap)
 	layout := h3dMapRows(h3dRows(`select * from wh3d_layout where id = $1`, lid), h3dLayoutMap)
@@ -1009,6 +1126,8 @@ func handleWarehouse3D(w http.ResponseWriter, r *http.Request) {
 		h3dHandleVersions(w, r)
 	case p == "/restore" && r.Method == http.MethodPost:
 		h3dHandleRestore(w, r)
+	case p == "/building/regenerate" && r.Method == http.MethodPost:
+		h3dHandleBuildingRegenerate(w, r)
 	case p == "/validate":
 		h3dHandleValidate(w, r)
 	case p == "/search":

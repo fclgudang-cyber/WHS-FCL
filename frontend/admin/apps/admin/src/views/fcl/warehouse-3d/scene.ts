@@ -447,62 +447,17 @@ export class Warehouse3DScene {
   }
 
   private buildBuilding(wh: Wh3dWarehouse) {
+    // Komponen bangunan (lantai, dinding, pintu, jendela, tiang, dock) kini
+    // adalah objek layout yang bisa dipilih & dipindah — lihat setLayout().
+    // Di sini hanya grid referensi yang digambar sebagai latar.
     this.clearGroup(this.building);
     const L = num(wh.lengthM) || 100;
     const W = num(wh.widthM) || 50;
-    const H = num(wh.heightM) || 12;
-    const t = num(wh.wallThickness) || 0.2;
-
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(L, W), mat(PALETTE.floor, { roughness: 0.95 }));
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    this.building.add(floor);
-
     const grid = new THREE.GridHelper(Math.max(L, W), Math.round(Math.max(L, W) / 5), PALETTE.floorLine, '#c9c2b5');
-    grid.position.y = 0.02;
-    (grid.material as any).opacity = 0.45;
+    grid.position.y = 0.01;
+    (grid.material as any).opacity = 0.4;
     (grid.material as any).transparent = true;
     this.building.add(grid);
-
-    // Dinding dengan pemotongan pintu di tengah dinding depan
-    const doorW = 8;
-    const segments: Array<[number, number, number, number]> = [
-      [0, -W / 2, L, t],
-      [-(L / 2 + doorW) / 2, W / 2, L - doorW, t],
-      [(L / 2 + doorW) / 2, W / 2, L - doorW, t],
-      [-L / 2, 0, t, W],
-      [L / 2, 0, t, W],
-    ];
-    for (const [x, z, sw, sd] of segments) {
-      const wall = box(sw, H, sd, PALETTE.wall, x, H / 2, z);
-      wall.material = mat(PALETTE.wall, { transparent: true, opacity: 0.42, side: THREE.DoubleSide });
-      this.building.add(wall);
-      const trim = box(sw, 0.35, sd + 0.05, PALETTE.wallTrim, x, 0.18, z);
-      this.building.add(trim);
-    }
-    // Pintu utama
-    const door = box(doorW, 6, 0.3, PALETTE.door, 0, 3, W / 2);
-    door.material = mat(PALETTE.door, { transparent: true, opacity: 0.75 });
-    this.building.add(door);
-    // Jendela
-    for (let x = -L / 2 + 12; x < L / 2 - 6; x += 18) {
-      const win = box(6, 2.4, 0.18, PALETTE.window, x, H - 3, -W / 2 + 0.2);
-      win.material = mat(PALETTE.window, { transparent: true, opacity: 0.6 });
-      this.building.add(win);
-    }
-    // Tiang
-    for (let x = -L / 2 + 8; x <= L / 2 - 8; x += 16) {
-      for (const z of [-W / 2 + 6, 0, W / 2 - 6]) {
-        this.building.add(box(0.7, H, 0.7, PALETTE.pillar, x, H / 2, z));
-        this.building.add(box(1.4, 0.4, 1.4, PALETTE.wallTrim, x, 0.2, z));
-      }
-    }
-    // Rangka atap (tanpa atap solid agar scene tetap terlihat)
-    for (let x = -L / 2 + 8; x <= L / 2 - 8; x += 16) {
-      this.building.add(box(0.35, 0.35, W - 4, PALETTE.wallTrim, x, H - 0.3, 0));
-    }
-    this.building.add(box(L - 4, 0.35, 0.35, PALETTE.wallTrim, 0, H - 0.3, -W / 2 + 4));
-    this.building.add(box(L - 4, 0.35, 0.35, PALETTE.wallTrim, 0, H - 0.3, W / 2 - 4));
   }
 
   setLayout(

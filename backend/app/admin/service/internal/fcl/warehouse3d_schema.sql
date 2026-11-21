@@ -43,8 +43,12 @@ create table if not exists wh3d_layout (
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
   created_by    text,
+  building_seeded boolean not null default false,
   unique (warehouse_id, code)
 );
+
+-- Kompatibilitas database yang sudah ada.
+alter table wh3d_layout add column if not exists building_seeded boolean not null default false;
 
 create table if not exists wh3d_layout_version (
   id           bigserial primary key,

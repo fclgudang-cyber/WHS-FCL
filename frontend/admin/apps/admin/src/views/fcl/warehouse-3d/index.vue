@@ -494,6 +494,27 @@ async function save(draft = true) {
   } finally { saving.value = false; }
 }
 
+async function regenerateBuilding() {
+  if (!data.value) return;
+  await new Promise<void>((resolve) => {
+    Modal.confirm({
+      title: 'Buat ulang bangunan?',
+      content: 'Dinding, pintu, jendela, tiang, lantai dan loading dock akan dibuat ulang sesuai dimensi gudang. Objek lain tidak dihapus.',
+      okText: 'Buat Ulang',
+      cancelText: 'Batal',
+      onOk: () => resolve(),
+      onCancel: () => resolve(),
+    });
+  });
+  try {
+    await warehouse3dApi.regenerateBuilding(data.value.layoutId);
+    await load();
+    message.success('Bangunan dibuat ulang dan bisa langsung dipindah/diedit');
+  } catch (e: any) {
+    notification.error({ message: 'Gagal membuat bangunan', description: e?.message });
+  }
+}
+
 async function validate() {
   try {
     const r = await warehouse3dApi.validate(data.value!.layoutId, data.value!.warehouseId);
@@ -854,6 +875,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="tool-spacer" />
       <div class="tool-group">
+        <a-button size="small" @click="regenerateBuilding">🏗️ Build Ulang</a-button>
         <a-button size="small" @click="validate"><LucideCheck :size="14" /> Validasi</a-button>
         <a-button size="small" :loading="saving" @click="save(true)"><LucideCheck :size="14" /> Save Draft</a-button>
         <a-button size="small" type="primary" @click="publish">⬆ Publish</a-button>
