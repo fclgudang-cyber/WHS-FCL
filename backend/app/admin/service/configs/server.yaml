@@ -23,6 +23,8 @@ server:
         - "http://127.0.0.1:11666"
         - "http://localhost:11667"
         - "http://127.0.0.1:5667"
+        - "http://localhost:8082"
+        - "http://127.0.0.1:8082"
     middleware:
       auth:
         method: "HS256"

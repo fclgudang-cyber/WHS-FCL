@@ -316,7 +316,7 @@ begin
    where name = 'Warehouse - Fitur Gudang' and deleted_at is null limit 1;
   if gid is not null then
     insert into sys_permissions (name, code, group_id, status, description)
-    values ('Warehouse 3D', 'warehouse:warehouse3d', gid, 'ON', 'Warehouse: Digital Twin Warehouse 3D')
+    select 'Warehouse 3D', 'warehouse:warehouse3d', gid, 'ON', 'Warehouse: Digital Twin Warehouse 3D'
     where not exists (select 1 from sys_permissions where code = 'warehouse:warehouse3d');
 
     insert into sys_role_permissions (role_id, permission_id, status, effect)

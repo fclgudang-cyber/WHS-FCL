@@ -8,9 +8,8 @@ export default defineConfig(async () => {
         proxy: {
           '/api': {
             changeOrigin: true,
-            rewrite: (path) => path.replace(/^\/api/, ''),
-            // mock代理目标地址
-            target: 'http://localhost:5320/api',
+            // FCL API berjalan di admin-service port 6905 (lihat docker-compose.yaml)
+            target: 'http://localhost:6905',
             ws: true,
           },
         },
