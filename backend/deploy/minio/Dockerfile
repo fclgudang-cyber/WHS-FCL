@@ -1,7 +1,7 @@
 # MinIO community images were removed from Docker Hub / quay.io after 2025-09,
 # so the official GitHub release binary is downloaded at build time.
-# GitHub can be slow from Indonesia: long timeouts, retries and fallback mirrors
-# are used, with the official sha256 pinned below for integrity.
+# GitHub can be slow from Indonesia: use long timeouts and retries on the
+# official URL only (no third-party proxy), with the sha256 pinned below.
 FROM docker.io/library/alpine:3.22
 
 ARG TARGETARCH
@@ -17,16 +17,9 @@ RUN apk --no-cache add ca-certificates curl && \
     esac && \
     bin="minio.${MINIO_VERSION}.${arch}" && \
     url="https://github.com/minio/minio/releases/download/${MINIO_VERSION}/minio.${arch}.${MINIO_VERSION}" && \
-    for src in \
-      "${url}" \
-      "https://ghproxy.net/${url}" \
-      "https://ghfast.top/${url}" \
-      "https://gh-proxy.com/${url}" \
-    ; do \
-      echo "Downloading MinIO from ${src}" && \
-      curl -fSL --retry 5 --retry-all-errors --retry-delay 3 \
-        --connect-timeout 30 --max-time 900 -o "/tmp/${bin}" "${src}" && break; \
-    done && \
+    echo "Downloading MinIO from ${url}" && \
+    curl -fSL --http1.1 --retry 8 --retry-all-errors --retry-delay 5 \
+      --connect-timeout 60 --max-time 1800 -o "/tmp/${bin}" "${url}" && \
     test -s "/tmp/${bin}" && \
     printf '%s  /tmp/%s\n' "${expected}" "${bin}" | sha256sum -c - && \
     install -m 0755 "/tmp/${bin}" /usr/local/bin/minio && \
