@@ -12,11 +12,18 @@ RUN corepack enable
 ARG VITE_GLOB_API_URL=
 ARG VITE_GLOB_SSE_URL=
 ARG VITE_FCL_URL=
+ARG NPM_REGISTRY=https://registry.npmjs.org/
 
 WORKDIR /app
 
 # copy package.json and pnpm-lock.yaml to workspace
 COPY . /app
+
+# Pakai registry resmi + sedikit ketahanan jaringan untuk deploy di Indonesia.
+RUN pnpm config set registry "$NPM_REGISTRY" \
+ && pnpm config set fetch-timeout 600000 \
+ && pnpm config set fetch-retries 5 \
+ && pnpm config set network-concurrency 8
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN if [ -n "$VITE_GLOB_API_URL" ]; then export VITE_GLOB_API_URL; fi && \
