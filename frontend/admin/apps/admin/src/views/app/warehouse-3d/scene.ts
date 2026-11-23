@@ -143,7 +143,7 @@ export class Warehouse3DScene {
   private buildingWidth = 50;
   private resizeObserver: ResizeObserver | null = null;
   private mode: EditorMode = '3d';
-  private transform: TransformMode = 'select';
+  private transform: TransformMode = 'move';
   private frustum = 60;
   private disposed = false;
 
@@ -258,15 +258,16 @@ export class Warehouse3DScene {
     this.select(uid);
     if (!entry || entry.root.userData.kind === 'EMPLOYEE') return;
 
-    if (this.transform === 'move' || this.transform === 'rotate' || this.transform === 'resize') {
+    // Klik + geser objek selalu memindahkan (mode select diperlakukan sebagai move).
+    if (this.transform === 'move' || this.transform === 'select' || this.transform === 'rotate' || this.transform === 'resize') {
       this.dragging = uid;
-      this.dragMode = this.transform;
+      this.dragMode = this.transform === 'select' ? 'move' : this.transform;
       this.startClient = { x: e.clientX, y: e.clientY };
       this.startRotation = entry.rotation;
       this.startLength = entry.length;
       this.startWidth = entry.width;
       this.controls.enabled = false;
-      if (this.transform === 'move') {
+      if (this.dragMode === 'move') {
         const p = new THREE.Vector3();
         this.raycaster.ray.intersectPlane(this.ground, p);
         this.dragOffset.set(p.x - entry.root.position.x, 0, p.z - entry.root.position.z);

@@ -59,7 +59,7 @@ const versions = ref<any[]>([]);
 const selectedUid = ref<string | null>(null);
 const selectedUids = ref<string[]>([]);
 const mode = ref<EditorMode>('3d');
-const transform = ref<TransformMode>('select');
+const transform = ref<TransformMode>('move');
 const dirty = ref(false);
 const showGrid = ref(true);
 const snapToGrid = ref(true);
@@ -1016,12 +1016,6 @@ onBeforeUnmount(() => {
             </template>
 
             <template v-else>
-              <div class="prop-group-title">POSISI (meter)</div>
-              <div class="prop-grid">
-                <label>X<input type="number" step="0.1" :value="properties.positionX" @change="patchSelected({ positionX: num(($event.target as HTMLInputElement).value) })" /></label>
-                <label>Y<input type="number" step="0.1" :value="properties.positionY" @change="patchSelected({ positionY: num(($event.target as HTMLInputElement).value) })" /></label>
-                <label>Z<input type="number" step="0.1" :value="properties.positionZ" @change="patchSelected({ positionZ: num(($event.target as HTMLInputElement).value) })" /></label>
-              </div>
               <div class="prop-group-title">DIMENSI (meter)</div>
               <div class="prop-grid">
                 <label>Length<input type="number" step="0.1" :value="properties.length" @change="patchSelected({ length: num(($event.target as HTMLInputElement).value) })" /></label>
